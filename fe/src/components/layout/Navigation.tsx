@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useTeam } from '../../contexts/TeamContext';
 
 const Navigation: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { currentTeam, isLoading } = useTeam();
+  const location = useLocation();
 
   const menuItems = [
     { name: '홈', href: '/', icon: '🏠' },
@@ -32,7 +34,7 @@ const Navigation: React.FC = () => {
         <div className="flex justify-between h-16">
           {/* 로고 및 팀명 */}
           <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center">
+            <Link to="/" className="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity">
               {currentTeam?.logoUrl ? (
                 <img 
                   className="h-10 w-10 rounded-full object-cover" 
@@ -52,20 +54,24 @@ const Navigation: React.FC = () => {
                   <p className="text-xs text-gray-500">{currentTeam.description}</p>
                 )}
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* 데스크톱 메뉴 */}
           <div className="hidden md:flex md:items-center md:space-x-8">
             {menuItems.map((item) => (
-              <a
+              <Link
                 key={item.name}
-                href={item.href}
-                className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
+                to={item.href}
+                className={`flex items-center space-x-2 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium ${
+                  location.pathname === item.href 
+                    ? 'text-primary-600 bg-primary-50' 
+                    : 'text-gray-700 hover:text-primary-600'
+                }`}
               >
                 <span>{item.icon}</span>
                 <span>{item.name}</span>
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -96,15 +102,19 @@ const Navigation: React.FC = () => {
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t">
             {menuItems.map((item) => (
-              <a
+              <Link
                 key={item.name}
-                href={item.href}
-                className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 hover:bg-gray-50 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                to={item.href}
+                className={`flex items-center space-x-3 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                  location.pathname === item.href 
+                    ? 'text-primary-600 bg-primary-50' 
+                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                }`}
                 onClick={() => setIsOpen(false)}
               >
                 <span className="text-lg">{item.icon}</span>
                 <span>{item.name}</span>
-              </a>
+              </Link>
             ))}
           </div>
         </div>
