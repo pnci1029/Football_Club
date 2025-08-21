@@ -39,7 +39,7 @@ class AdminTeamControllerTest {
         
         given(teamService.findAllTeams(any())).willReturn(page)
 
-        mockMvc.perform(get("/api/v1/admin/teams")
+        mockMvc.perform(get("/api/admin/teams")
                 .param("page", "0")
                 .param("size", "10"))
             .andExpect(status().isOk)
@@ -54,7 +54,7 @@ class AdminTeamControllerTest {
         
         given(teamService.createTeam(request)).willReturn(teamDto)
 
-        mockMvc.perform(post("/api/v1/admin/teams")
+        mockMvc.perform(post("/api/admin/teams")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isCreated)
@@ -68,7 +68,7 @@ class AdminTeamControllerTest {
         
         given(teamService.findTeamById(1L)).willReturn(teamDto)
 
-        mockMvc.perform(get("/api/v1/admin/teams/1"))
+        mockMvc.perform(get("/api/admin/teams/1"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.name").value("Test Team"))
@@ -78,7 +78,7 @@ class AdminTeamControllerTest {
     fun `getTeam should return 404 when not found`() {
         given(teamService.findTeamById(1L)).willReturn(null)
 
-        mockMvc.perform(get("/api/v1/admin/teams/1"))
+        mockMvc.perform(get("/api/admin/teams/1"))
             .andExpect(status().isNotFound)
     }
 
@@ -89,7 +89,7 @@ class AdminTeamControllerTest {
         
         given(teamService.updateTeam(1L, request)).willReturn(teamDto)
 
-        mockMvc.perform(put("/api/v1/admin/teams/1")
+        mockMvc.perform(put("/api/admin/teams/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk)
@@ -101,7 +101,7 @@ class AdminTeamControllerTest {
     fun `deleteTeam should delete team`() {
         // No need to mock void method for this test
 
-        mockMvc.perform(delete("/api/v1/admin/teams/1"))
+        mockMvc.perform(delete("/api/admin/teams/1"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data").value("Team deleted successfully"))
@@ -113,7 +113,7 @@ class AdminTeamControllerTest {
         
         given(teamService.findTeamByCode("TT")).willReturn(teamDto)
 
-        mockMvc.perform(get("/api/v1/admin/teams/code/TT"))
+        mockMvc.perform(get("/api/admin/teams/code/TT"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.code").value("TT"))
@@ -123,7 +123,7 @@ class AdminTeamControllerTest {
     fun `getTeamByCode should return 404 when not found`() {
         given(teamService.findTeamByCode("XX")).willReturn(null)
 
-        mockMvc.perform(get("/api/v1/admin/teams/code/XX"))
+        mockMvc.perform(get("/api/admin/teams/code/XX"))
             .andExpect(status().isNotFound)
     }
 }

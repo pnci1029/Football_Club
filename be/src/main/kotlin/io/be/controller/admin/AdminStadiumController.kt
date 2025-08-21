@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/v1/admin/stadiums")
+@RequestMapping("/v1/admin/stadiums")
 @CrossOrigin(origins = ["*"])
 class AdminStadiumController(
     private val stadiumService: StadiumService

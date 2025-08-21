@@ -39,7 +39,7 @@ class AdminStadiumControllerTest {
         
         given(stadiumService.createStadium(request)).willReturn(stadiumDto)
 
-        mockMvc.perform(post("/api/v1/admin/stadiums")
+        mockMvc.perform(post("/api/admin/stadiums")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isCreated)
@@ -54,7 +54,7 @@ class AdminStadiumControllerTest {
         
         given(stadiumService.updateStadium(1L, request)).willReturn(stadiumDto)
 
-        mockMvc.perform(put("/api/v1/admin/stadiums/1")
+        mockMvc.perform(put("/api/admin/stadiums/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk)
@@ -66,7 +66,7 @@ class AdminStadiumControllerTest {
     fun `deleteStadium should delete stadium`() {
         // No need to mock void method for this test
 
-        mockMvc.perform(delete("/api/v1/admin/stadiums/1"))
+        mockMvc.perform(delete("/api/admin/stadiums/1"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data").value("Stadium deleted successfully"))
@@ -79,7 +79,7 @@ class AdminStadiumControllerTest {
         
         given(stadiumService.findAllStadiums(any())).willReturn(page)
 
-        mockMvc.perform(get("/api/v1/admin/stadiums")
+        mockMvc.perform(get("/api/admin/stadiums")
                 .param("page", "0")
                 .param("size", "10"))
             .andExpect(status().isOk)

@@ -39,7 +39,7 @@ class AdminPlayerControllerTest {
         
         given(playerService.findPlayersByTeam(1L, PageRequest.of(0, 10))).willReturn(page)
 
-        mockMvc.perform(get("/api/v1/admin/players")
+        mockMvc.perform(get("/api/admin/players")
                 .param("teamId", "1")
                 .param("page", "0")
                 .param("size", "10"))
@@ -50,7 +50,7 @@ class AdminPlayerControllerTest {
 
     @Test
     fun `getAllPlayers should return error when teamId is missing`() {
-        mockMvc.perform(get("/api/v1/admin/players")
+        mockMvc.perform(get("/api/admin/players")
                 .param("page", "0")
                 .param("size", "10"))
             .andExpect(status().isBadRequest)
@@ -65,7 +65,7 @@ class AdminPlayerControllerTest {
         
         given(playerService.createPlayer(1L, request)).willReturn(playerDto)
 
-        mockMvc.perform(post("/api/v1/admin/players")
+        mockMvc.perform(post("/api/admin/players")
                 .param("teamId", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -80,7 +80,7 @@ class AdminPlayerControllerTest {
         
         given(playerService.findPlayerById(1L)).willReturn(playerDto)
 
-        mockMvc.perform(get("/api/v1/admin/players/1"))
+        mockMvc.perform(get("/api/admin/players/1"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.name").value("Test Player"))
@@ -90,7 +90,7 @@ class AdminPlayerControllerTest {
     fun `getPlayer should return 404 when not found`() {
         given(playerService.findPlayerById(1L)).willReturn(null)
 
-        mockMvc.perform(get("/api/v1/admin/players/1"))
+        mockMvc.perform(get("/api/admin/players/1"))
             .andExpect(status().isNotFound)
     }
 
@@ -101,7 +101,7 @@ class AdminPlayerControllerTest {
         
         given(playerService.updatePlayer(1L, request)).willReturn(playerDto)
 
-        mockMvc.perform(put("/api/v1/admin/players/1")
+        mockMvc.perform(put("/api/admin/players/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk)
@@ -113,7 +113,7 @@ class AdminPlayerControllerTest {
     fun `deletePlayer should delete player`() {
         // No need to mock void method for this test
 
-        mockMvc.perform(delete("/api/v1/admin/players/1"))
+        mockMvc.perform(delete("/api/admin/players/1"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data").value("Player deleted successfully"))
