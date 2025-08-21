@@ -44,7 +44,7 @@ const Stadiums: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
-          <button 
+          <button
             onClick={refetch}
             className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700"
           >
@@ -70,12 +70,12 @@ const Stadiums: React.FC = () => {
             const images = parseImageUrls(stadium.imageUrls);
             const facilities = parseFacilities(stadium.facilities);
             return (
-            <Card 
-              key={stadium.id} 
-              hover 
-              padding="none"
-              onClick={() => setSelectedStadium(stadium)}
-            >
+              <Card
+                key={stadium.id}
+                hover
+                padding="none"
+                onClick={() => setSelectedStadium(stadium)}
+              >
               <div className="relative">
                 <img
                   src={images[0] || 'https://via.placeholder.com/800x600/e5e7eb/9ca3af?text=경기장'}
@@ -128,13 +128,14 @@ const Stadiums: React.FC = () => {
                   </div>
                 )}
               </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       ) : (
         <div className="max-w-4xl mx-auto">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => setSelectedStadium(null)}
             leftIcon={
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
