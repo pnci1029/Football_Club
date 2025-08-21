@@ -262,60 +262,17 @@ class UserServiceTest {
 ```
 
 ### 통합 테스트
-```kotlin
-@SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@TestPropertySource(locations = ["classpath:application-test.properties"])
-class UserControllerIntegrationTest {
-    
-    @Autowired
-    lateinit var mockMvc: MockMvc
-    
-    @Test
-    fun `사용자 목록 조회`() {
-        mockMvc.get("/api/v1/users")
-            .andExpect(status().isOk)
-            .andExpected(jsonPath("$.success").value(true))
-    }
-}
-```
+- `@SpringBootTest` 활용
+- MockMvc를 통한 API 테스트
+- 테스트 전용 설정 파일 사용
 
 ## 보안 고려사항
-
-### 입력 검증
-```kotlin
-data class CreateUserRequest(
-    @field:NotBlank(message = "이름은 필수입니다")
-    @field:Size(min = 2, max = 50, message = "이름은 2-50자 사이여야 합니다")
-    val name: String,
-    
-    @field:NotBlank(message = "이메일은 필수입니다")
-    @field:Email(message = "올바른 이메일 형식이 아닙니다")
-    val email: String
-)
-```
-
-### CORS 설정
-```kotlin
-@Configuration
-class WebConfig : WebMvcConfigurer {
-    
-    override fun addCorsMappings(registry: CorsRegistry) {
-        registry.addMapping("/api/**")
-            .allowedOrigins("http://localhost:3000")
-            .allowedMethods("GET", "POST", "PUT", "DELETE")
-            .allowCredentials(true)
-    }
-}
-```
+축구 동호회 특화 보안 설정 예시는 다음 경로를 참조:
+- `be/src/main/kotlin/io/be/config/SecurityConfig.kt`
+- `be/src/main/kotlin/io/be/config/WebConfig.kt`
 
 ## 성능 최적화
-
-### JPA N+1 문제 해결
-```kotlin
-@Query("SELECT u FROM User u LEFT JOIN FETCH u.orders WHERE u.id = :id")
-fun findUserWithOrders(@Param("id") id: Long): User?
-```
+축구 동호회 특화 성능 최적화 예시는 기존 코드베이스의 JPA 설정을 참조하세요.
 
 ### 축구 동호회 특화 백엔드 기능
 
@@ -336,9 +293,108 @@ fun findUserWithOrders(@Param("id") id: Long): User?
 3. **구장 정보 관리**: 위치정보, 시설정보, 요금정보 포함
 4. **API 응답 표준화**: 일관된 응답 형식 제공
 
-#### 개발 환경 설정
+##### 백엔드 개발 워크플로우 (작업순서)
+
+### 1단계: 프로젝트 설정 및 환경 구성
+1. **Kotlin + Spring Boot 프로젝트 초기화**
+   - Gradle (Kotlin DSL) 설정
+   - 필요 의존성 추가 (Spring Web, JPA, H2/MySQL 등)
+   - application.properties 기본 설정
+
+2. **패키지 구조 생성**
+   ```
+   io.be/
+   ├── config/          # 설정 클래스들
+   ├── controller/      # REST 컨트롤러
+   ├── service/         # 비즈니스 로직
+   ├── repository/      # 데이터 접근 계층
+   ├── entity/          # JPA 엔티티
+   ├── dto/             # 데이터 전송 객체
+   ├── exception/       # 예외 처리
+   └── util/           # 유틸리티
+   ```
+
+### 2단계: 핵심 엔티티 및 데이터 모델 구현
+1. **엔티티 설계 및 구현**
+   - `Team.kt` - 팀 정보 엔티티
+   - `Player.kt` - 선수 정보 엔티티
+   - `Stadium.kt` - 구장 정보 엔티티
+   - `Match.kt` - 경기 정보 엔티티
+
+2. **Repository 인터페이스 생성**
+   - Spring Data JPA 활용
+   - 커스텀 쿼리 메서드 정의
+
+### 3단계: 서브도메인 및 멀티테넌시 구현
+1. **서브도메인 처리 로직**
+   - `SubdomainConfig.kt` - 서브도메인 라우팅
+   - `SubdomainService.kt` - 팀별 데이터 분리
+
+2. **팀별 데이터 격리**
+   - JPA에서 팀별 데이터 필터링
+   - 서브도메인 기반 자동 팀 식별
+
+### 4단계: API 컨트롤러 구현 (우선순위별)
+1. **최우선: 선수 관리 API**
+   - `PlayerController.kt` - 공개 API
+   - `AdminPlayerController.kt` - 관리자 API
+   - 선수 CRUD, 이미지 업로드
+
+2. **중우선: 구장 정보 API**
+   - `StadiumController.kt` - 구장 정보 조회
+   - 위치정보, 시설정보 제공
+
+3. **저우선: 경기 관리 API**
+   - `MatchController.kt` - 경기 일정 관리
+   - 대결 신청, 예약 시스템
+
+### 5단계: 보안 및 인증 구현
+1. **관리자 인증 시스템**
+   - `SecurityConfig.kt` - Spring Security 설정
+   - JWT 토큰 기반 인증 (선택사항)
+
+2. **CORS 및 도메인 설정**
+   - `WebConfig.kt` - CORS 허용 설정
+   - 프론트엔드와의 통신 허용
+
+### 6단계: 파일 업로드 및 이미지 처리
+1. **선수 이미지 업로드**
+   - 파일 업로드 컨트롤러
+   - 이미지 최적화 및 저장
+
+2. **정적 파일 서빙**
+   - 업로드된 이미지 서빙 설정
+
+### 7단계: API 응답 표준화 및 예외 처리
+1. **ApiResponse 유틸리티**
+   - 일관된 API 응답 형식
+   - 성공/실패 응답 표준화
+
+2. **전역 예외 처리**
+   - `GlobalExceptionHandler` 구현
+   - 사용자 친화적 에러 메시지
+
+### 8단계: 테스트 및 검증
+1. **단위 테스트**
+   - Service 계층 테스트
+   - Repository 테스트
+
+2. **통합 테스트**
+   - API 엔드포인트 테스트
+   - 서브도메인 처리 테스트
+
+### 9단계: 성능 최적화 및 배포 준비
+1. **성능 최적화**
+   - JPA N+1 문제 해결
+   - 쿼리 최적화
+
+2. **배포 설정**
+   - 프로덕션 application.properties
+   - 도커 컨테이너화 (선택사항)
+
+### 개발 환경 설정 참고
 ```properties
-# application.properties 참조
+# application.properties 기본 설정
 server.port=8080
 server.servlet.context-path=/api
 
