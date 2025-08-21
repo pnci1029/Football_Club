@@ -1,7 +1,9 @@
 import React from 'react';
-import { dummyPlayers, Player } from '../data/players';
+import { usePlayers } from '../hooks/usePlayers';
+import { PlayerDto } from '../types/player';
+import { LoadingSpinner } from '../components/common';
 
-const getPositionColor = (position: Player['position']) => {
+const getPositionColor = (position: string) => {
   switch (position) {
     case 'GK':
       return 'bg-position-gk text-white';
@@ -16,7 +18,7 @@ const getPositionColor = (position: Player['position']) => {
   }
 };
 
-const getPositionName = (position: Player['position']) => {
+const getPositionName = (position: string) => {
   switch (position) {
     case 'GK':
       return '골키퍼';
@@ -32,6 +34,36 @@ const getPositionName = (position: Player['position']) => {
 };
 
 const Players: React.FC = () => {
+  const { data: playersPage, loading, error, refetch } = usePlayers(0, 20);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center h-64">
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={refetch}
+            className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700"
+          >
+            다시 시도
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const players = playersPage?.content || [];
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -40,14 +72,14 @@ const Players: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {dummyPlayers.map((player) => (
+        {players.map((player: PlayerDto) => (
           <div
             key={player.id}
             className="bg-white rounded-lg shadow-card overflow-hidden hover:shadow-lg transition-shadow duration-300"
           >
             <div className="relative">
               <img
-                src={player.photo}
+                src={player.profileImageUrl || `https://via.placeholder.com/400x400/e5e7eb/9ca3af?text=${player.name.charAt(0)}`}
                 alt={player.name}
                 className="w-full h-64 object-cover"
                 onError={(e) => {
@@ -55,50 +87,34 @@ const Players: React.FC = () => {
                   target.src = 'https://via.placeholder.com/400x400/e5e7eb/9ca3af?text=' + player.name.charAt(0);
                 }}
               />
-              <div className="absolute top-4 left-4">
-                <span className="bg-white text-gray-900 px-3 py-1 rounded-full text-sm font-bold">
-                  #{player.jerseyNumber}
-                </span>
-              </div>
+              {player.backNumber && (
+                <div className="absolute top-4 left-4">
+                  <span className="bg-white text-gray-900 px-3 py-1 rounded-full text-sm font-bold">
+                    #{player.backNumber}
+                  </span>
+                </div>
+              )}
               <div className="absolute top-4 right-4">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPositionColor(player.position)}`}>
                   {getPositionName(player.position)}
                 </span>
               </div>
+              {!player.isActive && (
+                <div className="absolute bottom-4 left-4">
+                  <span className="bg-red-600 text-white px-2 py-1 rounded text-xs">
+                    비활성
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="p-4">
               <div className="mb-3">
                 <h3 className="text-xl font-bold text-gray-900 mb-1">{player.name}</h3>
                 <div className="flex items-center text-sm text-gray-600">
-                  <span>{player.age}세</span>
-                  <span className="mx-2">•</span>
-                  <span>{player.nationality}</span>
+                  <span>{player.teamName}</span>
                 </div>
               </div>
-
-              {player.stats && (
-                <div className="space-y-2">
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">경기</span>
-                      <span className="font-medium">{player.stats.matchesPlayed}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">골</span>
-                      <span className="font-medium text-green-600">{player.stats.goals || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">도움</span>
-                      <span className="font-medium text-blue-600">{player.stats.assists || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">경고</span>
-                      <span className="font-medium text-yellow-600">{player.stats.yellowCards || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         ))}

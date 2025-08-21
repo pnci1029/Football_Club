@@ -23,12 +23,17 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     runtimeOnly("com.h2database:h2")
     runtimeOnly("com.mysql:mysql-connector-j")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    testImplementation("com.ninja-squad:springmockk:4.0.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

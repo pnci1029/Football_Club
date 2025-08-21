@@ -27,3 +27,15 @@ export interface CreatePlayerRequest {
   backNumber?: number;
   teamId: string;
 }
+
+// API 응답용 타입
+export interface PlayerDto {
+  id: number;
+  name: string;
+  position: string;
+  profileImageUrl?: string;
+  backNumber?: number;
+  teamId: number;
+  teamName: string;
+  isActive: boolean;
+}
