@@ -108,11 +108,24 @@ logging.level.io.be=DEBUG
 logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n
 ```
 
+## API 경로 규칙
+
+모든 백엔드 API는 반드시 `/api` 접두사로 시작해야 합니다.
+
+**경로 구조:**
+- 공개 API: `/api/v1/{resource}` (예: `/api/v1/players`, `/api/v1/stadiums`)
+- 관리자 API: `/api/admin/{resource}` (예: `/api/admin/players`, `/api/admin/teams`)
+- context-path가 `/api`로 설정되어 있으므로 실제 접근 경로는 자동으로 `/api`가 접두사로 붙습니다.
+
+**컨트롤러에서의 @RequestMapping:**
+- 공개 API: `@RequestMapping("/v1/players")` → 실제 경로: `/api/v1/players`
+- 관리자 API: `@RequestMapping("/admin/players")` → 실제 경로: `/api/admin/players`
+
 ## Controller 패턴
 
 ```kotlin
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/v1/users")  // context-path /api가 자동 추가되어 /api/v1/users가 됨
 @Validated
 class UserController(
     private val userService: UserService
