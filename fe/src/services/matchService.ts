@@ -14,7 +14,7 @@ export class MatchService {
     }
 
     const response = await apiClient.get<ApiResponse<PageResponse<Match>>>(
-      `/v1/matches?${params.toString()}`
+      `/api/v1/matches?${params.toString()}`
     );
     
     if (!response.success || !response.data) {
@@ -25,7 +25,7 @@ export class MatchService {
   }
 
   async getMatch(id: number): Promise<Match> {
-    const response = await apiClient.get<ApiResponse<Match>>(`/v1/matches/${id}`);
+    const response = await apiClient.get<ApiResponse<Match>>(`/api/v1/matches/${id}`);
     
     if (!response.success || !response.data) {
       throw new Error(response.error?.message || '경기 정보를 불러오는데 실패했습니다');
@@ -45,7 +45,7 @@ export class MatchService {
     }
 
     const response = await apiClient.get<ApiResponse<PageResponse<Match>>>(
-      `/v1/matches/team/${teamId}?${params.toString()}`
+      `/api/v1/matches/team/${teamId}?${params.toString()}`
     );
     
     if (!response.success || !response.data) {
@@ -56,7 +56,7 @@ export class MatchService {
   }
 
   async getUpcomingMatches(teamId: number): Promise<Match[]> {
-    const response = await apiClient.get<ApiResponse<Match[]>>(`/v1/matches/team/${teamId}/upcoming`);
+    const response = await apiClient.get<ApiResponse<Match[]>>(`/api/v1/matches/team/${teamId}/upcoming`);
     
     if (!response.success || !response.data) {
       throw new Error(response.error?.message || '예정된 경기 목록을 불러오는데 실패했습니다');
