@@ -66,15 +66,24 @@ class SubdomainResolver {
     }
     
     fun extractTeamFromHost(host: String): String? {
+        // 로컬 테스트용 .local 도메인 처리
+        if (host.endsWith(".football-club.local")) {
+            val teamCode = host.substringBefore(".football-club.local")
+            if (teamCode != "football-club" && teamCode.isNotEmpty()) {
+                return teamCode
+            }
+        }
+        
+        // 프로덕션용 .footballclub.com 처리
         val matcher = TEAM_PATTERN.matcher(host)
         return if (matcher.matches()) matcher.group(1) else null
     }
     
     fun isAdminSubdomain(host: String): Boolean {
-        return host.startsWith(ADMIN_PREFIX)
+        return host.startsWith(ADMIN_PREFIX) || host.startsWith("admin.football-club.local")
     }
     
     fun isLocalhost(host: String): Boolean {
-        return host.contains("localhost") || host.contains("127.0.0.1")
+        return host.contains("localhost") || host.contains("127.0.0.1") || host.endsWith(".local")
     }
 }

@@ -19,7 +19,7 @@ class WebConfig(
             .allowedOriginPatterns("*")
             .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             .allowedHeaders("*")
-            .allowCredentials(true)
+            .allowCredentials(false)
             .maxAge(3600)
     }
 
@@ -38,8 +38,14 @@ class WebConfig(
             handler: Any
         ): Boolean {
             val teamCode = subdomainService.extractTeamCodeFromRequest(request)
-            
-            if (teamCode == null) {
+
+            // 개발 환경에서는 팀 코드가 없어도 허용
+            val host = request.getHeader("X-Forwarded-Host")
+                ?: request.getHeader("Host")
+                ?: request.serverName
+            val isLocalhost = host.contains("localhost") || host.contains("127.0.0.1")
+
+            if (teamCode == null && !isLocalhost) {
                 response.status = HttpServletResponse.SC_BAD_REQUEST
                 response.contentType = "application/json"
                 response.writer.write("""
@@ -51,10 +57,10 @@ class WebConfig(
                 """.trimIndent())
                 return false
             }
-            
+
             // 요청에 팀 코드 추가 (컨트롤러에서 사용 가능)
             request.setAttribute("teamCode", teamCode)
-            
+
             return true
         }
     }
