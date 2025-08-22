@@ -1,4 +1,4 @@
-package io.be.controller
+package io.be.controller.public
 
 import io.be.dto.CreateMatchRequest
 import io.be.dto.MatchDto

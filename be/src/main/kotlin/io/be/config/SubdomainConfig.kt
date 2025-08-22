@@ -1,7 +1,61 @@
 package io.be.config
 
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 import java.util.regex.Pattern
+
+@Configuration
+@EnableConfigurationProperties(SubdomainProperties::class)
+class SubdomainConfig
+
+@ConfigurationProperties(prefix = "app.subdomain")
+data class SubdomainProperties(
+    val enabled: Boolean = true,
+    val pattern: String = "{team}.footballclub.com"
+) {
+    fun extractTeamCodeFromHost(host: String): String? {
+        if (!enabled) return null
+        
+        // 로컬 개발 환경 처리
+        if (host.startsWith("localhost") || host.startsWith("127.0.0.1")) {
+            return extractFromLocalhost(host)
+        }
+        
+        // 프로덕션 환경 처리
+        val regex = pattern.replace("{team}", "([a-zA-Z0-9-]+)")
+            .replace(".", "\\.")
+            .toRegex()
+            
+        val matchResult = regex.find(host)
+        return matchResult?.groupValues?.get(1)
+    }
+    
+    private fun extractFromLocalhost(host: String): String? {
+        // localhost:3000?team=teamA 형식에서 추출
+        val teamParam = host.substringAfter("team=", "")
+        if (teamParam.isNotEmpty()) {
+            return teamParam.substringBefore("&").substringBefore("#")
+        }
+        
+        // team-a.localhost:3000 형식에서 추출
+        val parts = host.split(".")
+        if (parts.size > 1 && parts[0] != "localhost") {
+            return parts[0]
+        }
+        
+        return null
+    }
+    
+    fun isAdminSubdomain(host: String): Boolean {
+        return host.startsWith("admin.") || host.contains("admin")
+    }
+    
+    fun getTeamSubdomainUrl(teamCode: String): String {
+        return pattern.replace("{team}", teamCode)
+    }
+}
 
 @Component
 class SubdomainResolver {

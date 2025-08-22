@@ -48,8 +48,8 @@ app:
     path: /uploads/players
 
 # 로깅 설정
-logging:
-  level:
-    io.be: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+#logging:
+#  level:
+#    io.be: DEBUG
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

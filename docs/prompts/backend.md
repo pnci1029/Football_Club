@@ -308,102 +308,170 @@ class UserServiceTest {
 
 ##### 백엔드 개발 워크플로우 (작업순서)
 
-### 1단계: 프로젝트 설정 및 환경 구성
-1. **Kotlin + Spring Boot 프로젝트 초기화**
-   - Gradle (Kotlin DSL) 설정
-   - 필요 의존성 추가 (Spring Web, JPA, H2/MySQL 등)
-   - application.properties 기본 설정
-
-2. **패키지 구조 생성**
-   ```
-   io.be/
-   ├── config/          # 설정 클래스들
-   ├── controller/      # REST 컨트롤러
-   ├── service/         # 비즈니스 로직
-   ├── repository/      # 데이터 접근 계층
-   ├── entity/          # JPA 엔티티
-   ├── dto/             # 데이터 전송 객체
-   ├── exception/       # 예외 처리
-   └── util/           # 유틸리티
-   ```
-
-### 2단계: 핵심 엔티티 및 데이터 모델 구현
-1. **엔티티 설계 및 구현**
-   - `Team.kt` - 팀 정보 엔티티
-   - `Player.kt` - 선수 정보 엔티티
-   - `Stadium.kt` - 구장 정보 엔티티
-   - `Match.kt` - 경기 정보 엔티티
-
-2. **Repository 인터페이스 생성**
-   - Spring Data JPA 활용
-   - 커스텀 쿼리 메서드 정의
-
-### 3단계: 서브도메인 및 멀티테넌시 구현
-1. **서브도메인 처리 로직**
-   - `SubdomainConfig.kt` - 서브도메인 라우팅
-   - `SubdomainService.kt` - 팀별 데이터 분리
-
-2. **팀별 데이터 격리**
-   - JPA에서 팀별 데이터 필터링
+### 🎯 1단계: 핵심 컨트롤러 구현 ✅ **완료**
+1. **TeamController.kt** - 팀별 서브도메인 컨트롤러 ✅
+   - 팀 정보 조회 API (`/v1/team/info`)
+   - 팀별 선수/경기/구장 조회 API (스텁 구현)
    - 서브도메인 기반 자동 팀 식별
 
-### 4단계: API 컨트롤러 구현 (우선순위별)
-1. **최우선: 선수 관리 API**
-   - `PlayerController.kt` - 공개 API
-   - `AdminPlayerController.kt` - 관리자 API
-   - 선수 CRUD, 이미지 업로드
+2. **MatchController.kt를 public 패키지로 이동** ✅
+   - `be/src/main/kotlin/io/be/controller/MatchController.kt` → `be/src/main/kotlin/io/be/controller/public/MatchController.kt`
+   - 패키지 경로 수정
 
-2. **중우선: 구장 정보 API**
-   - `StadiumController.kt` - 구장 정보 조회
-   - 위치정보, 시설정보 제공
+### 🔒 2단계: 보안 및 설정 인프라 ✅ **완료**
+1. **SecurityConfig.kt** - 관리자 인증 설정 ✅
+   - Spring Security 설정 확장
+   - CORS 설정 통합
+   - H2 콘솔 허용 (개발용)
+   - 관리자 API 보안 설정
 
-3. **저우선: 경기 관리 API**
-   - `MatchController.kt` - 경기 일정 관리
-   - 대결 신청, 예약 시스템
+2. **WebConfig.kt** - CORS, 멀티테넌트 설정 ✅
+   - 서브도메인 인터셉터 추가
+   - CORS 정책 확장
+   - 팀별 요청 검증 로직
 
-### 5단계: 보안 및 인증 구현
-1. **관리자 인증 시스템**
-   - `SecurityConfig.kt` - Spring Security 설정
-   - JWT 토큰 기반 인증 (선택사항)
+3. **SubdomainConfig.kt** - 서브도메인 라우팅 설정 ✅
+   - Configuration Properties 추가
+   - 로컬/프로덕션 환경별 서브도메인 처리
+   - 기존 SubdomainResolver와 통합
 
-2. **CORS 및 도메인 설정**
-   - `WebConfig.kt` - CORS 허용 설정
-   - 프론트엔드와의 통신 허용
+### 🚨 3단계: 예외 처리 시스템 📋 **다음 작업**
+1. **CustomExceptions.kt** 구현 필요
+   ```kotlin
+   // 팀 관련 예외
+   class TeamNotFoundException(id: Long) : RuntimeException("Team not found with id: $id")
+   class TeamCodeAlreadyExistsException(code: String) : RuntimeException("Team code already exists: $code")
+   
+   // 선수 관련 예외
+   class PlayerNotFoundException(id: Long) : RuntimeException("Player not found with id: $id")
+   class PlayerAlreadyExistsException(name: String, teamId: Long) : RuntimeException("Player already exists: $name in team $teamId")
+   
+   // 구장 관련 예외
+   class StadiumNotFoundException(id: Long) : RuntimeException("Stadium not found with id: $id")
+   class StadiumBookingConflictException(message: String) : RuntimeException(message)
+   
+   // 경기 관련 예외
+   class MatchNotFoundException(id: Long) : RuntimeException("Match not found with id: $id")
+   class InvalidMatchStatusException(message: String) : RuntimeException(message)
+   
+   // 서브도메인 관련 예외
+   class InvalidSubdomainException(subdomain: String) : RuntimeException("Invalid subdomain: $subdomain")
+   class SubdomainAccessDeniedException(message: String) : RuntimeException(message)
+   
+   // 파일 업로드 관련 예외
+   class FileUploadException(message: String) : RuntimeException(message)
+   class UnsupportedFileTypeException(fileType: String) : RuntimeException("Unsupported file type: $fileType")
+   ```
 
-### 6단계: 파일 업로드 및 이미지 처리
-1. **선수 이미지 업로드**
-   - 파일 업로드 컨트롤러
+2. **GlobalExceptionHandler.kt** 구현 필요
+   ```kotlin
+   @RestControllerAdvice
+   class GlobalExceptionHandler {
+       
+       // 팀 관련 예외 처리
+       @ExceptionHandler(TeamNotFoundException::class)
+       fun handleTeamNotFound(ex: TeamNotFoundException): ResponseEntity<ApiResponse<Nothing>>
+       
+       // 선수 관련 예외 처리
+       @ExceptionHandler(PlayerNotFoundException::class)
+       fun handlePlayerNotFound(ex: PlayerNotFoundException): ResponseEntity<ApiResponse<Nothing>>
+       
+       // 구장 관련 예외 처리
+       @ExceptionHandler(StadiumNotFoundException::class)
+       fun handleStadiumNotFound(ex: StadiumNotFoundException): ResponseEntity<ApiResponse<Nothing>>
+       
+       // 경기 관련 예외 처리
+       @ExceptionHandler(MatchNotFoundException::class)
+       fun handleMatchNotFound(ex: MatchNotFoundException): ResponseEntity<ApiResponse<Nothing>>
+       
+       // 서브도메인 관련 예외 처리
+       @ExceptionHandler(InvalidSubdomainException::class)
+       fun handleInvalidSubdomain(ex: InvalidSubdomainException): ResponseEntity<ApiResponse<Nothing>>
+       
+       // 파일 업로드 관련 예외 처리
+       @ExceptionHandler(FileUploadException::class)
+       fun handleFileUpload(ex: FileUploadException): ResponseEntity<ApiResponse<Nothing>>
+       
+       // Spring Validation 예외 처리
+       @ExceptionHandler(MethodArgumentNotValidException::class)
+       fun handleValidation(ex: MethodArgumentNotValidException): ResponseEntity<ApiResponse<Nothing>>
+       
+       // 일반 예외 처리
+       @ExceptionHandler(Exception::class)
+       fun handleGeneral(ex: Exception): ResponseEntity<ApiResponse<Nothing>>
+   }
+   ```
+
+### 🛠️ 4단계: 유틸리티 및 API 표준화 📋 **다음 작업**
+1. **ApiResponse.kt** 구현 필요
+   ```kotlin
+   data class ApiResponse<T>(
+       val success: Boolean,
+       val data: T? = null,
+       val errorCode: String? = null,
+       val message: String? = null,
+       val timestamp: String = LocalDateTime.now().toString()
+   ) {
+       companion object {
+           fun <T> success(data: T): ApiResponse<T> = ApiResponse(true, data)
+           
+           fun <T> error(errorCode: String, message: String?): ApiResponse<T> = 
+               ApiResponse(false, null, errorCode, message)
+               
+           fun <T> error(message: String): ApiResponse<T> = 
+               ApiResponse(false, null, "INTERNAL_ERROR", message)
+       }
+   }
+   ```
+
+### 📁 5단계: 파일 업로드 시스템 📋 **다음 작업**
+1. **FileUploadController.kt** 구현 필요
+   - 선수 이미지 업로드 API (`/v1/upload/player-image`)
+   - 팀 로고 업로드 API (`/v1/upload/team-logo`)
+   - 파일 크기/형식 검증
    - 이미지 최적화 및 저장
 
-2. **정적 파일 서빙**
-   - 업로드된 이미지 서빙 설정
+2. **FileService.kt** 구현 필요
+   - 파일 저장 로직
+   - 이미지 리사이징
+   - 파일 삭제 기능
+   - 정적 파일 서빙 설정
 
-### 7단계: API 응답 표준화 및 예외 처리
-1. **ApiResponse 유틸리티**
-   - 일관된 API 응답 형식
-   - 성공/실패 응답 표준화
+### 🔧 6단계: 고급 기능 및 최적화 📋 **다음 작업**
+1. **JWT 토큰 기반 인증 시스템** (선택사항)
+   - JwtTokenProvider 구현
+   - JWT 필터 추가
+   - 리프레시 토큰 처리
 
-2. **전역 예외 처리**
-   - `GlobalExceptionHandler` 구현
-   - 사용자 친화적 에러 메시지
+2. **서브도메인 기반 멀티테넌시 로직 강화**
+   - 팀별 데이터 격리 필터링
+   - JPA에서 자동 팀 필터링
+   - 팀별 성능 최적화
 
-### 8단계: 테스트 및 검증
-1. **단위 테스트**
-   - Service 계층 테스트
-   - Repository 테스트
-
-2. **통합 테스트**
-   - API 엔드포인트 테스트
-   - 서브도메인 처리 테스트
-
-### 9단계: 성능 최적화 및 배포 준비
-1. **성능 최적화**
+3. **성능 최적화**
    - JPA N+1 문제 해결
    - 쿼리 최적화
+   - 캐싱 전략 구현
 
-2. **배포 설정**
-   - 프로덕션 application.properties
-   - 도커 컨테이너화 (선택사항)
+### 📋 **현재 구현 상태 요약**
+- ✅ **1단계 완료**: TeamController, MatchController 이동
+- ✅ **2단계 완료**: SecurityConfig, WebConfig, SubdomainConfig 
+- 🔄 **3단계 대기**: CustomExceptions, GlobalExceptionHandler
+- 📋 **4단계 대기**: ApiResponse 유틸리티
+- 📋 **5단계 대기**: 파일 업로드 시스템
+- 📋 **6단계 대기**: 고급 기능 및 최적화
+
+### 📝 **다음 단계 실행 명령**
+```bash
+# 3단계 실행
+claude "3단계 예외 처리 시스템을 구현해주세요"
+
+# 4단계 실행  
+claude "4단계 ApiResponse 유틸리티를 구현해주세요"
+
+# 5단계 실행
+claude "5단계 파일 업로드 시스템을 구현해주세요"
+```
 
 ### 개발 환경 설정 참고
 ```properties
