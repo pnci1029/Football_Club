@@ -5,6 +5,8 @@ import io.be.dto.CreateStadiumRequest
 import io.be.dto.StadiumDto
 import io.be.dto.UpdateStadiumRequest
 import io.be.service.StadiumService
+import io.be.service.SubdomainService
+import io.be.config.SubdomainResolver
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.kotlin.*
@@ -28,6 +30,12 @@ class AdminStadiumControllerTest {
 
     @MockBean
     private lateinit var stadiumService: StadiumService
+    
+    @MockBean
+    private lateinit var subdomainService: SubdomainService
+    
+    @MockBean 
+    private lateinit var subdomainResolver: SubdomainResolver
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper

@@ -5,6 +5,8 @@ import io.be.dto.CreateTeamRequest
 import io.be.dto.TeamDto
 import io.be.dto.UpdateTeamRequest
 import io.be.service.TeamService
+import io.be.service.SubdomainService
+import io.be.config.SubdomainResolver
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.kotlin.*
@@ -28,6 +30,12 @@ class AdminTeamControllerTest {
 
     @MockBean
     private lateinit var teamService: TeamService
+    
+    @MockBean
+    private lateinit var subdomainService: SubdomainService
+    
+    @MockBean 
+    private lateinit var subdomainResolver: SubdomainResolver
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper

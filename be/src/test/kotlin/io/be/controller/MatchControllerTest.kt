@@ -1,6 +1,9 @@
 package io.be.controller
 
+import io.be.controller.public.MatchController
 import io.be.service.MatchService
+import io.be.service.SubdomainService
+import io.be.config.SubdomainResolver
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,6 +24,12 @@ class MatchControllerTest {
 
     @MockBean
     private lateinit var matchService: MatchService
+    
+    @MockBean
+    private lateinit var subdomainService: SubdomainService
+    
+    @MockBean 
+    private lateinit var subdomainResolver: SubdomainResolver
 
     @Test
     fun `getMatches should accept GET request`() {

@@ -5,6 +5,8 @@ import io.be.dto.CreatePlayerRequest
 import io.be.dto.PlayerDto
 import io.be.dto.UpdatePlayerRequest
 import io.be.service.PlayerService
+import io.be.service.SubdomainService
+import io.be.config.SubdomainResolver
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.kotlin.*
@@ -28,6 +30,12 @@ class AdminPlayerControllerTest {
 
     @MockBean
     private lateinit var playerService: PlayerService
+    
+    @MockBean
+    private lateinit var subdomainService: SubdomainService
+    
+    @MockBean 
+    private lateinit var subdomainResolver: SubdomainResolver
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
