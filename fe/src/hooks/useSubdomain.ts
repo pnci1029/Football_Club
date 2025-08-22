@@ -19,18 +19,37 @@ export const useSubdomain = () => {
           return;
         }
 
-        // localhost 환경에서는 기본 팀 사용 (개발용)
+        // 로컬 테스트용 .local 도메인 처리
+        if (host.endsWith('.football-club.local')) {
+          const teamCode = host.replace('.football-club.local', '');
+          console.log('로컬 테스트 - 팀 코드:', teamCode);
+          const team = await teamService.getTeamByCode(teamCode);
+          setCurrentTeam(team);
+          setIsLoading(false);
+          return;
+        }
+
+        // localhost 환경에서 서브도메인 처리 (개발용)
         if (host.includes('localhost') || host.includes('127.0.0.1')) {
-          // 개발 환경에서는 첫 번째 팀을 기본으로 사용
-          const teams = await teamService.getAllTeams();
-          if (teams.length > 0) {
-            setCurrentTeam(teams[0]);
+          // kim.localhost:3000, park.localhost:3000 형태 처리
+          const subdomainMatch = host.match(/^([a-zA-Z0-9-]+)\.localhost/);
+          if (subdomainMatch) {
+            const teamCode = subdomainMatch[1];
+            console.log('로컬호스트 서브도메인 - 팀 코드:', teamCode);
+            const team = await teamService.getTeamByCode(teamCode);
+            setCurrentTeam(team);
+          } else {
+            // 서브도메인이 없는 경우 첫 번째 팀을 기본으로 사용
+            const teams = await teamService.getAllTeams();
+            if (teams.length > 0) {
+              setCurrentTeam(teams[0]);
+            }
           }
           setIsLoading(false);
           return;
         }
 
-        // 팀 서브도메인 추출
+        // 프로덕션 팀 서브도메인 추출
         const teamMatch = host.match(/^([a-zA-Z0-9-]+)\.footballclub\.com$/);
         if (teamMatch) {
           const teamCode = teamMatch[1];

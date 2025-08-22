@@ -1,26 +1,52 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Button, Card } from '../../components/common';
 import { adminStadiumService, AdminStadium, CreateStadiumRequest } from '../../services/adminStadiumService';
+import { adminService, TeamStats } from '../../services/adminService';
 
 const AdminStadiums: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [stadiums, setStadiums] = useState<AdminStadium[]>([]);
+  const [teams, setTeams] = useState<TeamStats[]>([]);
+  const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
+    const teamId = searchParams.get('teamId');
+    if (teamId) {
+      setSelectedTeamId(parseInt(teamId));
+    }
+    
+    const fetchTeams = async () => {
+      try {
+        const dashboardStats = await adminService.getDashboardStats();
+        setTeams(dashboardStats.teams);
+      } catch (error) {
+        console.error('팀 목록 로딩 실패:', error);
+      }
+    };
+    
+    fetchTeams();
+  }, [searchParams]);
+
+  useEffect(() => {
     loadStadiums();
-  }, [page]);
+  }, [page, selectedTeamId]);
 
   const loadStadiums = async () => {
     setLoading(true);
     try {
-      const response = await adminStadiumService.getAllStadiums(page, 10);
-      if (response.success) {
-        setStadiums(response.data.content);
-        setTotalPages(response.data.totalPages);
+      let result;
+      if (selectedTeamId) {
+        result = await adminService.getStadiumsByTeam(selectedTeamId, page, 10);
+      } else {
+        result = await adminService.getAllStadiums(page, 10);
       }
+      setStadiums(result.content);
+      setTotalPages(Math.ceil(result.totalElements / 10));
     } catch (error) {
       console.error('Failed to load stadiums:', error);
     } finally {
@@ -70,6 +96,19 @@ const AdminStadiums: React.FC = () => {
     return () => clearTimeout(debounceTimer);
   }, [searchTerm]);
 
+  const handleTeamChange = (teamId: number | null) => {
+    setSelectedTeamId(teamId);
+    setPage(0);
+    
+    if (teamId) {
+      setSearchParams({ teamId: teamId.toString() });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  const selectedTeam = teams.find(team => team.id === selectedTeamId);
+
   const filteredStadiums = stadiums.filter(stadium =>
     stadium.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     stadium.address.toLowerCase().includes(searchTerm.toLowerCase())
@@ -85,12 +124,44 @@ const AdminStadiums: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">구장 관리</h1>
-          <p className="text-gray-600 mt-2">등록된 구장들을 관리합니다</p>
+          <p className="text-gray-600 mt-2">
+            {selectedTeam ? `${selectedTeam.name} 소속 구장들을 관리합니다` : '등록된 구장들을 관리합니다'}
+          </p>
         </div>
         <Button className="bg-purple-600 hover:bg-purple-700">
           <span className="mr-2">➕</span>
           구장 추가
         </Button>
+      </div>
+
+      {/* 팀 필터 */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">팀 필터</h2>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => handleTeamChange(null)}
+            className={`px-4 py-2 rounded-lg border transition-colors ${
+              selectedTeamId === null
+                ? 'bg-purple-500 text-white border-purple-500'
+                : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            전체 구장
+          </button>
+          {teams.map((team) => (
+            <button
+              key={team.id}
+              onClick={() => handleTeamChange(team.id)}
+              className={`px-4 py-2 rounded-lg border transition-colors ${
+                selectedTeamId === team.id
+                  ? 'bg-purple-500 text-white border-purple-500'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+              }`}
+            >
+              {team.name} ({team.stadiumCount})
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 검색 */}

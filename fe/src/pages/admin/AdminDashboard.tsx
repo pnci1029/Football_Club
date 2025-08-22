@@ -1,75 +1,129 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '../../components/common';
+import { adminService, TeamStats, DashboardStats } from '../../services/adminService';
+
 
 const AdminDashboard: React.FC = () => {
-  const stats = [
-    {
-      title: '총 선수',
-      value: '25',
-      icon: '👤',
-      color: 'bg-blue-500',
-      link: '/admin/players'
-    },
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<TeamStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        const data = await adminService.getDashboardStats();
+        setDashboardStats(data);
+        if (data.teams.length > 0) {
+          setSelectedTeam(data.teams[0]);
+        }
+      } catch (error) {
+        console.error('통계 데이터 로딩 실패:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!dashboardStats) {
+    return (
+      <div className="text-center text-gray-500 mt-8">
+        <p>통계 데이터를 불러올 수 없습니다.</p>
+      </div>
+    );
+  }
+
+  const overallStats = [
     {
       title: '총 팀',
-      value: '8',
+      value: dashboardStats.totalTeams.toString(),
       icon: '🏆',
       color: 'bg-green-500',
-      link: '/admin/teams'
+      link: '/teams'
+    },
+    {
+      title: '총 선수',
+      value: dashboardStats.totalPlayers.toString(),
+      icon: '👤',
+      color: 'bg-blue-500',
+      link: '/players'
     },
     {
       title: '총 구장',
-      value: '12',
+      value: dashboardStats.totalStadiums.toString(),
       icon: '🏟️',
       color: 'bg-purple-500',
-      link: '/admin/stadiums'
+      link: '/stadiums'
     },
     {
-      title: '이번 달 경기',
-      value: '6',
+      title: '총 경기',
+      value: dashboardStats.totalMatches.toString(),
       icon: '⚽',
       color: 'bg-orange-500',
-      link: '/admin/matches'
+      link: '/matches'
     }
   ];
 
-  const quickActions = [
+  const teamStats = selectedTeam ? [
     {
-      title: '선수 추가',
-      description: '새로운 선수를 팀에 등록합니다',
-      icon: '➕',
-      color: 'bg-blue-500 hover:bg-blue-600',
-      link: '/admin/players/new'
+      title: '팀 선수',
+      value: selectedTeam.playerCount.toString(),
+      icon: '👤',
+      color: 'bg-blue-500',
+      link: `/players?teamId=${selectedTeam.id}`
     },
+    {
+      title: '팀 구장',
+      value: selectedTeam.stadiumCount.toString(),
+      icon: '🏟️',
+      color: 'bg-purple-500',
+      link: `/stadiums?teamId=${selectedTeam.id}`
+    }
+  ] : [];
+
+  const quickActions = [
     {
       title: '팀 생성',
       description: '새로운 팀을 생성합니다',
       icon: '🆕',
       color: 'bg-green-500 hover:bg-green-600',
-      link: '/admin/teams/new'
+      link: '/teams/new'
+    },
+    {
+      title: '선수 추가',
+      description: selectedTeam ? `${selectedTeam.name}에 선수 추가` : '팀을 선택하고 선수를 추가합니다',
+      icon: '➕',
+      color: 'bg-blue-500 hover:bg-blue-600',
+      link: selectedTeam ? `/players/new?teamId=${selectedTeam.id}` : '/players'
     },
     {
       title: '구장 등록',
       description: '새로운 구장을 시스템에 등록합니다',
       icon: '🏗️',
       color: 'bg-purple-500 hover:bg-purple-600',
-      link: '/admin/stadiums/new'
+      link: '/stadiums/new'
     },
     {
       title: '경기 일정 관리',
       description: '경기 일정을 생성하고 관리합니다',
       icon: '📅',
       color: 'bg-orange-500 hover:bg-orange-600',
-      link: '/admin/matches/new'
+      link: '/matches/new'
     }
   ];
 
   const recentActivities = [
-    { action: '새로운 선수 "김철수" 등록', time: '2시간 전', type: 'player' },
-    { action: '구장 "서울 스타디움" 정보 수정', time: '4시간 전', type: 'stadium' },
-    { action: '팀 "FC 서울" 생성', time: '6시간 전', type: 'team' },
-    { action: '경기 일정 "FC 서울 vs FC 부산" 생성', time: '1일 전', type: 'match' },
+    { action: '최근 활동 로그는 개발 중입니다', time: '개발 예정', type: 'info' },
   ];
 
   return (
@@ -85,24 +139,84 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <Link key={index} to={stat.link}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
-              <div className="flex items-center">
-                <div className={`${stat.color} p-3 rounded-lg text-white text-2xl mr-4`}>
-                  {stat.icon}
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
-                  <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-                </div>
+      {/* 팀 선택 */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">구단 선택</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {dashboardStats.teams.map((team) => (
+            <button
+              key={team.id}
+              onClick={() => setSelectedTeam(team)}
+              className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                selectedTeam?.id === team.id
+                  ? 'border-blue-500 bg-blue-50 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-gray-900">{team.name}</h3>
+                <span className="text-xs bg-gray-100 px-2 py-1 rounded">{team.code}</span>
               </div>
-            </Card>
-          </Link>
-        ))}
+              <div className="text-sm text-gray-600">
+                <p>선수: {team.playerCount}명</p>
+                <p>구장: {team.stadiumCount}개</p>
+              </div>
+            </button>
+          ))}
+        </div>
+        {selectedTeam && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+            <h3 className="font-semibold text-blue-900">선택된 구단: {selectedTeam.name}</h3>
+            <p className="text-blue-700 text-sm">구단 코드: {selectedTeam.code}</p>
+          </div>
+        )}
       </div>
+
+      {/* 전체 통계 카드 */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">전체 통계</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {overallStats.map((stat, index) => (
+            <Link key={index} to={stat.link}>
+              <Card className="hover:shadow-lg transition-shadow duration-200">
+                <div className="flex items-center">
+                  <div className={`${stat.color} p-3 rounded-lg text-white text-2xl mr-4`}>
+                    {stat.icon}
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{stat.title}</p>
+                    <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* 선택된 구단 통계 */}
+      {selectedTeam && (
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">{selectedTeam.name} 통계</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {teamStats.map((stat, index) => (
+              <Link key={index} to={stat.link}>
+                <Card className="hover:shadow-lg transition-shadow duration-200">
+                  <div className="flex items-center">
+                    <div className={`${stat.color} p-3 rounded-lg text-white text-2xl mr-4`}>
+                      {stat.icon}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">{stat.title}</p>
+                      <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                    </div>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 빠른 작업 */}
       <div>
@@ -137,6 +251,7 @@ const AdminDashboard: React.FC = () => {
                     {activity.type === 'stadium' && '🏟️'}
                     {activity.type === 'team' && '🏆'}
                     {activity.type === 'match' && '⚽'}
+                    {activity.type === 'info' && 'ℹ️'}
                   </div>
                   <div>
                     <p className="text-gray-900">{activity.action}</p>

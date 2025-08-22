@@ -21,9 +21,9 @@ class ApiClient {
     // 요청 인터셉터
     this.client.interceptors.request.use(
       (config) => {
-        // Host 헤더 추가 (서브도메인 인식용)
+        // 클라이언트 호스트 정보 전달 (서브도메인 인식용)
         const host = window.location.host;
-        config.headers['Host'] = host;
+        config.headers['X-Forwarded-Host'] = host;
         
         const token = localStorage.getItem('accessToken');
         if (token) {
