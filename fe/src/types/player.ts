@@ -1,5 +1,12 @@
 export type Position = 'GK' | 'DF' | 'MF' | 'FW';
 
+export const POSITIONS = {
+  GK: 'GK',
+  DF: 'DF',
+  MF: 'MF',
+  FW: 'FW'
+} as const;
+
 // BE DTO와 매칭되는 Player 타입
 export interface PlayerDto {
   id: number;

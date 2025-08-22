@@ -1,30 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Card } from '../../components/common';
-
-interface Player {
-  id: number;
-  name: string;
-  position: string;
-  backNumber: number;
-  team: string;
-  isActive: boolean;
-  profileImageUrl?: string;
-}
+import { adminPlayerService, AdminPlayer, CreatePlayerRequest } from '../../services/adminPlayerService';
+import { adminTeamService, AdminTeam } from '../../services/adminTeamService';
 
 const AdminPlayers: React.FC = () => {
-  const [players] = useState<Player[]>([
-    { id: 1, name: '김철수', position: 'FW', backNumber: 10, team: 'FC 서울', isActive: true },
-    { id: 2, name: '이영희', position: 'MF', backNumber: 8, team: 'FC 서울', isActive: true },
-    { id: 3, name: '박민수', position: 'DF', backNumber: 4, team: 'FC 부산', isActive: false },
-    { id: 4, name: '최지은', position: 'GK', backNumber: 1, team: 'FC 인천', isActive: true },
-  ]);
-
+  const [players, setPlayers] = useState<AdminPlayer[]>([]);
+  const [teams, setTeams] = useState<AdminTeam[]>([]);
+  const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  useEffect(() => {
+    loadTeams();
+  }, []);
+
+  useEffect(() => {
+    if (selectedTeam) {
+      loadPlayers();
+    }
+  }, [selectedTeam, page]);
+
+  const loadTeams = async () => {
+    try {
+      const response = await adminTeamService.getAllTeams(0, 100);
+      if (response.success) {
+        setTeams(response.data.content);
+        if (response.data.content.length > 0) {
+          setSelectedTeam(response.data.content[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load teams:', error);
+    }
+  };
+
+  const loadPlayers = async () => {
+    if (!selectedTeam) return;
+    
+    setLoading(true);
+    try {
+      const response = await adminPlayerService.getAllPlayers(page, 10, selectedTeam);
+      if (response.success) {
+        setPlayers(response.data.content);
+        setTotalPages(response.data.totalPages);
+      }
+    } catch (error) {
+      console.error('Failed to load players:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeletePlayer = async (id: number) => {
+    try {
+      const response = await adminPlayerService.deletePlayer(id);
+      if (response.success) {
+        loadPlayers();
+      }
+    } catch (error) {
+      console.error('Failed to delete player:', error);
+    }
+  };
 
   const filteredPlayers = players.filter(player => {
     const matchesSearch = player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         player.team.toLowerCase().includes(searchTerm.toLowerCase());
+                         player.team.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = selectedFilter === 'all' || 
                          (selectedFilter === 'active' && player.isActive) ||
                          (selectedFilter === 'inactive' && !player.isActive);
@@ -69,6 +112,16 @@ const AdminPlayers: React.FC = () => {
           </div>
           <div className="flex gap-2">
             <select
+              value={selectedTeam || ''}
+              onChange={(e) => setSelectedTeam(Number(e.target.value))}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">팀 선택</option>
+              {teams.map(team => (
+                <option key={team.id} value={team.id}>{team.name}</option>
+              ))}
+            </select>
+            <select
               value={selectedFilter}
               onChange={(e) => setSelectedFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -105,7 +158,7 @@ const AdminPlayers: React.FC = () => {
                 </span>
               </div>
               
-              <p className="text-sm text-gray-600 mb-3">{player.team}</p>
+              <p className="text-sm text-gray-600 mb-3">{player.team.name}</p>
               
               <div className="flex justify-center mb-4">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -129,6 +182,7 @@ const AdminPlayers: React.FC = () => {
                   size="sm" 
                   variant="outline" 
                   className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                  onClick={() => handleDeletePlayer(player.id)}
                 >
                   삭제
                 </Button>
@@ -181,7 +235,7 @@ const AdminPlayers: React.FC = () => {
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {new Set(players.map(p => p.team)).size}
+              {new Set(players.map(p => p.team.name)).size}
             </div>
             <div className="text-sm text-gray-600">소속 팀</div>
           </div>

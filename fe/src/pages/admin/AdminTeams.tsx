@@ -1,45 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Card } from '../../components/common';
-
-interface Team {
-  id: number;
-  code: string;
-  name: string;
-  description: string;
-  logoUrl?: string;
-  playerCount: number;
-  createdAt: string;
-}
+import { adminTeamService, AdminTeam, CreateTeamRequest } from '../../services/adminTeamService';
 
 const AdminTeams: React.FC = () => {
-  const [teams] = useState<Team[]>([
-    {
-      id: 1,
-      code: 'SEL',
-      name: 'FC 서울',
-      description: '서울을 대표하는 축구 클럽',
-      playerCount: 12,
-      createdAt: '2024-01-15'
-    },
-    {
-      id: 2,
-      code: 'BSN',
-      name: 'FC 부산',
-      description: '부산의 열정적인 축구팀',
-      playerCount: 8,
-      createdAt: '2024-02-20'
-    },
-    {
-      id: 3,
-      code: 'ICN',
-      name: 'FC 인천',
-      description: '인천 지역의 강력한 팀',
-      playerCount: 5,
-      createdAt: '2024-03-10'
-    },
-  ]);
-
+  const [teams, setTeams] = useState<AdminTeam[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  useEffect(() => {
+    loadTeams();
+  }, [page]);
+
+  const loadTeams = async () => {
+    setLoading(true);
+    try {
+      const response = await adminTeamService.getAllTeams(page, 10);
+      if (response.success) {
+        setTeams(response.data.content);
+        setTotalPages(response.data.totalPages);
+      }
+    } catch (error) {
+      console.error('Failed to load teams:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteTeam = async (id: number) => {
+    try {
+      const response = await adminTeamService.deleteTeam(id);
+      if (response.success) {
+        loadTeams();
+      }
+    } catch (error) {
+      console.error('Failed to delete team:', error);
+    }
+  };
 
   const filteredTeams = teams.filter(team =>
     team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -110,7 +108,7 @@ const AdminTeams: React.FC = () => {
             <div className="space-y-3 mb-4">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-600">소속 선수:</span>
-                <span className="font-medium text-gray-900">{team.playerCount}명</span>
+                <span className="font-medium text-gray-900">{team.playerCount || 0}명</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-600">생성일:</span>
@@ -142,6 +140,7 @@ const AdminTeams: React.FC = () => {
                 size="sm" 
                 variant="outline" 
                 className="text-red-600 border-red-200 hover:bg-red-50"
+                onClick={() => handleDeleteTeam(team.id)}
               >
                 🗑️
               </Button>
@@ -177,7 +176,7 @@ const AdminTeams: React.FC = () => {
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {teams.reduce((total, team) => total + team.playerCount, 0)}
+              {teams.reduce((total, team) => total + (team.playerCount || 0), 0)}
             </div>
             <div className="text-sm text-gray-600">총 선수 수</div>
           </div>
@@ -185,7 +184,7 @@ const AdminTeams: React.FC = () => {
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
-              {teams.length > 0 ? Math.round(teams.reduce((total, team) => total + team.playerCount, 0) / teams.length) : 0}
+              {teams.length > 0 ? Math.round(teams.reduce((total, team) => total + (team.playerCount || 0), 0) / teams.length) : 0}
             </div>
             <div className="text-sm text-gray-600">평균 선수 수</div>
           </div>

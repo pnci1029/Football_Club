@@ -1,60 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Card } from '../../components/common';
-
-interface Stadium {
-  id: number;
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  hourlyRate: number;
-  contactNumber?: string;
-  facilities: string[];
-  availableHours: string;
-  imageUrls: string[];
-}
+import { adminStadiumService, AdminStadium, CreateStadiumRequest } from '../../services/adminStadiumService';
 
 const AdminStadiums: React.FC = () => {
-  const [stadiums] = useState<Stadium[]>([
-    {
-      id: 1,
-      name: '서울 월드컵 스타디움',
-      address: '서울특별시 마포구 성산동',
-      latitude: 37.5682,
-      longitude: 126.8971,
-      hourlyRate: 150000,
-      contactNumber: '02-2128-2002',
-      facilities: ['주차장', '샤워실', '조명', 'CCTV'],
-      availableHours: '06:00-22:00',
-      imageUrls: []
-    },
-    {
-      id: 2,
-      name: '부산 아시아드 주경기장',
-      address: '부산광역시 연제구 거제동',
-      latitude: 35.1904,
-      longitude: 129.0608,
-      hourlyRate: 120000,
-      contactNumber: '051-500-2114',
-      facilities: ['주차장', '샤워실', '조명'],
-      availableHours: '07:00-21:00',
-      imageUrls: []
-    },
-    {
-      id: 3,
-      name: '인천 문학경기장',
-      address: '인천광역시 남구 문학동',
-      latitude: 37.4369,
-      longitude: 126.6934,
-      hourlyRate: 100000,
-      contactNumber: '032-880-4800',
-      facilities: ['주차장', '조명'],
-      availableHours: '08:00-20:00',
-      imageUrls: []
-    }
-  ]);
-
+  const [stadiums, setStadiums] = useState<AdminStadium[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  useEffect(() => {
+    loadStadiums();
+  }, [page]);
+
+  const loadStadiums = async () => {
+    setLoading(true);
+    try {
+      const response = await adminStadiumService.getAllStadiums(page, 10);
+      if (response.success) {
+        setStadiums(response.data.content);
+        setTotalPages(response.data.totalPages);
+      }
+    } catch (error) {
+      console.error('Failed to load stadiums:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteStadium = async (id: number) => {
+    try {
+      const response = await adminStadiumService.deleteStadium(id);
+      if (response.success) {
+        loadStadiums();
+      }
+    } catch (error) {
+      console.error('Failed to delete stadium:', error);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      loadStadiums();
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await adminStadiumService.searchStadiumsByName(searchTerm);
+      if (response.success) {
+        setStadiums(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to search stadiums:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (searchTerm) {
+        handleSearch();
+      } else {
+        loadStadiums();
+      }
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm]);
 
   const filteredStadiums = stadiums.filter(stadium =>
     stadium.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -170,6 +184,7 @@ const AdminStadiums: React.FC = () => {
                 size="sm" 
                 variant="outline" 
                 className="text-red-600 border-red-200 hover:bg-red-50"
+                onClick={() => handleDeleteStadium(stadium.id)}
               >
                 🗑️
               </Button>
