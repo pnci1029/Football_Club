@@ -22,9 +22,14 @@ class AdminStadiumController(
     @GetMapping
     fun getAllStadiums(
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int
+        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(required = false) teamId: Long?
     ): ResponseEntity<ApiResponse<Page<StadiumDto>>> {
-        val stadiums = stadiumService.findAllStadiums(PageRequest.of(page, size))
+        val stadiums = if (teamId != null) {
+            stadiumService.findStadiumsByTeam(teamId, PageRequest.of(page, size))
+        } else {
+            stadiumService.findAllStadiums(PageRequest.of(page, size))
+        }
         return ResponseEntity.ok(ApiResponse.success(stadiums))
     }
     
