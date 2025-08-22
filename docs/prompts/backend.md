@@ -335,6 +335,25 @@ class UserServiceTest {
    - 로컬/프로덕션 환경별 서브도메인 처리
    - 기존 SubdomainResolver와 통합
 
+### 🏢 관리자 대시보드 강화 ✅ **완료**
+1. **AdminTeamController.kt** - 구단별 통계 API ✅
+   - `GET /v1/admin/teams/dashboard-stats` - 전체 대시보드 통계
+   - `GET /v1/admin/teams/{teamId}/stats` - 특정 팀 통계
+   - 팀별 선수/구장 개수 집계
+
+2. **AdminPlayerController.kt** - 구단별 선수 필터링 ✅
+   - `teamId` 파라미터로 구단별 선수 조회
+   - 필수 팀 ID 검증 로직
+
+3. **AdminStadiumController.kt** - 구단별 구장 필터링 ✅
+   - `teamId` 파라미터로 구단별 구장 조회 추가
+   - 전체 구장 조회와 팀별 구장 조회 분리
+
+4. **TeamService.kt** - 통계 집계 서비스 ✅
+   - `getTeamStats(teamId)` - 개별 팀 통계
+   - `getAllTeamsStats()` - 전체 팀 통계
+   - PlayerRepository, StadiumRepository 의존성 주입
+
 ### 🚨 3단계: 예외 처리 시스템 📋 **다음 작업**
 1. **CustomExceptions.kt** 구현 필요
    ```kotlin
