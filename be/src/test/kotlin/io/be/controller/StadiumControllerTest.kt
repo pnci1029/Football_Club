@@ -3,6 +3,8 @@ package io.be.controller
 import io.be.controller.public.StadiumController
 import io.be.dto.StadiumDto
 import io.be.service.StadiumService
+import io.be.service.SubdomainService
+import io.be.config.SubdomainResolver
 import io.be.util.ApiResponse
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
@@ -26,6 +28,12 @@ class StadiumControllerTest {
 
     @MockBean
     private lateinit var stadiumService: StadiumService
+    
+    @MockBean
+    private lateinit var subdomainService: SubdomainService
+    
+    @MockBean 
+    private lateinit var subdomainResolver: SubdomainResolver
 
     @Test
     fun `getAllStadiums should return paginated stadiums`() {

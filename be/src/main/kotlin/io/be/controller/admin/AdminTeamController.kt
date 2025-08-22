@@ -65,4 +65,16 @@ class AdminTeamController(
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(ApiResponse.success(team))
     }
+    
+    @GetMapping("/{teamId}/stats")
+    fun getTeamStats(@PathVariable teamId: Long): ResponseEntity<ApiResponse<Map<String, Any>>> {
+        val stats = teamService.getTeamStats(teamId)
+        return ResponseEntity.ok(ApiResponse.success(stats))
+    }
+    
+    @GetMapping("/dashboard-stats")
+    fun getDashboardStats(): ResponseEntity<ApiResponse<Map<String, Any>>> {
+        val stats = teamService.getAllTeamsStats()
+        return ResponseEntity.ok(ApiResponse.success(stats))
+    }
 }

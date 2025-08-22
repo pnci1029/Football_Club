@@ -4,6 +4,7 @@ import io.be.config.SubdomainResolver
 import io.be.dto.TeamDto
 import io.be.entity.Team
 import io.be.repository.TeamRepository
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Service
 
 @Service
@@ -26,5 +27,18 @@ class SubdomainService(
     
     fun isAdminRequest(host: String): Boolean {
         return subdomainResolver.isAdminSubdomain(host)
+    }
+    
+    fun extractTeamCodeFromRequest(request: HttpServletRequest): String? {
+        val host = request.getHeader("X-Forwarded-Host") 
+            ?: request.getHeader("Host") 
+            ?: request.serverName
+        
+        // localhost 환경에서는 기본 팀 코드 반환 (개발용)
+        if (subdomainResolver.isLocalhost(host)) {
+            return teamRepository.findAll().firstOrNull()?.code
+        }
+        
+        return subdomainResolver.extractTeamFromHost(host)
     }
 }
