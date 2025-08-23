@@ -41,6 +41,13 @@ export interface StadiumDto {
   teamName?: string;
 }
 
+export interface CreateTeamData {
+  code: string;
+  name: string;
+  description: string;
+  logoUrl?: string;
+}
+
 class AdminService {
   // 대시보드 통계 조회
   async getDashboardStats(): Promise<DashboardStats> {
@@ -117,6 +124,12 @@ class AdminService {
 
   async createTenant(tenantData: any): Promise<string> {
     const response = await apiClient.post<{ success: boolean; data: string }>('/v1/admin/tenants', tenantData);
+    return response.data;
+  }
+
+  // 새 팀 생성
+  async createTeam(teamData: CreateTeamData): Promise<TeamStats> {
+    const response = await apiClient.post<{ success: boolean; data: TeamStats }>('/v1/admin/teams', teamData);
     return response.data;
   }
 }

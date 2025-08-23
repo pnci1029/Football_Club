@@ -63,6 +63,113 @@ class GlobalExceptionHandler {
             .body(ApiResponse.error("VALIDATION_ERROR", "Validation failed: $errors"))
     }
     
+    // ========================================================================================
+    // Business Rule Violations
+    // ========================================================================================
+    @ExceptionHandler(PlayerAlreadyExistsException::class)
+    fun handlePlayerAlreadyExists(ex: PlayerAlreadyExistsException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ApiResponse.error("PLAYER_ALREADY_EXISTS", ex.message ?: "Player already exists"))
+    }
+    
+    @ExceptionHandler(StadiumBookingConflictException::class)
+    fun handleStadiumBookingConflict(ex: StadiumBookingConflictException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ApiResponse.error("STADIUM_BOOKING_CONFLICT", ex.message ?: "Stadium booking conflict"))
+    }
+    
+    @ExceptionHandler(InvalidMatchStatusException::class)
+    fun handleInvalidMatchStatus(ex: InvalidMatchStatusException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error("INVALID_MATCH_STATUS", ex.message ?: "Invalid match status"))
+    }
+
+    // ========================================================================================
+    // Security & Access Control
+    // ========================================================================================
+    @ExceptionHandler(SubdomainAccessDeniedException::class)
+    fun handleSubdomainAccessDenied(ex: SubdomainAccessDeniedException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(ApiResponse.error("SUBDOMAIN_ACCESS_DENIED", ex.message ?: "Access denied"))
+    }
+    
+    @ExceptionHandler(UnauthorizedTeamAccessException::class)
+    fun handleUnauthorizedTeamAccess(ex: UnauthorizedTeamAccessException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(ApiResponse.error("UNAUTHORIZED_TEAM_ACCESS", ex.message ?: "Unauthorized team access"))
+    }
+    
+    @ExceptionHandler(InvalidTenantConfigurationException::class)
+    fun handleInvalidTenantConfiguration(ex: InvalidTenantConfigurationException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error("INVALID_TENANT_CONFIG", ex.message ?: "Invalid tenant configuration"))
+    }
+
+    // ========================================================================================
+    // File & Upload Exceptions
+    // ========================================================================================
+    @ExceptionHandler(FileUploadException::class)
+    fun handleFileUpload(ex: FileUploadException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error("FILE_UPLOAD_ERROR", ex.message ?: "File upload failed"))
+    }
+    
+    @ExceptionHandler(UnsupportedFileTypeException::class)
+    fun handleUnsupportedFileType(ex: UnsupportedFileTypeException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error("UNSUPPORTED_FILE_TYPE", ex.message ?: "Unsupported file type"))
+    }
+    
+    @ExceptionHandler(FileSizeLimitExceededException::class)
+    fun handleFileSizeLimitExceeded(ex: FileSizeLimitExceededException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+            .body(ApiResponse.error("FILE_SIZE_LIMIT_EXCEEDED", ex.message ?: "File size limit exceeded"))
+    }
+    
+    @ExceptionHandler(FileProcessingException::class)
+    fun handleFileProcessing(ex: FileProcessingException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+            .body(ApiResponse.error("FILE_PROCESSING_ERROR", ex.message ?: "File processing failed"))
+    }
+
+    // ========================================================================================
+    // API & Input Validation
+    // ========================================================================================
+    @ExceptionHandler(InvalidRequestException::class)
+    fun handleInvalidRequest(ex: InvalidRequestException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error("INVALID_REQUEST", ex.message ?: "Invalid request"))
+    }
+    
+    @ExceptionHandler(MissingRequiredFieldException::class)
+    fun handleMissingRequiredField(ex: MissingRequiredFieldException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error("MISSING_REQUIRED_FIELD", ex.message ?: "Missing required field"))
+    }
+    
+    @ExceptionHandler(DuplicateResourceException::class)
+    fun handleDuplicateResource(ex: DuplicateResourceException): ResponseEntity<ApiResponse<Nothing>> {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ApiResponse.error("DUPLICATE_RESOURCE", ex.message ?: "Resource already exists"))
+    }
+
+    // ========================================================================================
+    // External Service Exceptions
+    // ========================================================================================
+    @ExceptionHandler(ExternalServiceException::class)
+    fun handleExternalService(ex: ExternalServiceException): ResponseEntity<ApiResponse<Nothing>> {
+        logger.warn("External service error: ${ex.message}")
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+            .body(ApiResponse.error("EXTERNAL_SERVICE_ERROR", ex.message ?: "External service unavailable"))
+    }
+    
+    @ExceptionHandler(DatabaseConstraintViolationException::class)
+    fun handleDatabaseConstraintViolation(ex: DatabaseConstraintViolationException): ResponseEntity<ApiResponse<Nothing>> {
+        logger.warn("Database constraint violation: ${ex.message}")
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ApiResponse.error("DATABASE_CONSTRAINT_VIOLATION", ex.message ?: "Database constraint violation"))
+    }
+
     @ExceptionHandler(RuntimeException::class)
     fun handleRuntimeException(ex: RuntimeException, request: HttpServletRequest): ResponseEntity<ApiResponse<Nothing>> {
         val method = request.method

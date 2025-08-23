@@ -3,10 +3,12 @@ package io.be.controller.admin
 import io.be.dto.CreateTeamRequest
 import io.be.dto.TeamDto
 import io.be.dto.UpdateTeamRequest
+import io.be.exception.TeamNotFoundException
 import io.be.service.TeamService
 import io.be.util.ApiResponse
+import io.be.util.PagedResponse
+import io.be.util.PageMetadata
 import jakarta.validation.Valid
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -22,10 +24,21 @@ class AdminTeamController(
     @GetMapping
     fun getAllTeams(
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int
-    ): ResponseEntity<ApiResponse<Page<TeamDto>>> {
+        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(required = false) search: String?
+    ): ResponseEntity<ApiResponse<PagedResponse<TeamDto>>> {
         val teams = teamService.findAllTeams(PageRequest.of(page, size))
-        return ResponseEntity.ok(ApiResponse.success(teams))
+        
+        val filters = mutableMapOf<String, Any>()
+        search?.let { filters["search"] = it }
+        
+        val metadata = PageMetadata(
+            filters = filters.takeIf { it.isNotEmpty() },
+            additionalInfo = mapOf("context" to "admin")
+        )
+        
+        val pagedResponse = PagedResponse.of(teams, metadata)
+        return ResponseEntity.ok(ApiResponse.success(pagedResponse, "Teams retrieved successfully"))
     }
     
     @PostMapping
@@ -34,13 +47,13 @@ class AdminTeamController(
     ): ResponseEntity<ApiResponse<TeamDto>> {
         val team = teamService.createTeam(request)
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success(team))
+            .body(ApiResponse.success(team, "Team created successfully"))
     }
     
     @GetMapping("/{id}")
     fun getTeam(@PathVariable id: Long): ResponseEntity<ApiResponse<TeamDto>> {
         val team = teamService.findTeamById(id)
-            ?: return ResponseEntity.notFound().build()
+            ?: throw TeamNotFoundException(id)
         return ResponseEntity.ok(ApiResponse.success(team))
     }
     
@@ -50,31 +63,31 @@ class AdminTeamController(
         @Valid @RequestBody request: UpdateTeamRequest
     ): ResponseEntity<ApiResponse<TeamDto>> {
         val updatedTeam = teamService.updateTeam(id, request)
-        return ResponseEntity.ok(ApiResponse.success(updatedTeam))
+        return ResponseEntity.ok(ApiResponse.success(updatedTeam, "Team updated successfully"))
     }
     
     @DeleteMapping("/{id}")
     fun deleteTeam(@PathVariable id: Long): ResponseEntity<ApiResponse<String>> {
         teamService.deleteTeam(id)
-        return ResponseEntity.ok(ApiResponse.success("Team deleted successfully"))
+        return ResponseEntity.ok(ApiResponse.success("deleted", "Team deleted successfully"))
     }
     
     @GetMapping("/code/{code}")
     fun getTeamByCode(@PathVariable code: String): ResponseEntity<ApiResponse<TeamDto>> {
         val team = teamService.findTeamByCode(code)
-            ?: return ResponseEntity.notFound().build()
+            ?: throw TeamNotFoundException(code)
         return ResponseEntity.ok(ApiResponse.success(team))
     }
     
     @GetMapping("/{teamId}/stats")
     fun getTeamStats(@PathVariable teamId: Long): ResponseEntity<ApiResponse<Map<String, Any>>> {
         val stats = teamService.getTeamStats(teamId)
-        return ResponseEntity.ok(ApiResponse.success(stats))
+        return ResponseEntity.ok(ApiResponse.success(stats, "Team stats retrieved successfully"))
     }
     
     @GetMapping("/dashboard-stats")
     fun getDashboardStats(): ResponseEntity<ApiResponse<Map<String, Any>>> {
         val stats = teamService.getAllTeamsStats()
-        return ResponseEntity.ok(ApiResponse.success(stats))
+        return ResponseEntity.ok(ApiResponse.success(stats, "Dashboard stats retrieved successfully"))
     }
 }

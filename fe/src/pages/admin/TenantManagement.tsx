@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { adminService, TeamStats } from '../../services/adminService';
+import { adminService, TeamStats, CreateTeamData } from '../../services/adminService';
+import CreateTeamModal from '../../components/admin/CreateTeamModal';
 
 const TenantManagement: React.FC = () => {
   const [tenants, setTenants] = useState<TeamStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTenant, setSelectedTenant] = useState<TeamStats | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     const fetchTenants = async () => {
@@ -27,6 +30,32 @@ const TenantManagement: React.FC = () => {
 
   const getTenantUrl = (code: string) => {
     return `${code}.localhost:3000`;
+  };
+
+  const handleCreateTeam = async (teamData: CreateTeamData) => {
+    setIsCreating(true);
+    try {
+      const newTeam = await adminService.createTeam(teamData);
+      
+      // 새 팀을 목록에 추가
+      setTenants(prev => [...prev, {
+        id: newTeam.id,
+        name: newTeam.name,
+        code: newTeam.code,
+        playerCount: 0,
+        stadiumCount: 0
+      }]);
+      
+      // 성공 메시지 표시 (toast나 alert 추가 가능)
+      alert(`새 서브도메인 "${teamData.code}"이 성공적으로 생성되었습니다!`);
+      
+    } catch (error: any) {
+      console.error('팀 생성 실패:', error);
+      alert(`팀 생성에 실패했습니다: ${error.message || '알 수 없는 오류'}`);
+      throw error; // 모달에서 에러 처리
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   if (loading) {
@@ -104,8 +133,24 @@ const TenantManagement: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">관리</button>
-                        <button className="text-gray-600 hover:text-gray-900">설정</button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`/admin/players?teamId=${tenant.id}`, '_blank');
+                          }}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          관리
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            alert('테넌트 설정 기능은 아직 구현 중입니다.');
+                          }}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          설정
+                        </button>
                         <a 
                           href={`http://${getTenantUrl(tenant.code)}`}
                           target="_blank"
@@ -165,18 +210,21 @@ const TenantManagement: React.FC = () => {
                   <h4 className="text-sm font-medium text-gray-900 mb-2">빠른 관리</h4>
                   <div className="space-y-2">
                     <button 
-                      onClick={() => window.open(`/players?teamId=${selectedTenant.id}`, '_blank')}
+                      onClick={() => window.open(`/admin/players?teamId=${selectedTenant.id}`, '_blank')}
                       className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
                     >
                       👤 선수 관리
                     </button>
                     <button 
-                      onClick={() => window.open(`/stadiums?teamId=${selectedTenant.id}`, '_blank')}
+                      onClick={() => window.open(`/admin/stadiums?teamId=${selectedTenant.id}`, '_blank')}
                       className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
                     >
                       🏟️ 구장 관리
                     </button>
-                    <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                    <button 
+                      onClick={() => alert('테넌트 설정 기능은 아직 구현 중입니다.')}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+                    >
                       ⚙️ 테넌트 설정
                     </button>
                   </div>
@@ -197,11 +245,22 @@ const TenantManagement: React.FC = () => {
         <div className="text-center">
           <h3 className="text-lg font-medium text-gray-900 mb-2">새 서브도메인 생성</h3>
           <p className="text-sm text-gray-600 mb-4">새로운 축구 동호회를 위한 서브도메인을 생성합니다.</p>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+          <button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+          >
             + 새 서브도메인 생성
           </button>
         </div>
       </div>
+
+      {/* 팀 생성 모달 */}
+      <CreateTeamModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateTeam}
+        isLoading={isCreating}
+      />
     </div>
   );
 };

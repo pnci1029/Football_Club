@@ -3,6 +3,7 @@ package io.be.config
 import io.be.service.SubdomainService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.HandlerInterceptor
 import org.springframework.web.servlet.config.annotation.CorsRegistry
@@ -11,16 +12,50 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
 class WebConfig(
-    private val subdomainService: SubdomainService
+    private val subdomainService: SubdomainService,
+    @Value("\${spring.profiles.active:dev}") private val activeProfile: String
 ) : WebMvcConfigurer {
 
     override fun addCorsMappings(registry: CorsRegistry) {
-        registry.addMapping("/**")
-            .allowedOriginPatterns("*")
+        val corsConfig = registry.addMapping("/**")
             .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             .allowedHeaders("*")
-            .allowCredentials(false)
+            .allowCredentials(false)  // 임시로 false로 설정
             .maxAge(3600)
+
+        // 환경별 허용 Origin 설정ㄷ
+        when (activeProfile) {
+            "dev", "local" -> {
+                // 개발 환경: 모든 localhost 및 개발용 도메인 허용
+                corsConfig.allowedOriginPatterns(
+                    "http://localhost:*",
+                    "https://localhost:*",
+                    "http://127.0.0.1:*",
+                    "https://127.0.0.1:*",
+                    "http://*.localhost:*",
+                    "https://*.localhost:*"
+                )
+            }
+            "prod" -> {
+                // 운영 환경: 특정 도메인만 허용
+                corsConfig.allowedOriginPatterns(
+                    "https://*.football-club.kr",
+                    "https://admin.football-club.kr"
+                )
+            }
+            else -> {
+                // 기본값: 개발 + 운영 모두 허용
+                corsConfig.allowedOriginPatterns(
+                    "http://localhost:*",
+                    "https://localhost:*",
+                    "http://*.localhost:*",
+                    "https://*.localhost:*",
+                    "http://*.football-club.kr",
+                    "https://*.football-club.kr",
+                    "https://admin.football-club.kr"
+                )
+            }
+        }
     }
 
     override fun addInterceptors(registry: InterceptorRegistry) {
@@ -48,11 +83,19 @@ class WebConfig(
             if (teamCode == null && !isLocalhost) {
                 response.status = HttpServletResponse.SC_BAD_REQUEST
                 response.contentType = "application/json"
+                // CORS 헤더 추가 (credentials=true일 때 "*" 사용 불가)
+                val origin = request.getHeader("Origin")
+                if (origin != null) {
+                    response.setHeader("Access-Control-Allow-Origin", origin)
+                    response.setHeader("Access-Control-Allow-Credentials", "true")
+                }
                 response.writer.write("""
                     {
                         "success": false,
-                        "errorCode": "INVALID_SUBDOMAIN",
-                        "message": "유효하지 않은 서브도메인입니다."
+                        "error": {
+                            "code": "INVALID_SUBDOMAIN",
+                            "message": "유효하지 않은 서브도메인입니다."
+                        }
                     }
                 """.trimIndent())
                 return false
