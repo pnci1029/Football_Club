@@ -20,16 +20,29 @@ class PlayerController(
     private val subdomainService: SubdomainService
 ) {
     
+    private fun extractTeamFromHost(host: String): String? {
+        if (host.contains("localhost")) {
+            val parts = host.split(".")
+            if (parts.size > 1 && parts[0] != "localhost" && parts[0].isNotEmpty()) {
+                return parts[0]
+            }
+        }
+        return null
+    }
+    
     @GetMapping
     fun getPlayers(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
         @RequestParam(required = false) position: String?,
         @RequestParam(required = false) search: String?,
-        @RequestHeader("Host") host: String
+        @RequestHeader("X-Forwarded-Host", required = false) forwardedHost: String?,
+        @RequestHeader("Host", required = false) host: String?
     ): ResponseEntity<ApiResponse<PagedResponse<PlayerDto>>> {
-        val team = subdomainService.getTeamBySubdomain(host)
-            ?: throw TeamNotFoundException(host)
+        val actualHost = forwardedHost ?: host ?: ""
+        val teamCode = extractTeamFromHost(actualHost)
+        val team = teamCode?.let { subdomainService.getTeamByCode(it) }
+            ?: throw TeamNotFoundException(actualHost)
         
         val players = playerService.findPlayersByTeam(team.id, PageRequest.of(page, size))
         

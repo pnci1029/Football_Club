@@ -14,15 +14,14 @@ class SubdomainService(
 ) {
     
     fun getTeamBySubdomain(host: String): TeamDto? {
-        // localhost 환경에서는 기본 팀 반환 (개발용)
-        if (subdomainResolver.isLocalhost(host)) {
-            return teamRepository.findAll().firstOrNull()?.let { TeamDto.from(it) }
-        }
-        
         val teamCode = subdomainResolver.extractTeamFromHost(host)
         return teamCode?.let { 
             teamRepository.findByCode(it)?.let { team -> TeamDto.from(team) }
         }
+    }
+    
+    fun getTeamByCode(teamCode: String): TeamDto? {
+        return teamRepository.findByCode(teamCode)?.let { TeamDto.from(it) }
     }
     
     fun isAdminRequest(host: String): Boolean {
@@ -34,10 +33,6 @@ class SubdomainService(
             ?: request.getHeader("Host") 
             ?: request.serverName
         
-        // localhost 환경에서는 기본 팀 코드 반환 (개발용)
-        if (subdomainResolver.isLocalhost(host)) {
-            return teamRepository.findAll().firstOrNull()?.code
-        }
         
         return subdomainResolver.extractTeamFromHost(host)
     }

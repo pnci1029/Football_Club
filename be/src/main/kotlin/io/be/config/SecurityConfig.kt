@@ -28,16 +28,16 @@ class SecurityConfig {
                 auth
                     // H2 콘솔 허용 (개발용)
                     .requestMatchers("/h2-console/**").permitAll()
-                    
+
                     // 공개 API 허용
                     .requestMatchers("/v1/players/**").permitAll()
                     .requestMatchers("/v1/stadiums/**").permitAll()
                     .requestMatchers("/v1/matches/**").permitAll()
                     .requestMatchers("/v1/team/**").permitAll()
-                    
+
                     // 관리자 API는 인증 필요 (임시로 허용, 추후 JWT 구현 시 변경)
                     .requestMatchers("/v1/admin/**").permitAll() // TODO: 추후 .authenticated()로 변경
-                    
+
                     // 기타 모든 요청 허용
                     .anyRequest().permitAll()
             }

@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8082/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8082';
 
 class ApiClient {
   private client: AxiosInstance;
@@ -25,7 +25,7 @@ class ApiClient {
         // 클라이언트 호스트 정보 전달 (서브도메인 인식용)
         const host = window.location.host;
         config.headers['X-Forwarded-Host'] = host;
-        
+
         const token = localStorage.getItem('accessToken');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;

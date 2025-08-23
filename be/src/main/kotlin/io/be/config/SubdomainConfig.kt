@@ -66,6 +66,15 @@ class SubdomainResolver {
     }
     
     fun extractTeamFromHost(host: String): String? {
+        // localhost 개발환경: park.localhost:3000 형식 처리
+        if (host.contains("localhost")) {
+            val parts = host.split(".")
+            if (parts.size > 1 && parts[0] != "localhost" && parts[0].isNotEmpty()) {
+                return parts[0]
+            }
+            return null
+        }
+        
         // 로컬 테스트용 .local 도메인 처리
         if (host.endsWith(".football-club.local")) {
             val teamCode = host.substringBefore(".football-club.local")
