@@ -100,31 +100,54 @@ yarn start
 yarn build
 ```
 
-#### 관리자 대시보드 구현 ✅ **완료**
+#### SaaS 멀티테넌트 관리자 시스템 ✅ **완료**
+
 **주요 구현 파일들**:
-- `fe/src/pages/admin/AdminDashboard.tsx` - 구단별 관리 대시보드
+- `fe/src/components/layout/AdminSidebar.tsx` - 관리자 사이드바 네비게이션
+- `fe/src/components/layout/AdminHeader.tsx` - 관리자 헤더
+- `fe/src/components/layout/AdminLayout.tsx` - 관리자 전용 레이아웃
+- `fe/src/pages/admin/AdminDashboard.tsx` - SaaS 통합 대시보드
+- `fe/src/pages/admin/TenantManagement.tsx` - 서브도메인(테넌트) 관리
 - `fe/src/pages/admin/AdminPlayers.tsx` - 구단별 선수 관리
 - `fe/src/pages/admin/AdminStadiums.tsx` - 구단별 구장 관리
-- `fe/src/services/adminService.ts` - 관리자 API 서비스
+- `fe/src/services/adminService.ts` - 관리자 및 테넌트 API 서비스
 
-**구현된 기능**:
-1. **구단별 대시보드**
-   - 전체 구단 통계 표시 (총 팀, 선수, 구장 수)
-   - 구단 선택 UI - 클릭 가능한 구단 카드
-   - 선택된 구단의 개별 통계 (팀 선수, 팀 구장)
-   - 실시간 API 연동으로 정확한 데이터 표시
+**라우팅 및 접근 방식**:
+- **관리자 접근**: `admin.localhost:3000`으로 서브도메인 기반 접근
+- **App.tsx**에서 호스트명 감지하여 관리자 레이아웃 자동 적용
 
-2. **구단별 선수 관리**
-   - 구단별 선수 필터링 (`teamId` 파라미터)
-   - URL 파라미터를 통한 직접 구단 선택
-   - 페이지네이션 지원
-   - 선수 카드 형태 UI
+**SaaS 멀티테넌트 기능**:
+1. **통합 대시보드**
+   - 전체 서브도메인 통계 (총 팀, 선수, 구장 수)
+   - 서브도메인별 테이블 뷰 - 한눈에 모든 테넌트 현황 파악
+   - 각 서브도메인별 빠른 관리 링크 제공
+   - 시스템 상태 모니터링 (데이터베이스, 활성 서브도메인 수)
 
-3. **구단별 구장 관리**
-   - 구단별 구장 필터링 추가
-   - 팀 필터 UI - 버튼 형태로 구단 선택
-   - 각 구단의 구장 개수 표시
-   - 검색 기능과 팀 필터 연동
+2. **서브도메인(테넌트) 관리**
+   - 모든 서브도메인을 테이블 형태로 관리
+   - 각 테넌트별 상세 정보 (팀명, URL, 선수 수, 구장 수)
+   - 테넌트 선택 시 상세 정보 패널 표시
+   - 각 서브도메인 사이트로 직접 방문 링크
+   - 테넌트별 빠른 관리 액션 (선수 관리, 구장 관리, 설정)
+
+3. **구단별 개별 관리**
+   - URL 파라미터 (`teamId`)를 통한 구단별 필터링
+   - 선수 관리: 팀별 필터, 페이지네이션, 카드/테이블 뷰
+   - 구장 관리: 팀별 필터, 검색 기능 연동
+   - 각 관리 페이지에서 구단 정보 컨텍스트 표시
+
+4. **관리자 UI/UX**
+   - **고전적 관리자 스타일**: 테이블 중심, 기능 우선 디자인
+   - **사이드바 네비게이션**: 대시보드, 테넌트 관리, 개별 리소스 관리
+   - **정보 밀도 높은 UI**: 많은 정보를 효율적으로 표시
+   - **빠른 액션**: 각 리소스별 관리/설정/방문 버튼
+
+**테넌트 API 연동**:
+- `/v1/admin/tenants` - 전체 테넌트 목록
+- `/v1/admin/tenants/{code}` - 특정 테넌트 정보
+- `/v1/admin/tenants/{code}/dashboard` - 테넌트별 대시보드 데이터
+- `/v1/admin/tenants/{code}/players` - 테넌트별 선수 목록
+- `/v1/admin/tenants/{code}/stadiums` - 테넌트별 구장 목록
 
 ## 프론트엔드 개발 워크플로우 (작업순서)
 

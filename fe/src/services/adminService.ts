@@ -29,7 +29,14 @@ export interface StadiumDto {
   id: number;
   name: string;
   address: string;
-  capacity: number;
+  capacity?: number;
+  latitude?: number;
+  longitude?: number;
+  hourlyRate: number;
+  contactNumber?: string;
+  facilities: string[];
+  availableHours: string;
+  imageUrls: string[];
   teamId?: number;
   teamName?: string;
 }
@@ -74,6 +81,42 @@ class AdminService {
   // 팀 목록 조회
   async getAllTeams(page: number = 0, size: number = 20): Promise<{ content: TeamStats[], totalElements: number }> {
     const response = await apiClient.get<{ success: boolean; data: { content: TeamStats[], totalElements: number } }>(`/v1/admin/teams?page=${page}&size=${size}`);
+    return response.data;
+  }
+
+  // 테넌트 관리 API
+  async getAllTenants(): Promise<any[]> {
+    const response = await apiClient.get<{ success: boolean; data: any[] }>('/v1/admin/tenants');
+    return response.data;
+  }
+
+  async getTenantByCode(teamCode: string): Promise<any> {
+    const response = await apiClient.get<{ success: boolean; data: any }>(`/v1/admin/tenants/${teamCode}`);
+    return response.data;
+  }
+
+  async getTenantDashboard(teamCode: string): Promise<any> {
+    const response = await apiClient.get<{ success: boolean; data: any }>(`/v1/admin/tenants/${teamCode}/dashboard`);
+    return response.data;
+  }
+
+  async getTenantPlayers(teamCode: string, page: number = 0, size: number = 10): Promise<any> {
+    const response = await apiClient.get<{ success: boolean; data: any }>(`/v1/admin/tenants/${teamCode}/players?page=${page}&size=${size}`);
+    return response.data;
+  }
+
+  async getTenantStadiums(teamCode: string, page: number = 0, size: number = 10): Promise<any> {
+    const response = await apiClient.get<{ success: boolean; data: any }>(`/v1/admin/tenants/${teamCode}/stadiums?page=${page}&size=${size}`);
+    return response.data;
+  }
+
+  async updateTenantSettings(teamCode: string, settings: any): Promise<string> {
+    const response = await apiClient.put<{ success: boolean; data: string }>(`/v1/admin/tenants/${teamCode}/settings`, settings);
+    return response.data;
+  }
+
+  async createTenant(tenantData: any): Promise<string> {
+    const response = await apiClient.post<{ success: boolean; data: string }>('/v1/admin/tenants', tenantData);
     return response.data;
   }
 }

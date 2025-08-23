@@ -1,5 +1,6 @@
 import React from 'react';
-import AdminNavigation from './AdminNavigation';
+import AdminSidebar from './AdminSidebar';
+import AdminHeader from './AdminHeader';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -7,12 +8,19 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminNavigation />
-      <div className="py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="flex h-screen bg-gray-100">
+      {/* 사이드바 */}
+      <AdminSidebar />
+      
+      {/* 메인 콘텐츠 영역 */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 헤더 */}
+        <AdminHeader />
+        
+        {/* 메인 콘텐츠 */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
           {children}
-        </div>
+        </main>
       </div>
     </div>
   );

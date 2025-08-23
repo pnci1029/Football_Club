@@ -11,6 +11,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPlayers from './pages/admin/AdminPlayers';
 import AdminTeams from './pages/admin/AdminTeams';
 import AdminStadiums from './pages/admin/AdminStadiums';
+import TenantManagement from './pages/admin/TenantManagement';
 import NotFound from './pages/NotFound';
 import Landing from './pages/Landing';
 import './App.css';
@@ -24,7 +25,8 @@ const AppContent: React.FC = () => {
                       hostname === 'footballclub.com';
 
   // 관리자 도메인인지 확인
-  const isAdminDomain = hostname.startsWith('admin.');
+  const isAdminDomain = hostname === 'admin.localhost' || 
+                       hostname.startsWith('admin.');
 
   if (isMainDomain) {
     // 메인 도메인: 랜딩 페이지만 표시
@@ -37,6 +39,7 @@ const AppContent: React.FC = () => {
       <AdminLayout>
         <Routes>
           <Route path="/" element={<AdminDashboard />} />
+          <Route path="/tenants" element={<TenantManagement />} />
           <Route path="/players" element={<AdminPlayers />} />
           <Route path="/teams" element={<AdminTeams />} />
           <Route path="/stadiums" element={<AdminStadiums />} />

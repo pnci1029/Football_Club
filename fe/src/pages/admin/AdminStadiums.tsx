@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button, Card } from '../../components/common';
-import { adminStadiumService, AdminStadium, CreateStadiumRequest } from '../../services/adminStadiumService';
-import { adminService, TeamStats } from '../../services/adminService';
+import { adminStadiumService, CreateStadiumRequest } from '../../services/adminStadiumService';
+import { adminService, TeamStats, StadiumDto } from '../../services/adminService';
 
 const AdminStadiums: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [stadiums, setStadiums] = useState<AdminStadium[]>([]);
+  const [stadiums, setStadiums] = useState<StadiumDto[]>([]);
   const [teams, setTeams] = useState<TeamStats[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -185,7 +185,7 @@ const AdminStadiums: React.FC = () => {
           <Card key={stadium.id} className="hover:shadow-lg transition-shadow duration-200">
             <div className="mb-4">
               <div className="w-full h-32 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg mb-4 flex items-center justify-center">
-                {stadium.imageUrls.length > 0 ? (
+                {stadium.imageUrls && stadium.imageUrls.length > 0 ? (
                   <img 
                     src={stadium.imageUrls[0]}
                     alt={`${stadium.name}`}
@@ -222,7 +222,7 @@ const AdminStadiums: React.FC = () => {
             <div className="mb-4">
               <span className="text-sm text-gray-600 block mb-2">시설:</span>
               <div className="flex flex-wrap gap-1">
-                {stadium.facilities.map((facility, index) => (
+                {stadium.facilities && stadium.facilities.map((facility, index) => (
                   <span 
                     key={index}
                     className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"
@@ -299,7 +299,7 @@ const AdminStadiums: React.FC = () => {
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
-              {stadiums.filter(s => s.facilities.includes('주차장')).length}
+              {stadiums.filter(s => s.facilities && s.facilities.includes('주차장')).length}
             </div>
             <div className="text-sm text-gray-600">주차장 보유</div>
           </div>
@@ -307,7 +307,7 @@ const AdminStadiums: React.FC = () => {
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {stadiums.filter(s => s.facilities.includes('조명')).length}
+              {stadiums.filter(s => s.facilities && s.facilities.includes('조명')).length}
             </div>
             <div className="text-sm text-gray-600">조명 시설</div>
           </div>
