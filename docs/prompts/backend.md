@@ -335,7 +335,9 @@ class UserServiceTest {
    - 로컬/프로덕션 환경별 서브도메인 처리
    - 기존 SubdomainResolver와 통합
 
-### 🏢 관리자 대시보드 강화 ✅ **완료**
+### 🏢 SaaS 멀티테넌트 관리자 시스템 ✅ **완료**
+
+#### 기존 관리자 대시보드 강화
 1. **AdminTeamController.kt** - 구단별 통계 API ✅
    - `GET /v1/admin/teams/dashboard-stats` - 전체 대시보드 통계
    - `GET /v1/admin/teams/{teamId}/stats` - 특정 팀 통계
@@ -353,6 +355,32 @@ class UserServiceTest {
    - `getTeamStats(teamId)` - 개별 팀 통계
    - `getAllTeamsStats()` - 전체 팀 통계
    - PlayerRepository, StadiumRepository 의존성 주입
+
+#### SaaS 테넌트 관리 시스템 추가
+1. **TenantController.kt** - 테넌트 관리 전용 컨트롤러 ✅
+   ```kotlin
+   @RestController
+   @RequestMapping("/v1/admin/tenants")
+   class TenantController
+   ```
+   - `GET /v1/admin/tenants` - 전체 테넌트 목록 조회
+   - `GET /v1/admin/tenants/{teamCode}` - 특정 테넌트 정보
+   - `GET /v1/admin/tenants/{teamCode}/dashboard` - 테넌트별 대시보드 데이터
+   - `GET /v1/admin/tenants/{teamCode}/players` - 테넌트별 선수 목록
+   - `GET /v1/admin/tenants/{teamCode}/stadiums` - 테넌트별 구장 목록
+   - `PUT /v1/admin/tenants/{teamCode}/settings` - 테넌트 설정 업데이트
+   - `POST /v1/admin/tenants` - 새 테넌트 생성
+
+2. **서비스 레이어 확장** ✅
+   - **PlayerService.kt**: `findPlayersByTeam(teamId: Long)` 메서드 추가
+   - **StadiumService.kt**: `findStadiumsByTeam(teamId: Long)` 메서드 추가
+   - **TeamService.kt**: 기존 통계 메서드 활용
+
+**테넌트 관리 특징**:
+- **팀 코드 기반 접근**: URL에서 `teamCode`로 테넌트 식별
+- **통합 대시보드**: 모든 테넌트의 현황을 한 번에 조회
+- **개별 테넌트 관리**: 각 서브도메인별 독립적인 데이터 관리
+- **확장 가능한 구조**: 새로운 테넌트 생성 및 설정 관리 지원
 
 ### 🚨 3단계: 예외 처리 시스템 📋 **다음 작업**
 1. **CustomExceptions.kt** 구현 필요
@@ -473,8 +501,8 @@ class UserServiceTest {
    - 캐싱 전략 구현
 
 ### 📋 **현재 구현 상태 요약**
-- ✅ **1단계 완료**: TeamController, MatchController 이동
-- ✅ **2단계 완료**: SecurityConfig, WebConfig, SubdomainConfig 
+- ✅ **1-2단계 완료**: 핵심 컨트롤러, 보안 및 설정 인프라
+- ✅ **SaaS 멀티테넌트 시스템 완료**: 관리자 대시보드, 테넌트 관리 API
 - 🔄 **3단계 대기**: CustomExceptions, GlobalExceptionHandler
 - 📋 **4단계 대기**: ApiResponse 유틸리티
 - 📋 **5단계 대기**: 파일 업로드 시스템

@@ -79,4 +79,8 @@ class PlayerService(
         }
         playerRepository.deleteById(id)
     }
+    
+    fun findPlayersByTeam(teamId: Long): List<PlayerDto> {
+        return playerRepository.findByTeamId(teamId).map { PlayerDto.from(it) }
+    }
 }

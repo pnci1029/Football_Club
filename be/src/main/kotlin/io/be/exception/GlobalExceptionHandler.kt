@@ -1,6 +1,8 @@
 package io.be.exception
 
 import io.be.util.ApiResponse
+import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.FieldError
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+    
+    private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
     
     @ExceptionHandler(PlayerNotFoundException::class)
     fun handlePlayerNotFound(ex: PlayerNotFoundException): ResponseEntity<ApiResponse<Nothing>> {
@@ -60,13 +64,27 @@ class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(RuntimeException::class)
-    fun handleRuntimeException(ex: RuntimeException): ResponseEntity<ApiResponse<Nothing>> {
+    fun handleRuntimeException(ex: RuntimeException, request: HttpServletRequest): ResponseEntity<ApiResponse<Nothing>> {
+        val method = request.method
+        val uri = request.requestURI
+        val queryString = request.queryString
+        val fullUrl = if (queryString != null) "$uri?$queryString" else uri
+        
+        logger.error("💥 RUNTIME_ERROR - $method $fullUrl | Error: ${ex.javaClass.simpleName}: ${ex.message}", ex)
+        
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(ApiResponse.error("INTERNAL_SERVER_ERROR", ex.message ?: "An unexpected error occurred"))
     }
     
     @ExceptionHandler(Exception::class)
-    fun handleGenericException(ex: Exception): ResponseEntity<ApiResponse<Nothing>> {
+    fun handleGenericException(ex: Exception, request: HttpServletRequest): ResponseEntity<ApiResponse<Nothing>> {
+        val method = request.method
+        val uri = request.requestURI
+        val queryString = request.queryString
+        val fullUrl = if (queryString != null) "$uri?$queryString" else uri
+        
+        logger.error("💥 GENERIC_ERROR - $method $fullUrl | Error: ${ex.javaClass.simpleName}: ${ex.message}", ex)
+        
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(ApiResponse.error("INTERNAL_SERVER_ERROR", "An unexpected error occurred"))
     }

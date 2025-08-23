@@ -89,7 +89,7 @@ class TeamService(
         }
         
         val playerCount = playerRepository.countByTeamId(teamId)
-        val stadiumCount = stadiumRepository.countByTeamId(teamId)
+        val stadiumCount = stadiumRepository.count()
         
         return mapOf(
             "teamId" to teamId,
@@ -113,7 +113,7 @@ class TeamService(
                 "name" to team.name,
                 "code" to team.code,
                 "playerCount" to playerRepository.countByTeamId(team.id),
-                "stadiumCount" to stadiumRepository.countByTeamId(team.id)
+                "stadiumCount" to stadiumRepository.count()
             )
         }
         

@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/v1/teams")
+@RequestMapping("/v1/teams")
 @CrossOrigin(origins = ["*"])
 class PublicTeamController(
     private val teamService: TeamService

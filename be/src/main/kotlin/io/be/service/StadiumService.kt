@@ -24,6 +24,10 @@ class StadiumService(
         return stadiumRepository.findById(id).orElse(null)?.let { StadiumDto.from(it) }
     }
     
+    fun findStadiumsByTeam(teamId: Long, pageable: Pageable): Page<StadiumDto> {
+        return stadiumRepository.findAll(pageable).map { StadiumDto.from(it) }
+    }
+    
     fun searchStadiumsByName(name: String): List<StadiumDto> {
         return stadiumRepository.findByNameContaining(name).map { StadiumDto.from(it) }
     }
@@ -78,5 +82,10 @@ class StadiumService(
             throw io.be.exception.StadiumNotFoundException(id)
         }
         stadiumRepository.deleteById(id)
+    }
+    
+    fun findStadiumsByTeam(teamId: Long): List<StadiumDto> {
+        // TODO: Team과 Stadium 관계 구현 후 실제 팀별 필터링
+        return stadiumRepository.findAll().map { StadiumDto.from(it) }
     }
 }

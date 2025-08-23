@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository
 @Repository
 interface PlayerRepository : JpaRepository<Player, Long> {
     fun findByTeamId(teamId: Long, pageable: Pageable): Page<Player>
+    fun findByTeamId(teamId: Long): List<Player>
     fun findByTeamIdAndIsActiveTrue(teamId: Long): List<Player>
     fun findByIdAndTeamId(id: Long, teamId: Long): Player?
     fun findByTeamIdAndPosition(teamId: Long, position: String): List<Player>
