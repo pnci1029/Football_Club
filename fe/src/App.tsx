@@ -11,6 +11,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPlayers from './pages/admin/AdminPlayers';
 import AdminTeams from './pages/admin/AdminTeams';
 import AdminStadiums from './pages/admin/AdminStadiums';
+import AdminMatches from './pages/admin/AdminMatches';
 import TenantManagement from './pages/admin/TenantManagement';
 import NotFound from './pages/NotFound';
 import Landing from './pages/Landing';
@@ -43,11 +44,13 @@ const AppContent: React.FC = () => {
           <Route path="/admin/players" element={<AdminPlayers />} />
           <Route path="/admin/teams" element={<AdminTeams />} />
           <Route path="/admin/stadiums" element={<AdminStadiums />} />
+          <Route path="/admin/matches" element={<AdminMatches />} />
           {/* 기존 경로 호환성 유지 */}
           <Route path="/tenants" element={<TenantManagement />} />
           <Route path="/players" element={<AdminPlayers />} />
           <Route path="/teams" element={<AdminTeams />} />
           <Route path="/stadiums" element={<AdminStadiums />} />
+          <Route path="/matches" element={<AdminMatches />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AdminLayout>

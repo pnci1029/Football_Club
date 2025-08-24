@@ -1,5 +1,6 @@
 package io.be.config
 
+import io.be.security.TenantSecurityInterceptor
 import io.be.service.SubdomainService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 @Configuration
 class WebConfig(
     private val subdomainService: SubdomainService,
+    private val tenantSecurityInterceptor: TenantSecurityInterceptor,
     @Value("\${spring.profiles.active:dev}") private val activeProfile: String
 ) : WebMvcConfigurer {
 
@@ -59,6 +61,17 @@ class WebConfig(
     }
 
     override fun addInterceptors(registry: InterceptorRegistry) {
+        // 보안 인터셉터 - 모든 요청에 대해 적용
+        registry.addInterceptor(tenantSecurityInterceptor)
+            .addPathPatterns("/**")
+            .excludePathPatterns(
+                "/api/actuator/**",  // Spring Actuator 경로 제외
+                "/api/h2-console/**", // H2 콘솔 제외 (개발용)
+                "/api/swagger-ui/**", // Swagger UI 제외
+                "/api/api-docs/**"    // API 문서 제외
+            )
+
+        // 기존 서브도메인 인터셉터 - 특정 경로에만 적용
         registry.addInterceptor(SubdomainInterceptor(subdomainService))
             .addPathPatterns("/v1/team/**")
     }
