@@ -79,7 +79,7 @@ fun findUser(id: Long): UserDto? = userRepository.findById(id)?.toDto()
 ### application.properties 예시
 ```properties
 # 서버 설정
-server.port=8080
+server.port=8082
 server.servlet.context-path=/api
 
 # 서브도메인 설정
@@ -500,30 +500,67 @@ class UserServiceTest {
    - 쿼리 최적화
    - 캐싱 전략 구현
 
+## 🚀 **백엔드 우선순위별 개발 계획**
+
+### **1순위 - 즉시 개발 필요**
+1. **예외 처리 시스템** ⚠️ **높은 우선순위**
+   - `CustomExceptions.kt` - 팀/선수/구장/경기 관련 예외 클래스
+   - `GlobalExceptionHandler.kt` - 통합 예외 처리
+   
+2. **보안 강화** ⚠️ **높은 우선순위**
+   - 멀티테넌트 보안 인터셉터 구현
+   - Host 헤더 검증 강화
+   - JWT 토큰 기반 인증
+
+3. **API 응답 표준화** ⚠️ **높은 우선순위**
+   - `ApiResponse.kt` 완성
+   - 성공/실패 응답 통일
+
+### **2순위 - 단기 개발**
+1. **경기 관리 시스템 완성**
+   - `AdminMatchController.kt` 구현
+   - 경기 이벤트 엔티티 및 관리
+   
+2. **파일 업로드 시스템**
+   - 선수 이미지 업로드 API
+   - 팀 로고 업로드 기능
+   
+3. **테스트 코드 확장**
+   - 컨트롤러/서비스 테스트
+   - 멀티테넌트 보안 테스트
+
+### **3순위 - 중장기 개발**
+1. **경기 통계 시스템**
+   - 선수별 통계 집계
+   - 팀별 승패 기록
+   
+2. **성능 최적화**
+   - JPA N+1 문제 해결
+   - 캐싱 시스템 구현
+
 ### 📋 **현재 구현 상태 요약**
 - ✅ **1-2단계 완료**: 핵심 컨트롤러, 보안 및 설정 인프라
 - ✅ **SaaS 멀티테넌트 시스템 완료**: 관리자 대시보드, 테넌트 관리 API
-- 🔄 **3단계 대기**: CustomExceptions, GlobalExceptionHandler
-- 📋 **4단계 대기**: ApiResponse 유틸리티
-- 📋 **5단계 대기**: 파일 업로드 시스템
-- 📋 **6단계 대기**: 고급 기능 및 최적화
+- ⚠️ **1순위 대기**: 예외 처리, 보안 강화, API 표준화
+- 📋 **2순위 대기**: 경기 관리, 파일 업로드, 테스트 확장
+- 📋 **3순위 대기**: 통계 시스템, 성능 최적화
 
-### 📝 **다음 단계 실행 명령**
+### 📝 **우선순위 실행 명령**
 ```bash
-# 3단계 실행
-claude "3단계 예외 처리 시스템을 구현해주세요"
+# 1순위: 예외 처리 시스템
+claude "1순위: 백엔드 예외 처리 시스템을 구현해주세요"
 
-# 4단계 실행  
-claude "4단계 ApiResponse 유틸리티를 구현해주세요"
+# 1순위: 보안 강화
+claude "1순위: 멀티테넌트 보안 인터셉터를 구현해주세요"
 
-# 5단계 실행
-claude "5단계 파일 업로드 시스템을 구현해주세요"
+# 2순위: 경기 관리
+claude "2순위: AdminMatchController와 경기 관리 시스템을 구현해주세요"
 ```
 
 ### 개발 환경 설정 참고
 ```properties
 # application.properties 기본 설정
-server.port=8080
+server.port=8082
 server.servlet.context-path=/api
 
 # 서브도메인 설정
