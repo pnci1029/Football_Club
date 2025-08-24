@@ -39,6 +39,11 @@ const AppContent: React.FC = () => {
       <AdminLayout>
         <Routes>
           <Route path="/" element={<AdminDashboard />} />
+          <Route path="/admin/tenants" element={<TenantManagement />} />
+          <Route path="/admin/players" element={<AdminPlayers />} />
+          <Route path="/admin/teams" element={<AdminTeams />} />
+          <Route path="/admin/stadiums" element={<AdminStadiums />} />
+          {/* 기존 경로 호환성 유지 */}
           <Route path="/tenants" element={<TenantManagement />} />
           <Route path="/players" element={<AdminPlayers />} />
           <Route path="/teams" element={<AdminTeams />} />

@@ -43,250 +43,186 @@ const AdminDashboard: React.FC = () => {
     );
   }
 
-  const overallStats = [
-    {
-      title: '총 팀',
-      value: dashboardStats.totalTeams.toString(),
-      icon: '🏆',
-      color: 'bg-green-500',
-      link: '/teams'
-    },
-    {
-      title: '총 선수',
-      value: dashboardStats.totalPlayers.toString(),
-      icon: '👤',
-      color: 'bg-blue-500',
-      link: '/players'
-    },
-    {
-      title: '총 구장',
-      value: dashboardStats.totalStadiums.toString(),
-      icon: '🏟️',
-      color: 'bg-purple-500',
-      link: '/stadiums'
-    },
-    {
-      title: '총 경기',
-      value: dashboardStats.totalMatches.toString(),
-      icon: '⚽',
-      color: 'bg-orange-500',
-      link: '/matches'
-    }
-  ];
-
-  const teamStats = selectedTeam ? [
-    {
-      title: '팀 선수',
-      value: selectedTeam.playerCount.toString(),
-      icon: '👤',
-      color: 'bg-blue-500',
-      link: `/players?teamId=${selectedTeam.id}`
-    },
-    {
-      title: '팀 구장',
-      value: selectedTeam.stadiumCount.toString(),
-      icon: '🏟️',
-      color: 'bg-purple-500',
-      link: `/stadiums?teamId=${selectedTeam.id}`
-    }
-  ] : [];
-
-  const quickActions = [
-    {
-      title: '팀 생성',
-      description: '새로운 팀을 생성합니다',
-      icon: '🆕',
-      color: 'bg-green-500 hover:bg-green-600',
-      link: '/teams/new'
-    },
-    {
-      title: '선수 추가',
-      description: selectedTeam ? `${selectedTeam.name}에 선수 추가` : '팀을 선택하고 선수를 추가합니다',
-      icon: '➕',
-      color: 'bg-blue-500 hover:bg-blue-600',
-      link: selectedTeam ? `/players/new?teamId=${selectedTeam.id}` : '/players'
-    },
-    {
-      title: '구장 등록',
-      description: '새로운 구장을 시스템에 등록합니다',
-      icon: '🏗️',
-      color: 'bg-purple-500 hover:bg-purple-600',
-      link: '/stadiums/new'
-    },
-    {
-      title: '경기 일정 관리',
-      description: '경기 일정을 생성하고 관리합니다',
-      icon: '📅',
-      color: 'bg-orange-500 hover:bg-orange-600',
-      link: '/matches/new'
-    }
-  ];
-
-  const recentActivities = [
-    { action: '최근 활동 로그는 개발 중입니다', time: '개발 예정', type: 'info' },
-  ];
 
   return (
-    <div className="space-y-6">
-      {/* 전체 통계 요약 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {overallStats.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className={`${stat.color} p-3 rounded-lg text-white text-2xl mr-4`}>
-                {stat.icon}
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-              </div>
-            </div>
-          </div>
-        ))}
+    <div className="space-y-8">
+      {/* 헤더 */}
+      <div className="border-b border-gray-200 pb-6">
+        <h1 className="text-2xl font-bold text-gray-900">관리자 대시보드</h1>
+        <p className="text-gray-600 mt-2">전체 시스템 현황과 서브도메인별 통계를 확인할 수 있습니다</p>
       </div>
 
-      {/* 서브도메인 관리 테이블 */}
-      <div className="bg-white rounded-lg shadow">
+      {/* 핵심 통계 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <div className="text-gray-600 text-3xl mr-4">🏢</div>
+            <div>
+              <p className="text-sm text-gray-500">총 서브도메인</p>
+              <p className="text-3xl font-bold text-gray-900">{dashboardStats.totalTeams}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <div className="text-gray-600 text-3xl mr-4">👥</div>
+            <div>
+              <p className="text-sm text-gray-500">전체 선수</p>
+              <p className="text-3xl font-bold text-gray-900">{dashboardStats.totalPlayers}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <div className="text-gray-600 text-3xl mr-4">🏟️</div>
+            <div>
+              <p className="text-sm text-gray-500">전체 구장</p>
+              <p className="text-3xl font-bold text-gray-900">{dashboardStats.totalStadiums}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <div className="text-gray-600 text-3xl mr-4">⚽</div>
+            <div>
+              <p className="text-sm text-gray-500">전체 경기</p>
+              <p className="text-3xl font-bold text-gray-900">{dashboardStats.totalMatches}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 서브도메인별 현황 */}
+      <div className="bg-white border border-gray-200 rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">서브도메인 관리</h2>
-            <Link to="/tenants" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
-              전체 관리
+            <h2 className="text-xl font-semibold text-gray-900">서브도메인별 현황</h2>
+            <Link to="/admin/tenants" className="text-sm text-gray-600 hover:text-gray-900 font-medium">
+              전체 관리 →
             </Link>
           </div>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  서브도메인
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  팀명
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  선수 수
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  구장 수
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  액션
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {dashboardStats.teams.slice(0, 5).map((team) => (
-                <tr key={team.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-blue-600">
-                      {team.code}.localhost:3000
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-gray-900">{team.name}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {team.playerCount}명
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      {team.stadiumCount}개
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <Link to={`/players?teamId=${team.id}`} className="text-blue-600 hover:text-blue-900">선수관리</Link>
-                    <Link to={`/stadiums?teamId=${team.id}`} className="text-green-600 hover:text-green-900">구장관리</Link>
-                    <a 
-                      href={`http://${team.code}.localhost:3000`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-600 hover:text-purple-900"
-                    >
-                      방문
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* 빠른 작업 */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">빠른 작업</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-6">
-          {quickActions.map((action, index) => (
-            <Link key={index} to={action.link}>
-              <div className={`${action.color} text-white p-4 rounded-lg text-center transition-all duration-200 hover:scale-105`}>
-                <div className="text-2xl mb-2">{action.icon}</div>
-                <h3 className="font-semibold mb-1">{action.title}</h3>
-                <p className="text-sm opacity-90">{action.description}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* 시스템 상태 */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">시스템 상태</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-2">
-              <span className="text-green-600 text-xl">✓</span>
-            </div>
-            <p className="text-sm font-medium text-gray-900">시스템 상태</p>
-            <p className="text-xs text-green-600">정상 동작</p>
-          </div>
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-2">
-              <span className="text-blue-600 text-xl">📊</span>
-            </div>
-            <p className="text-sm font-medium text-gray-900">데이터베이스</p>
-            <p className="text-xs text-blue-600">H2 인메모리</p>
-          </div>
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-2">
-              <span className="text-purple-600 text-xl">🌐</span>
-            </div>
-            <p className="text-sm font-medium text-gray-900">서브도메인</p>
-            <p className="text-xs text-purple-600">{dashboardStats.totalTeams}개 활성</p>
-          </div>
-        </div>
-      </div>
-
-      {/* 최근 활동 */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">최근 활동</h2>
-        <Card>
-          <div className="space-y-4">
-            {recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-center justify-between py-3 border-b last:border-b-0">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-3">
-                    {activity.type === 'player' && '👤'}
-                    {activity.type === 'stadium' && '🏟️'}
-                    {activity.type === 'team' && '🏆'}
-                    {activity.type === 'match' && '⚽'}
-                    {activity.type === 'info' && 'ℹ️'}
-                  </div>
+        <div className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {dashboardStats.teams.map((team) => (
+              <div key={team.id} className="border border-gray-200 rounded-lg p-5 hover:border-gray-300 transition-colors">
+                <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-gray-900">{activity.action}</p>
+                    <h3 className="font-semibold text-gray-900">{team.name}</h3>
+                    <p className="text-sm text-gray-500">{team.code}.localhost:3000</p>
+                  </div>
+                  <a 
+                    href={`http://${team.code}.localhost:3000`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    🔗
+                  </a>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">{team.playerCount}</div>
+                    <div className="text-xs text-gray-600">선수</div>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">{team.stadiumCount}</div>
+                    <div className="text-xs text-gray-600">구장</div>
                   </div>
                 </div>
-                <div className="text-sm text-gray-500">{activity.time}</div>
+                
+                <div className="flex gap-2">
+                  <Link 
+                    to={`/admin/players?teamId=${team.id}`} 
+                    className="flex-1 text-center py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                  >
+                    선수 관리
+                  </Link>
+                  <Link 
+                    to={`/admin/stadiums?teamId=${team.id}`} 
+                    className="flex-1 text-center py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                  >
+                    구장 관리
+                  </Link>
+                </div>
               </div>
             ))}
+            
+            {/* 새 서브도메인 추가 카드 */}
+            <Link to="/admin/tenants" className="border-2 border-dashed border-gray-300 rounded-lg p-5 hover:border-gray-400 transition-colors flex flex-col items-center justify-center min-h-[200px]">
+              <div className="text-4xl text-gray-400 mb-2">+</div>
+              <div className="text-sm text-gray-600 font-medium">새 서브도메인 생성</div>
+              <div className="text-xs text-gray-500 text-center mt-1">축구 동호회를 위한<br/>새 서브도메인을 생성합니다</div>
+            </Link>
           </div>
-        </Card>
+        </div>
+      </div>
+
+      {/* 관리 메뉴 */}
+      <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">관리 메뉴</h2>
+        </div>
+        <div className="p-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Link to="/admin/tenants" className="group p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+              <div className="text-center">
+                <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">🏢</div>
+                <div className="text-sm font-medium text-gray-900">서브도메인</div>
+                <div className="text-xs text-gray-500">관리</div>
+              </div>
+            </Link>
+            <Link to="/admin/teams" className="group p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+              <div className="text-center">
+                <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">🏆</div>
+                <div className="text-sm font-medium text-gray-900">팀</div>
+                <div className="text-xs text-gray-500">관리</div>
+              </div>
+            </Link>
+            <Link to="/admin/players" className="group p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+              <div className="text-center">
+                <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">👥</div>
+                <div className="text-sm font-medium text-gray-900">선수</div>
+                <div className="text-xs text-gray-500">관리</div>
+              </div>
+            </Link>
+            <Link to="/admin/stadiums" className="group p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+              <div className="text-center">
+                <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">🏟️</div>
+                <div className="text-sm font-medium text-gray-900">구장</div>
+                <div className="text-xs text-gray-500">관리</div>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* 시스템 정보 */}
+      <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">시스템 정보</h2>
+        </div>
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="text-green-600 text-2xl mb-2">✓</div>
+              <div className="text-sm font-medium text-gray-900">시스템</div>
+              <div className="text-xs text-green-600">정상 동작</div>
+            </div>
+            <div className="text-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="text-blue-600 text-2xl mb-2">💾</div>
+              <div className="text-sm font-medium text-gray-900">데이터베이스</div>
+              <div className="text-xs text-blue-600">H2 인메모리</div>
+            </div>
+            <div className="text-center p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <div className="text-gray-600 text-2xl mb-2">🌐</div>
+              <div className="text-sm font-medium text-gray-900">활성 도메인</div>
+              <div className="text-xs text-gray-600">{dashboardStats.totalTeams}개</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
