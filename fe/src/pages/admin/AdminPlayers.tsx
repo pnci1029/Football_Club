@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button, Card } from '../../components/common';
 import { adminPlayerService, AdminPlayer, CreatePlayerRequest } from '../../services/adminPlayerService';
 import { adminTeamService, AdminTeam } from '../../services/adminTeamService';
+import PlayerEditModal from '../../components/admin/PlayerEditModal';
+import PlayerCreateModal from '../../components/admin/PlayerCreateModal';
 
 const AdminPlayers: React.FC = () => {
   const [players, setPlayers] = useState<AdminPlayer[]>([]);
@@ -12,6 +14,9 @@ const AdminPlayers: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [editingPlayer, setEditingPlayer] = useState<AdminPlayer | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     loadTeams();
@@ -43,9 +48,9 @@ const AdminPlayers: React.FC = () => {
     setLoading(true);
     try {
       const response = await adminPlayerService.getAllPlayers(page, 10, selectedTeam);
-      if (response.success) {
-        setPlayers(response.data.content);
-        setTotalPages(response.data.totalPages);
+      if (response.success && response.data) {
+        setPlayers(response.data.content || []);
+        setTotalPages(response.data.totalPages || 0);
       }
     } catch (error) {
       console.error('Failed to load players:', error);
@@ -55,19 +60,40 @@ const AdminPlayers: React.FC = () => {
   };
 
   const handleDeletePlayer = async (id: number) => {
-    try {
-      const response = await adminPlayerService.deletePlayer(id);
-      if (response.success) {
-        loadPlayers();
+    if (window.confirm('정말로 이 선수를 삭제하시겠습니까?')) {
+      try {
+        const response = await adminPlayerService.deletePlayer(id);
+        if (response.success) {
+          loadPlayers();
+        }
+      } catch (error) {
+        console.error('Failed to delete player:', error);
       }
-    } catch (error) {
-      console.error('Failed to delete player:', error);
     }
   };
 
-  const filteredPlayers = players.filter(player => {
-    const matchesSearch = player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         player.team.name.toLowerCase().includes(searchTerm.toLowerCase());
+  const handleEditPlayer = (player: AdminPlayer) => {
+    setEditingPlayer(player);
+    setShowEditModal(true);
+  };
+
+  const handleCreatePlayer = () => {
+    setShowCreateModal(true);
+  };
+
+  const handlePlayerUpdated = () => {
+    loadPlayers();
+  };
+
+  const handlePlayerCreated = () => {
+    loadPlayers();
+  };
+
+  const filteredPlayers = (players || []).filter(player => {
+    if (!player) return false;
+    
+    const matchesSearch = (player.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (player.team?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = selectedFilter === 'all' || 
                          (selectedFilter === 'active' && player.isActive) ||
                          (selectedFilter === 'inactive' && !player.isActive);
@@ -92,7 +118,10 @@ const AdminPlayers: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">선수 관리</h1>
           <p className="text-gray-600 mt-2">등록된 선수들을 관리합니다</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={handleCreatePlayer}
+        >
           <span className="mr-2">➕</span>
           선수 추가
         </Button>
@@ -141,24 +170,24 @@ const AdminPlayers: React.FC = () => {
             <div className="text-center">
               <div className="w-20 h-20 mx-auto rounded-full overflow-hidden bg-gray-100 mb-4">
                 <img 
-                  src={player.profileImageUrl || `https://via.placeholder.com/400x400/e5e7eb/9ca3af?text=${player.name.charAt(0)}`}
-                  alt={`${player.name} 프로필`}
+                  src={player.profileImageUrl || `https://via.placeholder.com/400x400/e5e7eb/9ca3af?text=${(player.name || 'N').charAt(0)}`}
+                  alt={`${player.name || '선수'} 프로필`}
                   className="w-full h-full object-cover"
                 />
               </div>
               
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{player.name}</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{player.name || '이름 없음'}</h3>
               
               <div className="flex justify-center items-center gap-2 mb-3">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPositionBadgeColor(player.position)}`}>
-                  {player.position}
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPositionBadgeColor(player.position || '')}`}>
+                  {player.position || 'N/A'}
                 </span>
                 <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-medium">
-                  #{player.backNumber}
+                  #{player.backNumber || 0}
                 </span>
               </div>
               
-              <p className="text-sm text-gray-600 mb-3">{player.team.name}</p>
+              <p className="text-sm text-gray-600 mb-3">{player.team?.name || '팀 미지정'}</p>
               
               <div className="flex justify-center mb-4">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -175,6 +204,7 @@ const AdminPlayers: React.FC = () => {
                   size="sm" 
                   variant="outline" 
                   className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+                  onClick={() => handleEditPlayer(player)}
                 >
                   수정
                 </Button>
@@ -200,7 +230,10 @@ const AdminPlayers: React.FC = () => {
             <p className="text-gray-600 mb-4">
               {searchTerm ? '검색 조건에 맞는 선수가 없습니다.' : '등록된 선수가 없습니다.'}
             </p>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleCreatePlayer}
+            >
               <span className="mr-2">➕</span>
               첫 번째 선수 추가하기
             </Button>
@@ -212,14 +245,14 @@ const AdminPlayers: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">{players.length}</div>
+            <div className="text-2xl font-bold text-gray-900">{(players || []).length}</div>
             <div className="text-sm text-gray-600">총 선수</div>
           </div>
         </Card>
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
-              {players.filter(p => p.isActive).length}
+              {(players || []).filter(p => p?.isActive).length}
             </div>
             <div className="text-sm text-gray-600">활성 선수</div>
           </div>
@@ -227,7 +260,7 @@ const AdminPlayers: React.FC = () => {
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-red-600">
-              {players.filter(p => !p.isActive).length}
+              {(players || []).filter(p => p && !p.isActive).length}
             </div>
             <div className="text-sm text-gray-600">비활성 선수</div>
           </div>
@@ -235,12 +268,27 @@ const AdminPlayers: React.FC = () => {
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {new Set(players.map(p => p.team.name)).size}
+              {new Set((players || []).filter(p => p?.team?.name).map(p => p.team.name)).size}
             </div>
             <div className="text-sm text-gray-600">소속 팀</div>
           </div>
         </Card>
       </div>
+
+      {/* 모달들 */}
+      <PlayerCreateModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        teamId={selectedTeam}
+        onPlayerCreated={handlePlayerCreated}
+      />
+
+      <PlayerEditModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        player={editingPlayer}
+        onPlayerUpdated={handlePlayerUpdated}
+      />
     </div>
   );
 };

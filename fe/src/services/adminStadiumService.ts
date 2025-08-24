@@ -54,31 +54,31 @@ export interface ApiResponse<T> {
 
 export class AdminStadiumService {
   async getAllStadiums(page: number = 0, size: number = 10): Promise<ApiResponse<StadiumsPageResponse>> {
-    return apiClient.get(`/v1/admin/stadiums?page=${page}&size=${size}`);
+    return apiClient.get(`/api/v1/admin/stadiums?page=${page}&size=${size}`);
   }
 
   async createStadium(request: CreateStadiumRequest): Promise<ApiResponse<AdminStadium>> {
-    return apiClient.post('/v1/admin/stadiums', request);
+    return apiClient.post('/api/v1/admin/stadiums', request);
   }
 
   async getStadium(id: number): Promise<ApiResponse<AdminStadium>> {
-    return apiClient.get(`/v1/admin/stadiums/${id}`);
+    return apiClient.get(`/api/v1/admin/stadiums/${id}`);
   }
 
   async updateStadium(id: number, request: UpdateStadiumRequest): Promise<ApiResponse<AdminStadium>> {
-    return apiClient.put(`/v1/admin/stadiums/${id}`, request);
+    return apiClient.put(`/api/v1/admin/stadiums/${id}`, request);
   }
 
   async deleteStadium(id: number): Promise<ApiResponse<string>> {
-    return apiClient.delete(`/v1/admin/stadiums/${id}`);
+    return apiClient.delete(`/api/v1/admin/stadiums/${id}`);
   }
 
   async searchStadiumsByName(name: string): Promise<ApiResponse<AdminStadium[]>> {
-    return apiClient.get(`/v1/admin/stadiums/search?name=${encodeURIComponent(name)}`);
+    return apiClient.get(`/api/v1/admin/stadiums/search?name=${encodeURIComponent(name)}`);
   }
 
   async searchStadiumsByAddress(address: string): Promise<ApiResponse<AdminStadium[]>> {
-    return apiClient.get(`/v1/admin/stadiums/search?address=${encodeURIComponent(address)}`);
+    return apiClient.get(`/api/v1/admin/stadiums/search?address=${encodeURIComponent(address)}`);
   }
 }
 

@@ -3,8 +3,10 @@ package io.be.controller.public
 import io.be.dto.CreateMatchRequest
 import io.be.dto.MatchDto
 import io.be.dto.MatchScoreRequest
+import io.be.dto.TeamDto
 import io.be.dto.UpdateMatchRequest
 import io.be.entity.MatchStatus
+import io.be.exception.TeamNotFoundException
 import io.be.service.MatchService
 import io.be.util.ApiResponse
 import jakarta.validation.Valid
@@ -41,23 +43,27 @@ class MatchController(
         return ResponseEntity.ok(ApiResponse.success(match))
     }
     
-    @GetMapping("/team/{teamId}")
+    @GetMapping("/my-team")
     fun getMatchesByTeam(
-        @PathVariable teamId: Long,
         @RequestParam(required = false) status: MatchStatus?,
+        @RequestAttribute("team", required = false) team: TeamDto?,
         pageable: Pageable
     ): ResponseEntity<ApiResponse<Page<MatchDto>>> {
+        team ?: throw TeamNotFoundException("Team not found for subdomain")
+        
         val matches = if (status != null) {
-            matchService.findMatchesByTeamAndStatus(teamId, status, pageable)
+            matchService.findMatchesByTeamAndStatus(team.id, status, pageable)
         } else {
-            matchService.findMatchesByTeam(teamId, pageable)
+            matchService.findMatchesByTeam(team.id, pageable)
         }
         return ResponseEntity.ok(ApiResponse.success(matches))
     }
     
-    @GetMapping("/team/{teamId}/upcoming")
-    fun getUpcomingMatches(@PathVariable teamId: Long): ResponseEntity<ApiResponse<List<MatchDto>>> {
-        val matches = matchService.findUpcomingMatches(teamId)
+    @GetMapping("/my-team/upcoming")
+    fun getUpcomingMatches(@RequestAttribute("team", required = false) team: TeamDto?): ResponseEntity<ApiResponse<List<MatchDto>>> {
+        team ?: throw TeamNotFoundException("Team not found for subdomain")
+        
+        val matches = matchService.findUpcomingMatches(team.id)
         return ResponseEntity.ok(ApiResponse.success(matches))
     }
     

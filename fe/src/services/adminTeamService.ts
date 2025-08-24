@@ -41,27 +41,27 @@ export interface ApiResponse<T> {
 
 export class AdminTeamService {
   async getAllTeams(page: number = 0, size: number = 10): Promise<ApiResponse<TeamsPageResponse>> {
-    return apiClient.get(`/v1/admin/teams?page=${page}&size=${size}`);
+    return apiClient.get(`/api/v1/admin/teams?page=${page}&size=${size}`);
   }
 
   async createTeam(request: CreateTeamRequest): Promise<ApiResponse<AdminTeam>> {
-    return apiClient.post('/v1/admin/teams', request);
+    return apiClient.post('/api/v1/admin/teams', request);
   }
 
   async getTeam(id: number): Promise<ApiResponse<AdminTeam>> {
-    return apiClient.get(`/v1/admin/teams/${id}`);
+    return apiClient.get(`/api/v1/admin/teams/${id}`);
   }
 
   async getTeamByCode(code: string): Promise<ApiResponse<AdminTeam>> {
-    return apiClient.get(`/v1/admin/teams/code/${code}`);
+    return apiClient.get(`/api/v1/admin/teams/code/${code}`);
   }
 
   async updateTeam(id: number, request: UpdateTeamRequest): Promise<ApiResponse<AdminTeam>> {
-    return apiClient.put(`/v1/admin/teams/${id}`, request);
+    return apiClient.put(`/api/v1/admin/teams/${id}`, request);
   }
 
   async deleteTeam(id: number): Promise<ApiResponse<string>> {
-    return apiClient.delete(`/v1/admin/teams/${id}`);
+    return apiClient.delete(`/api/v1/admin/teams/${id}`);
   }
 }
 

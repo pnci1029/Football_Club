@@ -1,10 +1,10 @@
 package io.be.controller.public
 
 import io.be.dto.PlayerDto
+import io.be.dto.TeamDto
 import io.be.exception.TeamNotFoundException
 import io.be.exception.PlayerNotFoundException
 import io.be.service.PlayerService
-import io.be.service.SubdomainService
 import io.be.util.ApiResponse
 import io.be.util.PagedResponse
 import io.be.util.PageMetadata
@@ -16,19 +16,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/v1/players")
 @CrossOrigin(origins = ["*"])
 class PlayerController(
-    private val playerService: PlayerService,
-    private val subdomainService: SubdomainService
+    private val playerService: PlayerService
 ) {
-    
-    private fun extractTeamFromHost(host: String): String? {
-        if (host.contains("localhost")) {
-            val parts = host.split(".")
-            if (parts.size > 1 && parts[0] != "localhost" && parts[0].isNotEmpty()) {
-                return parts[0]
-            }
-        }
-        return null
-    }
     
     @GetMapping
     fun getPlayers(
@@ -36,13 +25,9 @@ class PlayerController(
         @RequestParam(defaultValue = "10") size: Int,
         @RequestParam(required = false) position: String?,
         @RequestParam(required = false) search: String?,
-        @RequestHeader("X-Forwarded-Host", required = false) forwardedHost: String?,
-        @RequestHeader("Host", required = false) host: String?
+        @RequestAttribute("team", required = false) team: TeamDto?
     ): ResponseEntity<ApiResponse<PagedResponse<PlayerDto>>> {
-        val actualHost = forwardedHost ?: host ?: ""
-        val teamCode = extractTeamFromHost(actualHost)
-        val team = teamCode?.let { subdomainService.getTeamByCode(it) }
-            ?: throw TeamNotFoundException(actualHost)
+        team ?: throw TeamNotFoundException("Team not found for subdomain")
         
         val players = playerService.findPlayersByTeam(team.id, PageRequest.of(page, size))
         
@@ -63,10 +48,9 @@ class PlayerController(
     @GetMapping("/{id}")
     fun getPlayer(
         @PathVariable id: Long,
-        @RequestHeader("Host") host: String
+        @RequestAttribute("team", required = false) team: TeamDto?
     ): ResponseEntity<ApiResponse<PlayerDto>> {
-        val team = subdomainService.getTeamBySubdomain(host)
-            ?: throw TeamNotFoundException(host)
+        team ?: throw TeamNotFoundException("Team not found for subdomain")
         
         val player = playerService.findPlayerById(id)
             ?: throw PlayerNotFoundException(id)
@@ -81,10 +65,9 @@ class PlayerController(
     
     @GetMapping("/active")
     fun getActivePlayers(
-        @RequestHeader("Host") host: String
+        @RequestAttribute("team", required = false) team: TeamDto?
     ): ResponseEntity<ApiResponse<List<PlayerDto>>> {
-        val team = subdomainService.getTeamBySubdomain(host)
-            ?: throw TeamNotFoundException(host)
+        team ?: throw TeamNotFoundException("Team not found for subdomain")
         
         val players = playerService.findActivePlayersByTeam(team.id)
         return ResponseEntity.ok(ApiResponse.success(players, "Active players retrieved successfully"))
