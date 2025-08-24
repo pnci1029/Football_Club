@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { adminService, TeamStats, CreateTeamData } from '../../services/adminService';
 import CreateTeamModal from '../../components/admin/CreateTeamModal';
+import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
+import { adminTeamService } from '../../services/adminTeamService';
 
 const TenantManagement: React.FC = () => {
   const [tenants, setTenants] = useState<TeamStats[]>([]);
@@ -8,6 +10,9 @@ const TenantManagement: React.FC = () => {
   const [selectedTenant, setSelectedTenant] = useState<TeamStats | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingTenant, setDeletingTenant] = useState<TeamStats | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     const fetchTenants = async () => {
@@ -55,6 +60,39 @@ const TenantManagement: React.FC = () => {
       throw error; // 모달에서 에러 처리
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleDeleteTenant = (tenant: TeamStats) => {
+    setDeletingTenant(tenant);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteTenant = async () => {
+    if (!deletingTenant) return;
+    
+    setDeleteLoading(true);
+    try {
+      const response = await adminTeamService.deleteTeam(deletingTenant.id);
+      if (response.success) {
+        // 목록에서 제거
+        setTenants(prev => prev.filter(t => t.id !== deletingTenant.id));
+        
+        // 선택된 테넌트가 삭제된 경우 선택 해제
+        if (selectedTenant?.id === deletingTenant.id) {
+          setSelectedTenant(null);
+        }
+        
+        setShowDeleteModal(false);
+        setDeletingTenant(null);
+      } else {
+        alert('삭제에 실패했습니다. 다시 시도해 주세요.');
+      }
+    } catch (error) {
+      console.error('Failed to delete tenant:', error);
+      alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -160,6 +198,15 @@ const TenantManagement: React.FC = () => {
                         >
                           방문
                         </a>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTenant(tenant);
+                          }}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          삭제
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -227,6 +274,12 @@ const TenantManagement: React.FC = () => {
                     >
                       ⚙️ 테넌트 설정
                     </button>
+                    <button 
+                      onClick={() => handleDeleteTenant(selectedTenant)}
+                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded"
+                    >
+                      🗑️ 테넌트 삭제
+                    </button>
                   </div>
                 </div>
               </div>
@@ -260,6 +313,20 @@ const TenantManagement: React.FC = () => {
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateTeam}
         isLoading={isCreating}
+      />
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeletingTenant(null);
+        }}
+        onConfirm={confirmDeleteTenant}
+        title="테넌트 삭제"
+        itemName={deletingTenant?.name || ''}
+        itemType="테넌트"
+        loading={deleteLoading}
       />
     </div>
   );

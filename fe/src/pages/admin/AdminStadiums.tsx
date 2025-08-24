@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Button, Card } from '../../components/common';
 import { adminStadiumService, CreateStadiumRequest } from '../../services/adminStadiumService';
 import { adminService, TeamStats, StadiumDto } from '../../services/adminService';
+import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 
 const AdminStadiums: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -13,6 +14,9 @@ const AdminStadiums: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingStadium, setDeletingStadium] = useState<StadiumDto | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     const teamId = searchParams.get('teamId');
@@ -54,14 +58,29 @@ const AdminStadiums: React.FC = () => {
     }
   };
 
-  const handleDeleteStadium = async (id: number) => {
+  const handleDeleteStadium = (stadium: StadiumDto) => {
+    setDeletingStadium(stadium);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteStadium = async () => {
+    if (!deletingStadium) return;
+    
+    setDeleteLoading(true);
     try {
-      const response = await adminStadiumService.deleteStadium(id);
+      const response = await adminStadiumService.deleteStadium(deletingStadium.id);
       if (response.success) {
         loadStadiums();
+        setShowDeleteModal(false);
+        setDeletingStadium(null);
+      } else {
+        alert('삭제에 실패했습니다. 다시 시도해 주세요.');
       }
     } catch (error) {
       console.error('Failed to delete stadium:', error);
+      alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -255,7 +274,7 @@ const AdminStadiums: React.FC = () => {
                 size="sm" 
                 variant="outline" 
                 className="text-red-600 border-red-200 hover:bg-red-50"
-                onClick={() => handleDeleteStadium(stadium.id)}
+                onClick={() => handleDeleteStadium(stadium)}
               >
                 🗑️
               </Button>
@@ -313,6 +332,20 @@ const AdminStadiums: React.FC = () => {
           </div>
         </Card>
       </div>
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeletingStadium(null);
+        }}
+        onConfirm={confirmDeleteStadium}
+        title="구장 삭제"
+        itemName={deletingStadium?.name || ''}
+        itemType="구장"
+        loading={deleteLoading}
+      />
     </div>
   );
 };

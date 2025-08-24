@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Card } from '../../components/common';
 import { adminTeamService, AdminTeam, CreateTeamRequest } from '../../services/adminTeamService';
+import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 
 const AdminTeams: React.FC = () => {
   const [teams, setTeams] = useState<AdminTeam[]>([]);
@@ -8,6 +9,9 @@ const AdminTeams: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingTeam, setDeletingTeam] = useState<AdminTeam | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     loadTeams();
@@ -28,14 +32,29 @@ const AdminTeams: React.FC = () => {
     }
   };
 
-  const handleDeleteTeam = async (id: number) => {
+  const handleDeleteTeam = (team: AdminTeam) => {
+    setDeletingTeam(team);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteTeam = async () => {
+    if (!deletingTeam) return;
+    
+    setDeleteLoading(true);
     try {
-      const response = await adminTeamService.deleteTeam(id);
+      const response = await adminTeamService.deleteTeam(deletingTeam.id);
       if (response.success) {
         loadTeams();
+        setShowDeleteModal(false);
+        setDeletingTeam(null);
+      } else {
+        alert('삭제에 실패했습니다. 다시 시도해 주세요.');
       }
     } catch (error) {
       console.error('Failed to delete team:', error);
+      alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -140,7 +159,7 @@ const AdminTeams: React.FC = () => {
                 size="sm" 
                 variant="outline" 
                 className="text-red-600 border-red-200 hover:bg-red-50"
-                onClick={() => handleDeleteTeam(team.id)}
+                onClick={() => handleDeleteTeam(team)}
               >
                 🗑️
               </Button>
@@ -190,6 +209,20 @@ const AdminTeams: React.FC = () => {
           </div>
         </Card>
       </div>
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeletingTeam(null);
+        }}
+        onConfirm={confirmDeleteTeam}
+        title="팀 삭제"
+        itemName={deletingTeam?.name || ''}
+        itemType="팀"
+        loading={deleteLoading}
+      />
     </div>
   );
 };
