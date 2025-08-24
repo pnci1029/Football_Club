@@ -47,23 +47,23 @@ export interface ApiResponse<T> {
 
 export class AdminPlayerService {
   async getAllPlayers(page: number = 0, size: number = 10, teamId: number): Promise<ApiResponse<PlayersPageResponse>> {
-    return apiClient.get(`/v1/admin/players?page=${page}&size=${size}&teamId=${teamId}`);
+    return apiClient.get(`/api/v1/admin/players?page=${page}&size=${size}&teamId=${teamId}`);
   }
 
   async createPlayer(teamId: number, request: CreatePlayerRequest): Promise<ApiResponse<AdminPlayer>> {
-    return apiClient.post(`/v1/admin/players?teamId=${teamId}`, request);
+    return apiClient.post(`/api/v1/admin/players?teamId=${teamId}`, request);
   }
 
   async getPlayer(id: number): Promise<ApiResponse<AdminPlayer>> {
-    return apiClient.get(`/v1/admin/players/${id}`);
+    return apiClient.get(`/api/v1/admin/players/${id}`);
   }
 
   async updatePlayer(id: number, request: UpdatePlayerRequest): Promise<ApiResponse<AdminPlayer>> {
-    return apiClient.put(`/v1/admin/players/${id}`, request);
+    return apiClient.put(`/api/v1/admin/players/${id}`, request);
   }
 
   async deletePlayer(id: number): Promise<ApiResponse<string>> {
-    return apiClient.delete(`/v1/admin/players/${id}`);
+    return apiClient.delete(`/api/v1/admin/players/${id}`);
   }
 }
 
