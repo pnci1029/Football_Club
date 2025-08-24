@@ -32,5 +32,9 @@ data class Player(
     val createdAt: LocalDateTime = LocalDateTime.now(),
     
     @UpdateTimestamp
-    val updatedAt: LocalDateTime = LocalDateTime.now()
+    val updatedAt: LocalDateTime = LocalDateTime.now(),
+    
+    val deletedAt: LocalDateTime? = null,
+    
+    val isDeleted: Boolean = false
 )

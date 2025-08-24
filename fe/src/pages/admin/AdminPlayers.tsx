@@ -4,6 +4,7 @@ import { adminPlayerService, AdminPlayer, CreatePlayerRequest } from '../../serv
 import { adminTeamService, AdminTeam } from '../../services/adminTeamService';
 import PlayerEditModal from '../../components/admin/PlayerEditModal';
 import PlayerCreateModal from '../../components/admin/PlayerCreateModal';
+import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 
 const AdminPlayers: React.FC = () => {
   const [players, setPlayers] = useState<AdminPlayer[]>([]);
@@ -17,6 +18,9 @@ const AdminPlayers: React.FC = () => {
   const [editingPlayer, setEditingPlayer] = useState<AdminPlayer | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingPlayer, setDeletingPlayer] = useState<AdminPlayer | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     loadTeams();
@@ -59,16 +63,29 @@ const AdminPlayers: React.FC = () => {
     }
   };
 
-  const handleDeletePlayer = async (id: number) => {
-    if (window.confirm('정말로 이 선수를 삭제하시겠습니까?')) {
-      try {
-        const response = await adminPlayerService.deletePlayer(id);
-        if (response.success) {
-          loadPlayers();
-        }
-      } catch (error) {
-        console.error('Failed to delete player:', error);
+  const handleDeletePlayer = (player: AdminPlayer) => {
+    setDeletingPlayer(player);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeletePlayer = async () => {
+    if (!deletingPlayer) return;
+    
+    setDeleteLoading(true);
+    try {
+      const response = await adminPlayerService.deletePlayer(deletingPlayer.id);
+      if (response.success) {
+        loadPlayers();
+        setShowDeleteModal(false);
+        setDeletingPlayer(null);
+      } else {
+        alert('삭제에 실패했습니다. 다시 시도해 주세요.');
       }
+    } catch (error) {
+      console.error('Failed to delete player:', error);
+      alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -212,7 +229,7 @@ const AdminPlayers: React.FC = () => {
                   size="sm" 
                   variant="outline" 
                   className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
-                  onClick={() => handleDeletePlayer(player.id)}
+                  onClick={() => handleDeletePlayer(player)}
                 >
                   삭제
                 </Button>
@@ -288,6 +305,19 @@ const AdminPlayers: React.FC = () => {
         onClose={() => setShowEditModal(false)}
         player={editingPlayer}
         onPlayerUpdated={handlePlayerUpdated}
+      />
+
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeletingPlayer(null);
+        }}
+        onConfirm={confirmDeletePlayer}
+        title="선수 삭제"
+        itemName={deletingPlayer?.name || ''}
+        itemType="선수"
+        loading={deleteLoading}
       />
     </div>
   );

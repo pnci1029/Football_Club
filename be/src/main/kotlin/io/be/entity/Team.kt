@@ -2,6 +2,7 @@ package io.be.entity
 
 import jakarta.persistence.*
 import org.hibernate.annotations.CreationTimestamp
+import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
 
 @Entity
@@ -23,6 +24,13 @@ data class Team(
     
     @CreationTimestamp
     val createdAt: LocalDateTime = LocalDateTime.now(),
+    
+    @UpdateTimestamp
+    val updatedAt: LocalDateTime = LocalDateTime.now(),
+    
+    val deletedAt: LocalDateTime? = null,
+    
+    val isDeleted: Boolean = false,
     
     @OneToMany(mappedBy = "team", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     val players: List<Player> = listOf()

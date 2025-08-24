@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 @Transactional(readOnly = true)
@@ -19,11 +20,11 @@ class TeamService(
 ) {
 
     fun findAllTeams(pageable: Pageable): Page<TeamDto> {
-        return teamRepository.findAll(pageable).map { TeamDto.from(it) }
+        return teamRepository.findAllByIsDeletedFalse(pageable).map { TeamDto.from(it) }
     }
 
     fun getAllTeams(): List<TeamDto> {
-        return teamRepository.findAll().map { TeamDto.from(it) }
+        return teamRepository.findAllByIsDeletedFalse().map { TeamDto.from(it) }
     }
 
     fun findTeamById(id: Long): TeamDto? {
@@ -39,12 +40,12 @@ class TeamService(
     }
 
     fun findTeamByCode(code: String): TeamDto? {
-        return teamRepository.findByCode(code)?.let { TeamDto.from(it) }
+        return teamRepository.findByCodeAndIsDeletedFalse(code)?.let { TeamDto.from(it) }
     }
 
     @Transactional
     fun createTeam(request: CreateTeamRequest): TeamDto {
-        if (teamRepository.findByCode(request.code) != null) {
+        if (teamRepository.findByCodeAndIsDeletedFalse(request.code) != null) {
             throw io.be.exception.TeamCodeAlreadyExistsException(request.code)
         }
 
@@ -77,10 +78,16 @@ class TeamService(
 
     @Transactional
     fun deleteTeam(id: Long) {
-        if (!teamRepository.existsById(id)) {
+        val team = teamRepository.findById(id).orElseThrow {
+            io.be.exception.TeamNotFoundException(id)
+        }
+        
+        if (team.isDeleted) {
             throw io.be.exception.TeamNotFoundException(id)
         }
-        teamRepository.deleteById(id)
+        
+        // 소프트 딜리트 수행
+        teamRepository.softDeleteById(id, LocalDateTime.now())
     }
     
     fun getTeamStats(teamId: Long): Map<String, Any> {
@@ -88,7 +95,7 @@ class TeamService(
             io.be.exception.TeamNotFoundException(teamId)
         }
         
-        val playerCount = playerRepository.countByTeamId(teamId)
+        val playerCount = playerRepository.countByTeamIdAndIsDeletedFalse(teamId)
         val stadiumCount = stadiumRepository.count()
         
         return mapOf(
@@ -103,7 +110,7 @@ class TeamService(
     }
     
     fun getAllTeamsStats(): Map<String, Any> {
-        val allTeams = teamRepository.findAll()
+        val allTeams = teamRepository.findAllByIsDeletedFalse()
         val totalPlayers = playerRepository.count()
         val totalStadiums = stadiumRepository.count()
         
@@ -112,7 +119,7 @@ class TeamService(
                 "id" to team.id,
                 "name" to team.name,
                 "code" to team.code,
-                "playerCount" to playerRepository.countByTeamId(team.id),
+                "playerCount" to playerRepository.countByTeamIdAndIsDeletedFalse(team.id),
                 "stadiumCount" to stadiumRepository.count()
             )
         }

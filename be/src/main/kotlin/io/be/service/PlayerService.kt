@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 @Transactional(readOnly = true)
@@ -21,19 +22,20 @@ class PlayerService(
 ) {
     
     fun findPlayersByTeam(teamId: Long, pageable: Pageable): Page<PlayerDto> {
-        return playerRepository.findByTeamId(teamId, pageable).map { PlayerDto.from(it) }
+        return playerRepository.findByTeamIdAndIsDeletedFalse(teamId, pageable).map { PlayerDto.from(it) }
     }
     
     fun findActivePlayersByTeam(teamId: Long): List<PlayerDto> {
-        return playerRepository.findByTeamIdAndIsActiveTrue(teamId).map { PlayerDto.from(it) }
+        return playerRepository.findByTeamIdAndIsActiveTrueAndIsDeletedFalse(teamId).map { PlayerDto.from(it) }
     }
     
     fun findPlayerById(id: Long): PlayerDto? {
-        return playerRepository.findById(id).orElse(null)?.let { PlayerDto.from(it) }
+        return playerRepository.findById(id).orElse(null)
+            ?.takeIf { !it.isDeleted }?.let { PlayerDto.from(it) }
     }
     
     fun findPlayerByIdAndTeam(id: Long, teamId: Long): PlayerDto? {
-        return playerRepository.findByIdAndTeamId(id, teamId)?.let { PlayerDto.from(it) }
+        return playerRepository.findByIdAndTeamIdAndIsDeletedFalse(id, teamId)?.let { PlayerDto.from(it) }
     }
     
     @Transactional
@@ -74,13 +76,19 @@ class PlayerService(
     
     @Transactional
     fun deletePlayer(id: Long) {
-        if (!playerRepository.existsById(id)) {
+        val player = playerRepository.findById(id).orElseThrow {
+            PlayerNotFoundException(id)
+        }
+        
+        if (player.isDeleted) {
             throw PlayerNotFoundException(id)
         }
-        playerRepository.deleteById(id)
+        
+        // 소프트 딜리트 수행
+        playerRepository.softDeleteById(id, LocalDateTime.now())
     }
     
     fun findPlayersByTeam(teamId: Long): List<PlayerDto> {
-        return playerRepository.findByTeamId(teamId).map { PlayerDto.from(it) }
+        return playerRepository.findByTeamIdAndIsDeletedFalse(teamId).map { PlayerDto.from(it) }
     }
 }
