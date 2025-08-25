@@ -1,0 +1,86 @@
+# Football Club SaaS 프로젝트 - Git 무시 파일
+
+# 🔐 보안 관련 파일들 - 절대 커밋하지 마세요!
+**/application-secret.yml
+**/application-prod.yml
+**/application-local.yml
+**/*.key
+**/*.pem
+**/*.p12
+**/.env
+**/.env.local
+**/.env.production
+**/.env.staging
+**/secrets/
+**/config/secret/
+
+# 데이터베이스 관련
+**/database.yml
+**/database-prod.yml
+**/db-credentials.json
+
+# API 키 및 토큰
+**/api-keys.json
+**/jwt-keys/
+**/oauth-credentials.json
+
+# SSL/TLS 인증서
+**/certs/
+**/ssl/
+**/*.crt
+**/*.key
+
+# 백업 및 로그 파일
+**/backups/
+**/logs/
+**/*.log
+**/*.log.*
+
+# IDE 설정 파일들
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS 생성 파일들
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 임시 파일들
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+
+# 업로드된 파일들 (사용자 데이터)
+**/uploads/
+**/media/
+**/user-data/
+
+# 캐시 디렉토리
+**/cache/
+**/.cache/
+
+# 빌드 관련 (하위 프로젝트 .gitignore에서 처리하지만 추가)
+**/build/
+**/dist/
+**/target/
+
+# 문서 빌드 결과
+**/docs/_build/
+**/site/
+
+# 테스트 결과
+**/test-results/
+**/coverage/
+
+# 기타 민감한 정보
+**/admin-config.yml
+**/production-settings.json

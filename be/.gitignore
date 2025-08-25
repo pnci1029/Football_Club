@@ -38,3 +38,14 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+### Security ###
+src/main/resources/application-secret.yml
+src/main/resources/application-prod.yml
+src/main/resources/application-local.yml
+*.key
+*.pem
+*.p12
+.env
+.env.local
+.env.production

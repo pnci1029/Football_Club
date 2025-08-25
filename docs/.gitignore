@@ -1,0 +1,31 @@
+# 문서 디렉토리 - Git 무시 파일
+
+# 🔐 민감한 정보가 포함된 문서들
+**/secret/
+**/private/
+**/credentials/
+**/passwords/
+**/*-secret.*
+**/*-private.*
+**/*-credentials.*
+
+# 빌드된 문서들
+_build/
+_site/
+site/
+public/
+
+# 임시 문서들
+*.tmp
+*.temp
+*~
+.#*
+
+# 편집기 임시 파일들
+.*.swp
+.*.swo
+
+# 개인 메모
+**/personal-notes/
+**/private-notes/
+**/*-todo.*

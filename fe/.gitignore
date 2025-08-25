@@ -18,6 +18,23 @@
 .env.test.local
 .env.production.local
 
+# 🔐 보안 관련 파일들 - 절대 커밋하지 마세요!
+.env
+.env.secret
+.env.prod
+.env.staging
+config/secret/
+src/config/secret/
+public/config/
+*.key
+*.pem
+api-keys.json
+auth-config.json
+
+# 업로드된 파일들
+public/uploads/
+src/assets/uploads/
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
