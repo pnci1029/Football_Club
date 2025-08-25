@@ -31,12 +31,27 @@ if ! command -v docker-compose &> /dev/null; then
     sudo chmod +x /usr/local/bin/docker-compose
 fi
 
-# 기존 컨테이너 정지 및 백업
-echo "⏹️ Stopping existing containers..."
+# 기존 서비스 정리
+echo "⏹️ Cleaning up existing services..."
+
+# 기존 systemd 서비스 정지
+sudo systemctl stop football-club || echo "No systemd service running"
+
+# 포트 8082 사용 중인 프로세스 정리
+echo "🔍 Checking port 8082..."
+if lsof -Pi :8082 -sTCP:LISTEN -t >/dev/null 2>&1; then
+    echo "⚠️ Port 8082 is in use, killing processes..."
+    sudo pkill -f "java.*football" || true
+    sudo lsof -ti:8082 | xargs sudo kill -9 || true
+    sleep 2
+fi
+
+# 기존 Docker 컨테이너 정지
 if docker ps -q --filter "name=$CONTAINER_NAME" | grep -q .; then
     echo "💾 Creating backup of existing container..."
     docker commit $CONTAINER_NAME $IMAGE_NAME:backup-$(date +%Y%m%d_%H%M%S) || true
     docker-compose down || true
+    sleep 2
 fi
 
 # 기존 이미지 백업 (선택사항)
