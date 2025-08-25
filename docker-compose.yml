@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  football-club:
+    image: football-club:latest
+    container_name: football-club-app
+    ports:
+      - "80:80"
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    volumes:
+      - /opt/football-club/logs:/var/log/football-club
+      - /opt/football-club/uploads:/opt/football-club/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

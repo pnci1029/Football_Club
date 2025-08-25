@@ -12,63 +12,31 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'yarn'
-        cache-dependency-path: fe/yarn.lock
         
     - name: Create application-prod.yml with secrets
       run: echo "${{ secrets.APPLICATION_PROD_YML }}" > be/src/main/resources/application-prod.yml
       
-    - name: Build Backend
+    - name: Build Docker image
       run: |
-        cd be
-        chmod +x gradlew
-        ./gradlew clean build -x test
+        docker build -t football-club:latest .
+        docker save football-club:latest | gzip > football-club.tar.gz
         
-    - name: Build Frontend
-      run: |
-        cd fe
-        yarn install --frozen-lockfile
-        CI=false yarn build
-        
-    - name: Create deployment package
-      run: |
-        mkdir -p deploy
-        # 빌드된 jar 파일 확인 및 복사
-        ls -la be/build/libs/
-        find be/build/libs -name "*.jar" -type f | head -1 | xargs -I {} cp {} deploy/app.jar
-        cp -r fe/build deploy/frontend
-        cp scripts/deploy.sh deploy/
-        chmod +x deploy/deploy.sh
-        tar -czf deploy.tar.gz deploy/
-        
-    - name: Copy files to EC2
+    - name: Copy Docker image to EC2
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_PRIVATE_KEY }}
-        source: "deploy.tar.gz"
-        target: "/home/${{ secrets.EC2_USERNAME }}"
+        source: "football-club.tar.gz,docker-compose.yml,scripts/docker-deploy.sh"
+        target: "/home/${{ secrets.EC2_USERNAME }}/football-club"
         
-    - name: Deploy on EC2
+    - name: Deploy with Docker on EC2
       uses: appleboy/ssh-action@v0.1.10
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_PRIVATE_KEY }}
         script: |
-          cd /home/${{ secrets.EC2_USERNAME }}
-          tar -xzf deploy.tar.gz
-          cd deploy
-          ./deploy.sh
+          cd /home/${{ secrets.EC2_USERNAME }}/football-club
+          chmod +x scripts/docker-deploy.sh
+          ./scripts/docker-deploy.sh

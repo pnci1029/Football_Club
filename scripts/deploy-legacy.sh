@@ -44,6 +44,10 @@ sudo chmod +x "$APP_DIR/app.jar"
 
 # systemd 서비스 파일 생성/업데이트
 echo "⚙️ Setting up systemd service..."
+# Java 경로 찾기
+JAVA_PATH=$(which java || echo "/usr/bin/java")
+echo "🔍 Using Java at: $JAVA_PATH"
+
 sudo tee /etc/systemd/system/$SERVICE_NAME.service > /dev/null <<EOF
 [Unit]
 Description=Football Club Application
@@ -53,13 +57,13 @@ After=syslog.target network.target
 User=$USER
 Type=simple
 WorkingDirectory=$APP_DIR
-ExecStart=/usr/bin/java -jar -Dspring.profiles.active=prod $APP_DIR/app.jar
+ExecStart=$JAVA_PATH -jar -Dspring.profiles.active=prod $APP_DIR/app.jar
 Restart=always
 RestartSec=10
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=$SERVICE_NAME
+StandardOutput=journal
+StandardError=journal
 Environment=SPRING_PROFILES_ACTIVE=prod
+Environment=JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
 [Install]
 WantedBy=multi-user.target
