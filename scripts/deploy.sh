@@ -67,6 +67,10 @@ EOF
 
 # Nginx 설정 (프론트엔드용)
 echo "🌐 Setting up Nginx configuration..."
+# Nginx 디렉토리 생성
+sudo mkdir -p /etc/nginx/sites-available
+sudo mkdir -p /etc/nginx/sites-enabled
+
 sudo tee $NGINX_SITES/football-club > /dev/null <<EOF
 server {
     listen 80;
@@ -111,8 +115,12 @@ fi
 
 # Nginx 설정 테스트 및 재시작
 echo "🔧 Testing and restarting Nginx..."
-sudo nginx -t
-sudo systemctl reload nginx
+# Nginx가 설치되어 있는지 확인
+if command -v nginx > /dev/null 2>&1; then
+    sudo nginx -t && sudo systemctl reload nginx
+else
+    echo "⚠️ Nginx not installed, skipping Nginx configuration"
+fi
 
 # systemd 데몬 리로드 및 서비스 시작
 echo "🔄 Starting application service..."
