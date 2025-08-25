@@ -44,7 +44,9 @@ jobs:
     - name: Create deployment package
       run: |
         mkdir -p deploy
-        cp be/build/libs/*.jar deploy/app.jar
+        # 빌드된 jar 파일 확인 및 복사
+        ls -la be/build/libs/
+        find be/build/libs -name "*.jar" -type f | head -1 | xargs -I {} cp {} deploy/app.jar
         cp -r fe/build deploy/frontend
         cp scripts/deploy.sh deploy/
         chmod +x deploy/deploy.sh
