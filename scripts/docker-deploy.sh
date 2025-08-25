@@ -83,6 +83,14 @@ echo "📊 Checking container status..."
 sleep 10
 docker-compose ps
 
+# 컨테이너가 시작되지 않으면 로그 확인
+if ! docker ps --format "table {{.Names}}\t{{.Status}}" | grep -q "football-club-app.*Up"; then
+    echo "⚠️ Container not running properly, checking logs..."
+    docker-compose logs --tail=50
+    echo "🔍 Container inspect:"
+    docker inspect football-club-app --format='{{.State.Status}}: {{.State.Error}}'
+fi
+
 # 헬스체크
 echo "🏥 Running health check..."
 for i in {1..30}; do
