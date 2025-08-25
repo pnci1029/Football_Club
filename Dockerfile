@@ -47,9 +47,6 @@ RUN chmod +x /app/start.sh
 # 포트 노출
 EXPOSE 80 8082
 
-# 헬스체크
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8082/api/health || exit 1
 
 # 실행
 CMD ["/app/start.sh"]
