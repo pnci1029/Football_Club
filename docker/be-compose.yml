@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  backend:
+    image: football-club-backend:latest
+    container_name: football-club-backend
+    ports:
+      - "8082:8082"
+    restart: unless-stopped
+    networks:
+      - football-network
+
+networks:
+  football-network:
+    external: true
+    driver: bridge
