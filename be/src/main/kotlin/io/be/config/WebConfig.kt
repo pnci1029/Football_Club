@@ -25,7 +25,7 @@ class WebConfig(
             .allowCredentials(false)  // 임시로 false로 설정
             .maxAge(3600)
 
-        // 환경별 허용 Origin 설정ㄷ
+        // 환경별 허용 Origin 설정
         when (activeProfile) {
             "dev", "local" -> {
                 // 개발 환경: 모든 localhost 및 개발용 도메인 허용
@@ -35,14 +35,20 @@ class WebConfig(
                     "http://127.0.0.1:*",
                     "https://127.0.0.1:*",
                     "http://*.localhost:*",
-                    "https://*.localhost:*"
+                    "https://*.localhost:*",
+                    "http://*.football-club.kr",
+                    "https://*.football-club.kr",
+                    "https://admin.football-club.kr"
                 )
             }
             "prod" -> {
                 // 운영 환경: 특정 도메인만 허용
                 corsConfig.allowedOriginPatterns(
+                    "http://*.football-club.kr",
                     "https://*.football-club.kr",
-                    "https://admin.football-club.kr"
+                    "https://admin.football-club.kr",
+                    "http://localhost:3000",
+                    "https://localhost:3000"
                 )
             }
             else -> {
