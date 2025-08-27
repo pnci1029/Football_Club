@@ -26,6 +26,7 @@ class WebConfig(
             .maxAge(3600)
 
         // 환경별 허용 Origin 설정
+        println("activeProfile = ${activeProfile}")
         when (activeProfile) {
             "dev", "local" -> {
                 // 개발 환경: 모든 localhost 및 개발용 도메인 허용
@@ -38,6 +39,7 @@ class WebConfig(
                     "https://*.localhost:*",
                     "http://*.football-club.kr",
                     "https://*.football-club.kr",
+                    "http://54.180.125.167:*",
                     "https://admin.football-club.kr"
                 )
             }
@@ -61,6 +63,7 @@ class WebConfig(
                     "https://*.localhost:*",
                     "http://*.football-club.kr",
                     "https://*.football-club.kr",
+                    "http://54.180.125.167:*",
                     "https://admin.football-club.kr"
                 )
             }
