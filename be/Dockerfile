@@ -1,8 +1,24 @@
-FROM openjdk:17-jdk-slim
+FROM openjdk:17-jdk-alpine
 
 WORKDIR /app
 
-# build/libs 밑에 있는 jar 복사
-COPY build/libs/BE-0.0.1-SNAPSHOT.jar app.jar
+# 의존성 캐싱을 위해 gradle 관련 파일들 먼저 복사
+COPY gradle/ gradle/
+COPY gradlew build.gradle.kts settings.gradle.kts ./
+RUN chmod +x ./gradlew
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# 의존성 다운로드
+RUN ./gradlew dependencies --no-daemon
+
+# 소스 코드 복사 및 빌드
+COPY src/ src/
+RUN ./gradlew clean build -x test --no-daemon
+
+# JAR 파일을 app.jar로 복사
+RUN cp build/libs/*.jar app.jar
+
+# 포트 노출
+EXPOSE 8082
+
+# 실행
+CMD ["java", "-jar", "app.jar"]

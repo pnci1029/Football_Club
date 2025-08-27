@@ -1,0 +1,40 @@
+name: Frontend Deploy to EC2
+
+on:
+  push:
+    branches: [ main ]
+    paths: ['fe/**']
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+        
+    - name: Build Frontend Docker image
+      run: |
+        docker build -f fe/Dockerfile -t football-club-frontend:latest ./fe
+        docker save football-club-frontend:latest | gzip > football-club-frontend.tar.gz
+        
+    - name: Copy Frontend image to EC2
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_PRIVATE_KEY }}
+        source: "football-club-frontend.tar.gz,docker/fe-compose.yml,scripts/fe-deploy.sh"
+        target: "/home/${{ secrets.EC2_USERNAME }}/football-club-frontend"
+        
+    - name: Deploy Frontend with Docker on EC2
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_PRIVATE_KEY }}
+        script: |
+          cd /home/${{ secrets.EC2_USERNAME }}/football-club-frontend
+          chmod +x scripts/fe-deploy.sh
+          ./scripts/fe-deploy.sh
