@@ -30,6 +30,7 @@ class SecurityConfig {
                     .requestMatchers("/h2-console/**").permitAll()
 
                     // 공개 API 허용
+                    .requestMatchers("/test/**").permitAll()
                     .requestMatchers("/v1/players/**").permitAll()
                     .requestMatchers("/v1/stadiums/**").permitAll()
                     .requestMatchers("/v1/matches/**").permitAll()
