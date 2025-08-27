@@ -28,6 +28,8 @@ class TenantSecurityInterceptor(
         "127.0.0.1:3000",
         "*.localhost:3000",    // 개발용 서브도메인 (예: team.localhost:3000)
         "*.localhost:8082",    // 개발용 서브도메인 (예: admin.localhost:8082)
+        "football-club.kr",    // 메인 도메인
+        "football-club.kr:8082", // 메인 도메인 with port
         "*.football-club.kr",  // 프로덕션 서브도메인
         "admin.football-club.kr"
     )
@@ -230,6 +232,7 @@ class TenantSecurityInterceptor(
         return host == "localhost:3000" ||
                host == "localhost:8082" ||
                host == "football-club.kr" ||
+               host == "football-club.kr:8082" ||
                host == "footballclub.com"
     }
 
@@ -247,7 +250,7 @@ class TenantSecurityInterceptor(
                 null
             }
             // 프로덕션 환경: 메인 도메인
-            host == "football-club.kr" -> null
+            host == "football-club.kr" || host == "football-club.kr:8082" -> null
             // 프로덕션 환경: 관리자 도메인
             host.startsWith("admin.") -> null
             // 프로덕션 환경: 서브도메인이 있는 경우
