@@ -14,8 +14,8 @@ RUN ./gradlew dependencies --no-daemon --warning-mode=none
 COPY src/ src/
 RUN ./gradlew clean build -x test --no-daemon --warning-mode=none
 
-# JAR 파일을 app.jar로 복사
-RUN cp build/libs/*.jar app.jar
+# JAR 파일을 app.jar로 복사 (plain jar 제외)
+RUN find build/libs -name "*.jar" -not -name "*-plain.jar" -exec cp {} app.jar \;
 
 # 포트 노출
 EXPOSE 8082
