@@ -21,8 +21,8 @@ class SubdomainFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        val host = request.getHeader("X-Forwarded-Host") 
-            ?: request.getHeader("Host") 
+        val host = request.getHeader("X-Forwarded-Host")
+            ?: request.getHeader("Host")
             ?: request.serverName
 
         val teamCode = subdomainResolver.extractTeamFromHost(host)
@@ -37,12 +37,12 @@ class SubdomainFilter(
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         val path = request.servletPath
-        val host = request.getHeader("X-Forwarded-Host") 
-            ?: request.getHeader("Host") 
+        val host = request.getHeader("X-Forwarded-Host")
+            ?: request.getHeader("Host")
             ?: request.serverName
-        
+
         // 관리자 API, 공통 API, admin 서브도메인은 필터 적용 안 함
-        return path.startsWith("/v1/admin/") || 
+        return path.startsWith("/v1/admin/") ||
                path.startsWith("/h2-console") ||
                path == "/v1/teams" ||
                subdomainResolver.isAdminSubdomain(host)
