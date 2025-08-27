@@ -12,5 +12,4 @@ services:
 
 networks:
   football-network:
-    external: true
     driver: bridge

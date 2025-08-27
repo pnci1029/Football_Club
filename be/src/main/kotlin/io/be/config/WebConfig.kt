@@ -49,6 +49,7 @@ class WebConfig(
                     "https://admin.football-club.kr",
                     "http://localhost:3000",
                     "https://localhost:3000"
+                    "http://54.180.125.167:*",
                 )
             }
             else -> {
