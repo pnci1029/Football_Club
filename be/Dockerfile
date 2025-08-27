@@ -8,11 +8,11 @@ COPY gradlew build.gradle.kts settings.gradle.kts ./
 RUN chmod +x ./gradlew
 
 # 의존성 다운로드
-RUN ./gradlew dependencies --no-daemon
+RUN ./gradlew dependencies --no-daemon --warning-mode=none
 
 # 소스 코드 복사 및 빌드
 COPY src/ src/
-RUN ./gradlew clean build -x test --no-daemon
+RUN ./gradlew clean build -x test --no-daemon --warning-mode=none
 
 # JAR 파일을 app.jar로 복사
 RUN cp build/libs/*.jar app.jar
