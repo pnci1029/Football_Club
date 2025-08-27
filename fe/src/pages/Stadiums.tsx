@@ -57,7 +57,6 @@ const Stadiums: React.FC = () => {
 
   const stadiums = stadiumsPage?.content || [];
 
-  console.log('test')
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
