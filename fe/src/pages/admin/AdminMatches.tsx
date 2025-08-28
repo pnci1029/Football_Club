@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useSearchParams} from 'react-router-dom';
 import {Button, Card, LoadingSpinner} from '../../components/common';
-import {MatchCard} from '../../components/match';
+import MatchCreateModal from '../../components/admin/MatchCreateModal';
 
 interface Match {
   id: number;
@@ -40,6 +40,10 @@ const AdminMatches: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
+  const handleMatchCreated = () => {
+    fetchMatches();
+  };
+
   const teamId = searchParams.get('teamId');
 
   useEffect(() => {
@@ -56,12 +60,8 @@ const AdminMatches: React.FC = () => {
 
   const fetchTeams = async () => {
     try {
-      // TODO: 실제 API 호출로 교체
-      const mockTeams: Team[] = [
-        { id: 1, name: 'FC Barcelona', code: 'barcelona' },
-        { id: 2, name: 'Real Madrid', code: 'realmadrid' },
-        { id: 3, name: 'Manchester United', code: 'manchester' },
-      ];
+      // TODO: Replace with real API call to get teams from backend
+      const mockTeams: Team[] = [];
       setTeams(mockTeams);
     } catch (error) {
       console.error('팀 목록 로딩 실패:', error);
@@ -71,29 +71,9 @@ const AdminMatches: React.FC = () => {
   const fetchMatches = async () => {
     setLoading(true);
     try {
-      // TODO: 실제 API 호출로 교체
-      const mockMatches: Match[] = [
-        {
-          id: 1,
-          homeTeam: { id: 1, name: 'FC Barcelona', code: 'barcelona' },
-          awayTeam: { id: 2, name: 'Real Madrid', code: 'realmadrid' },
-          stadium: { id: 1, name: 'Camp Nou' },
-          matchDate: '2024-01-15T19:00:00',
-          homeTeamScore: 2,
-          awayTeamScore: 1,
-          status: 'COMPLETED'
-        },
-        {
-          id: 2,
-          homeTeam: { id: 3, name: 'Manchester United', code: 'manchester' },
-          awayTeam: { id: 1, name: 'FC Barcelona', code: 'barcelona' },
-          stadium: { id: 2, name: 'Old Trafford' },
-          matchDate: '2024-01-22T20:00:00',
-          homeTeamScore: null,
-          awayTeamScore: null,
-          status: 'SCHEDULED'
-        }
-      ];
+      // TODO: Replace with real API call
+      // For now using empty array - matches should be added via admin panel
+      const mockMatches: Match[] = [];
 
       let filteredMatches = mockMatches;
 
@@ -306,11 +286,29 @@ const AdminMatches: React.FC = () => {
           <>
             {matches.map((match) => (
               <div key={match.id} className="relative">
-                <MatchCard
-                  match={transformMatchForCard(match)}
-                  ourTeamName={selectedTeam?.name}
-                  compact
-                />
+                <Card>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-sm text-gray-500">
+                        {formatDateTime(match.matchDate).date} {formatDateTime(match.matchDate).time}
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(match.status)}`}>
+                        {getStatusText(match.status)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-lg font-semibold">{match.homeTeam.name}</div>
+                      <div className="text-lg font-bold">
+                        {match.status === 'COMPLETED' && match.homeTeamScore !== null && match.awayTeamScore !== null 
+                          ? `${match.homeTeamScore} : ${match.awayTeamScore}`
+                          : 'VS'
+                        }
+                      </div>
+                      <div className="text-lg font-semibold">{match.awayTeam.name}</div>
+                    </div>
+                    <div className="text-sm text-gray-500 mt-2">📍 {match.stadium.name}</div>
+                  </div>
+                </Card>
 
                 {/* 관리 버튼 */}
                 <div className="absolute top-2 right-2 flex gap-2">
@@ -356,24 +354,12 @@ const AdminMatches: React.FC = () => {
         </div>
       )}
 
-      {/* TODO: 경기 생성 모달 */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">새 경기 생성</h3>
-            <p className="text-gray-600 mb-4">경기 생성 모달은 추후 구현 예정입니다.</p>
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowCreateModal(false)}
-              >
-                취소
-              </Button>
-              <Button variant="primary">생성</Button>
-            </div>
-          </Card>
-        </div>
-      )}
+      {/* 경기 생성 모달 */}
+      <MatchCreateModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onMatchCreated={handleMatchCreated}
+      />
     </div>
   );
 };

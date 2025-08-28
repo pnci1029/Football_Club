@@ -1,21 +1,23 @@
-export interface Match {
+export interface MatchDto {
   id: number;
-  homeTeam: string;
-  awayTeam: string;
-  date: string;
-  time: string;
-  venue: string;
-  status: 'scheduled' | 'live' | 'finished' | 'cancelled';
-  score?: {
-    home: number;
-    away: number;
+  homeTeam: {
+    id: number;
+    name: string;
+    code: string;
   };
-  league?: string;
-  season: string;
-  matchType: 'league' | 'cup' | 'friendly';
-  weather?: string;
-  attendance?: number;
-  referee?: string;
+  awayTeam: {
+    id: number;
+    name: string;
+    code: string;
+  };
+  stadium: {
+    id: number;
+    name: string;
+  };
+  matchDate: string;
+  homeTeamScore: number | null;
+  awayTeamScore: number | null;
+  status: 'SCHEDULED' | 'IN_PROGRESS' | 'FINISHED' | 'CANCELLED';
 }
 
 export interface MatchEvent {

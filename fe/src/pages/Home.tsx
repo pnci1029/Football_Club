@@ -54,40 +54,19 @@ const Home: React.FC = () => {
           </div>
         )}
 
-        {/* Team Stats */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white rounded-xl shadow-card p-8 text-center">
-            <div className="text-4xl font-bold text-primary-600 mb-2">{players.length}</div>
-            <div className="text-gray-600">등록 선수</div>
-          </div>
-          <div className="bg-white rounded-xl shadow-card p-8 text-center">
-            <div className="text-4xl font-bold text-green-600 mb-2">{players.filter(p => p.isActive).length}</div>
-            <div className="text-gray-600">활성 선수</div>
-          </div>
-          <div className="bg-white rounded-xl shadow-card p-8 text-center">
-            <div className="text-4xl font-bold text-blue-600 mb-2">2024</div>
-            <div className="text-gray-600">시즌</div>
-          </div>
-        </div>
 
-        {/* Latest News/Updates */}
+        {/* Quick Navigation */}
         <div className="bg-white rounded-xl shadow-card p-8 text-center">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            {currentTeam?.name || '우리 팀'}과 함께하세요
-          </h3>
-          <p className="text-gray-600 mb-6">
-            최고의 팀워크와 열정으로 승리를 향해 나아갑니다
-          </p>
           <div className="flex justify-center space-x-4">
             <a 
               href="/players" 
-              className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
+              className="bg-primary-600 text-white px-8 py-4 rounded-lg hover:bg-primary-700 transition-colors text-lg font-medium"
             >
-              선수단 보기
+              선수단
             </a>
             <a 
               href="/matches" 
-              className="border border-primary-600 text-primary-600 px-6 py-3 rounded-lg hover:bg-primary-50 transition-colors"
+              className="border-2 border-primary-600 text-primary-600 px-8 py-4 rounded-lg hover:bg-primary-50 transition-colors text-lg font-medium"
             >
               경기 일정
             </a>
