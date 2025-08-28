@@ -37,6 +37,23 @@ class SecurityEventLogger {
         }
     }
     
+    /**
+     * HTTP 요청 없이 보안 이벤트 로깅 (로그인 등)
+     */
+    fun logSecurityEvent(
+        event: SecurityEvent,
+        additionalInfo: Map<String, Any> = emptyMap()
+    ) {
+        val logData = buildLogData(event, additionalInfo)
+        
+        when (event.severity) {
+            SecurityEvent.Severity.CRITICAL -> logger.error("🚨 CRITICAL SECURITY EVENT: {}", logData)
+            SecurityEvent.Severity.HIGH -> logger.error("🔴 HIGH SECURITY EVENT: {}", logData)
+            SecurityEvent.Severity.MEDIUM -> logger.warn("🟡 MEDIUM SECURITY EVENT: {}", logData)
+            SecurityEvent.Severity.LOW -> logger.info("🟢 LOW SECURITY EVENT: {}", logData)
+        }
+    }
+    
     private fun buildLogData(
         event: SecurityEvent,
         request: HttpServletRequest,
@@ -56,6 +73,28 @@ class SecurityEventLogger {
             "uri" to request.requestURI,
             "queryString" to (request.queryString ?: ""),
             "sessionId" to (request.getSession(false)?.id ?: "No Session"),
+            "tenantContext" to (tenantContext?.let {
+                mapOf(
+                    "teamId" to it.teamId,
+                    "subdomain" to it.subdomain,
+                    "teamName" to it.teamName
+                )
+            } ?: "No Context"),
+            "additionalInfo" to additionalInfo
+        )
+    }
+    
+    private fun buildLogData(
+        event: SecurityEvent,
+        additionalInfo: Map<String, Any>
+    ): Map<String, Any> {
+        val tenantContext = TenantContextHolder.getContextOrNull()
+        
+        return mapOf(
+            "timestamp" to Instant.now().toString(),
+            "event" to event.name,
+            "severity" to event.severity.name,
+            "description" to event.description,
             "tenantContext" to (tenantContext?.let {
                 mapOf(
                     "teamId" to it.teamId,
@@ -135,7 +174,11 @@ enum class SecurityEvent(
     // Low - 낮은 위험도 (정보성)
     VALID_TENANT_ACCESS(Severity.LOW, "Valid tenant access logged"),
     ADMIN_LOGIN_SUCCESS(Severity.LOW, "Admin login successful"),
-    INTERCEPTOR_ERROR(Severity.LOW, "Security interceptor processing error");
+    ADMIN_LOGOUT(Severity.LOW, "Admin logout"),
+    INTERCEPTOR_ERROR(Severity.LOW, "Security interceptor processing error"),
+    
+    // High - 로그인 실패 (보안 위험)
+    ADMIN_LOGIN_FAILURE(Severity.HIGH, "Admin login failed");
     
     enum class Severity {
         CRITICAL,  // 시스템 위험, 즉시 대응
