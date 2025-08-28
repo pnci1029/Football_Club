@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../common';
 
 const AdminNavigation: React.FC = () => {
   const location = useLocation();
+  const { admin, logout } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const navigationItems = [
     { path: '/admin', label: '대시보드', icon: '📊' },
@@ -17,6 +21,17 @@ const AdminNavigation: React.FC = () => {
       return location.pathname === '/admin';
     }
     return location.pathname.startsWith(path);
+  };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -50,10 +65,19 @@ const AdminNavigation: React.FC = () => {
             </div>
           </div>
           <div className="hidden md:block">
-            <div className="ml-4 flex items-center md:ml-6">
+            <div className="ml-4 flex items-center md:ml-6 space-x-4">
               <div className="text-gray-300 text-sm">
-                관리자님 환영합니다
+                <span className="font-medium">{admin?.username || '관리자'}</span>님 환영합니다
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="text-gray-300 hover:text-white hover:bg-gray-700"
+              >
+                {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+              </Button>
             </div>
           </div>
         </div>
@@ -76,6 +100,22 @@ const AdminNavigation: React.FC = () => {
               {item.label}
             </Link>
           ))}
+          
+          {/* Mobile 사용자 정보 및 로그아웃 */}
+          <div className="border-t border-gray-700 mt-3 pt-3">
+            <div className="px-3 py-2 text-gray-300 text-sm">
+              <span className="font-medium">{admin?.username || '관리자'}</span>님
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="w-full text-left justify-start text-gray-300 hover:text-white hover:bg-gray-700 px-3"
+            >
+              {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+            </Button>
+          </div>
         </div>
       </div>
     </nav>

@@ -1,12 +1,15 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { TeamProvider, useTeam } from './contexts/TeamContext';
+import { TeamProvider } from './contexts/TeamContext';
+import { AuthProvider } from './contexts/AuthContext';
 import Navigation from './components/layout/Navigation';
 import AdminLayout from './components/layout/AdminLayout';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import Home from './pages/Home';
 import Players from './pages/Players';
 import Matches from './pages/Matches';
 import Stadiums from './pages/Stadiums';
+import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPlayers from './pages/admin/AdminPlayers';
 import AdminTeams from './pages/admin/AdminTeams';
@@ -35,25 +38,70 @@ const AppContent: React.FC = () => {
   }
 
   if (isAdminDomain) {
-    // 관리자 도메인: 관리자 페이지
+    // 관리자 도메인: 관리자 페이지 (인증 필요)
     return (
-      <AdminLayout>
-        <Routes>
-          <Route path="/" element={<AdminDashboard />} />
-          <Route path="/admin/tenants" element={<TenantManagement />} />
-          <Route path="/admin/players" element={<AdminPlayers />} />
-          <Route path="/admin/teams" element={<AdminTeams />} />
-          <Route path="/admin/stadiums" element={<AdminStadiums />} />
-          <Route path="/admin/matches" element={<AdminMatches />} />
-          {/* 기존 경로 호환성 유지 */}
-          <Route path="/tenants" element={<TenantManagement />} />
-          <Route path="/players" element={<AdminPlayers />} />
-          <Route path="/teams" element={<AdminTeams />} />
-          <Route path="/stadiums" element={<AdminStadiums />} />
-          <Route path="/matches" element={<AdminMatches />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </AdminLayout>
+      <Routes>
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/*" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <Routes>
+                <Route path="/dashboard" element={<AdminDashboard />} />
+                <Route path="/tenants" element={<TenantManagement />} />
+                <Route path="/players" element={<AdminPlayers />} />
+                <Route path="/teams" element={<AdminTeams />} />
+                <Route path="/stadiums" element={<AdminStadiums />} />
+                <Route path="/matches" element={<AdminMatches />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <AdminDashboard />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        {/* Legacy routes - redirect to /admin */}
+        <Route path="/tenants" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <TenantManagement />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/players" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <AdminPlayers />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/teams" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <AdminTeams />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/stadiums" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <AdminStadiums />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/matches" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <AdminMatches />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     );
   }
 
@@ -76,11 +124,13 @@ const AppContent: React.FC = () => {
 
 function App() {
   return (
-    <TeamProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </TeamProvider>
+    <AuthProvider>
+      <TeamProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </TeamProvider>
+    </AuthProvider>
   );
 }
 
