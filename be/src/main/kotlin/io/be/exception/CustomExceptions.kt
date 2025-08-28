@@ -31,6 +31,8 @@ class InvalidSubdomainException(host: String) : RuntimeException("Invalid subdom
 class SubdomainAccessDeniedException(subdomain: String, resource: String) : RuntimeException("Access denied to $resource from subdomain: $subdomain")
 class UnauthorizedTeamAccessException(requestedTeamId: Long, userTeamId: Long) : RuntimeException("Unauthorized access to team $requestedTeamId by user from team $userTeamId")
 class InvalidTenantConfigurationException(teamId: Long, issue: String) : RuntimeException("Invalid tenant configuration for team $teamId: $issue")
+class UnauthorizedAccessException(message: String = "Unauthorized access") : RuntimeException(message)
+class InvalidTokenException(message: String = "Invalid token") : RuntimeException(message)
 
 // ========================================================================================
 // File & Upload Exceptions
