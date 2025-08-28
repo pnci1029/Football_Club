@@ -138,7 +138,7 @@ class TenantSecurityInterceptor(
 
         // 팀 정보 조회 및 검증
         val team = try {
-            subdomainService.getTeamBySubdomain(subdomain)
+            subdomainService.getTeamByCode(subdomain)
         } catch (e: TeamNotFoundException) {
             logger.warn("Team not found for subdomain: $subdomain (host: $host)")
             securityEventLogger.logSecurityEvent(
