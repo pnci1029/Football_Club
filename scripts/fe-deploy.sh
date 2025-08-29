@@ -24,13 +24,11 @@ echo "Force stopping football-club-frontend containers..."
 docker ps -q --filter "name=football-club-frontend" | xargs -r docker stop
 docker ps -aq --filter "name=football-club-frontend" | xargs -r docker rm -f
 
-# 포트 80 사용 중인 프로세스 종료 (nginx 등)
-echo "Checking for processes using port 80..."
-if lsof -i :80 2>/dev/null; then
-    echo "Stopping nginx and killing processes using port 80..."
-    sudo systemctl stop nginx 2>/dev/null || true
-    sudo service nginx stop 2>/dev/null || true
-    lsof -ti :80 | xargs kill -9 2>/dev/null || true
+# 포트 3000 사용 중인 프로세스 종료
+echo "Checking for processes using port 3000..."
+if lsof -i :3000 2>/dev/null; then
+    echo "Killing processes using port 3000..."
+    lsof -ti :3000 | xargs kill -9 2>/dev/null || true
     sleep 2
 fi
 
