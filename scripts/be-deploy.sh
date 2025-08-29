@@ -28,9 +28,8 @@ if lsof -i :8082 2>/dev/null; then
     sleep 2
 fi
 
-# 네트워크 정리
-echo "Cleaning up networks..."
-docker network prune -f
+# 네트워크 정리는 건너뜀 (다른 서비스와 공유 네트워크 사용)
+echo "Skipping network cleanup to preserve shared networks..."
 
 # 새 컨테이너 시작
 echo "Starting new containers..."
