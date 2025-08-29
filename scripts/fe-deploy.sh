@@ -25,7 +25,7 @@ if ! docker images | grep -q football-club-frontend; then
 fi
 docker images | grep football-club-frontend
 
-# 기존 컨테이너 강제 정지 및 제거
+# 기존 컨테이너 강제 정지 및 제거 (네트워크 보존)
 echo "Stopping existing containers..."
 docker-compose -f docker/fe-compose.yml down --remove-orphans
 
@@ -42,8 +42,14 @@ if lsof -i :3000 2>/dev/null; then
     sleep 2
 fi
 
-# 네트워크 정리는 건너뜀 (다른 서비스와 공유 네트워크 사용)
-echo "Skipping network cleanup to preserve shared networks..."
+# Frontend 전용 네트워크 확인 및 생성
+echo "Ensuring frontend network exists..."
+if ! docker network ls | grep -q frontend-network; then
+    docker network create frontend-network
+    echo "Created frontend network: frontend-network"
+else
+    echo "Frontend network already exists"
+fi
 
 # 새 컨테이너 시작
 echo "Starting new containers..."

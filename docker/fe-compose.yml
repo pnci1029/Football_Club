@@ -8,8 +8,8 @@ services:
       - "3000:3000"
     restart: unless-stopped
     networks:
-      - football-network
+      - frontend-network
 
 networks:
-  football-network:
-    driver: bridge
+  frontend-network:
+    external: true
