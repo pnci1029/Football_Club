@@ -11,9 +11,9 @@ if ! docker load < football-club-backend.tar.gz; then
     exit 1
 fi
 
-# 기존 컨테이너 강제 정지 및 제거 (네트워크 보존)
-echo "Stopping existing containers..."
-docker-compose -f docker/be-compose.yml down --remove-orphans
+# 기존 백엔드 컨테이너만 정지 및 제거
+echo "Stopping existing backend containers..."
+docker-compose -f docker/be-compose.yml down
 
 # 실행 중인 football-club-backend 컨테이너 강제 종료
 echo "Force stopping football-club-backend containers..."
