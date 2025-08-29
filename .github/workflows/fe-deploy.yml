@@ -3,7 +3,7 @@ name: Frontend Deploy to EC2
 on:
   push:
     branches: [ main ]
-    paths: ['fe/**']
+    # paths: ['fe/**']  # 임시로 경로 조건 제거
   workflow_dispatch:
 
 jobs:

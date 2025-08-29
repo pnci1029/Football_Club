@@ -3,7 +3,7 @@ name: Backend Deploy to EC2
 on:
   push:
     branches: [ main ]
-    paths: ['be/**']
+    # paths: ['be/**']  # 임시로 경로 조건 제거
   workflow_dispatch:
 
 jobs:

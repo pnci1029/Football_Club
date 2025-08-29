@@ -1,6 +1,7 @@
 import { LoginRequest, LoginResponse, AdminInfo, TokenValidationResponse } from '../types/auth';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8082';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+  (window.location.hostname === 'localhost' ? 'http://localhost:8082' : 'https://api.football-club.kr');
 
 class AuthService {
   private readonly ACCESS_TOKEN_KEY = 'football_admin_access_token';
