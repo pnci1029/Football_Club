@@ -8,6 +8,7 @@ RUN yarn install --frozen-lockfile
 
 # 소스 코드 복사 및 빌드
 COPY . ./
+ENV NODE_ENV=production
 RUN CI=false yarn build
 
 # Nginx를 사용한 프로덕션 서빙
