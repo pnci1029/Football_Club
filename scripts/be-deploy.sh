@@ -11,17 +11,26 @@ if ! docker load < football-club-backend.tar.gz; then
     exit 1
 fi
 
-# 기존 컨테이너 정지 및 제거
+# 기존 컨테이너 강제 정지 및 제거
 echo "Stopping existing containers..."
-docker-compose -f docker/be-compose.yml down
+docker-compose -f docker/be-compose.yml down --remove-orphans
+
+# 실행 중인 football-club-backend 컨테이너 강제 종료
+echo "Force stopping football-club-backend containers..."
+docker ps -q --filter "name=football-club-backend" | xargs -r docker stop
+docker ps -aq --filter "name=football-club-backend" | xargs -r docker rm -f
 
 # 포트 8082 사용 중인 프로세스 종료
 echo "Checking for processes using port 8082..."
-if lsof -i :8082; then
+if lsof -i :8082 2>/dev/null; then
     echo "Killing processes using port 8082..."
-    lsof -ti :8082 | xargs kill -9 || true
+    lsof -ti :8082 | xargs kill -9 2>/dev/null || true
     sleep 2
 fi
+
+# 네트워크 정리
+echo "Cleaning up networks..."
+docker network prune -f
 
 # 새 컨테이너 시작
 echo "Starting new containers..."
