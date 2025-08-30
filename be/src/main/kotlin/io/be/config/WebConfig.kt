@@ -39,7 +39,7 @@ class WebConfig(
                     "https://*.localhost:*",
                     "http://*.football-club.kr",
                     "https://*.football-club.kr",
-                    "http://54.180.125.167:*",
+                    "http://222.122.81.196:*",
                     "https://admin.football-club.kr"
                 )
             }
@@ -51,7 +51,7 @@ class WebConfig(
                     "https://admin.football-club.kr",
                     "http://localhost:3000",
                     "https://localhost:3000",
-                    "http://54.180.125.167:*",
+                    "http://222.122.81.196:*",
                 )
             }
             else -> {
@@ -63,7 +63,7 @@ class WebConfig(
                     "https://*.localhost:*",
                     "http://*.football-club.kr",
                     "https://*.football-club.kr",
-                    "http://54.180.125.167:*",
+                    "http://222.122.81.196:*",
                     "https://admin.football-club.kr"
                 )
             }

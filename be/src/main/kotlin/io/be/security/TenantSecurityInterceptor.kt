@@ -24,8 +24,8 @@ class TenantSecurityInterceptor(
     private val allowedHostPatterns = setOf(
         "localhost:8082",      // 개발용 백엔드
         "localhost:3000",      // 개발용 프론트엔드
-        "127.0.0.1:8082",
-        "127.0.0.1:3000",
+        "222.122.81.196:8082",
+        "222.122.81.196:3000",
         "*.localhost:3000",    // 개발용 서브도메인 (예: team.localhost:3000)
         "*.localhost:8082",    // 개발용 서브도메인 (예: admin.localhost:8082)
         "football-club.kr",    // 메인 도메인
@@ -207,7 +207,7 @@ class TenantSecurityInterceptor(
 
     private fun isValidHost(host: String): Boolean {
         // 개발 환경에서는 localhost 관련 모든 도메인 허용
-        if (host.contains("localhost") || host.contains("127.0.0.1")) {
+        if (host.contains("localhost") || host.contains("127.0.0.1") || host.contains("222.122.81.196")) {
             logger.debug("Development host allowed: $host")
             return true
         }

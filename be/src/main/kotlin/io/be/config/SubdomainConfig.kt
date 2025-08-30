@@ -19,7 +19,7 @@ data class SubdomainProperties(
         if (!enabled) return null
         
         // 로컬 개발 환경 처리
-        if (host.startsWith("localhost") || host.startsWith("127.0.0.1")) {
+        if (host.startsWith("localhost") || host.startsWith("127.0.0.1") || host.startsWith("222.122.81.196")) {
             return extractFromLocalhost(host)
         }
         
@@ -93,6 +93,6 @@ class SubdomainResolver {
     }
     
     fun isLocalhost(host: String): Boolean {
-        return host.contains("localhost") || host.contains("127.0.0.1") || host.endsWith(".local")
+        return host.contains("localhost") || host.contains("127.0.0.1") || host.contains("222.122.81.196") || host.endsWith(".local")
     }
 }
