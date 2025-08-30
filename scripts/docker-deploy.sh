@@ -1,8 +1,12 @@
 #!/bin/bash
 
-set -e
+# Docker 배포 스크립트 - 비활성화됨
+# set -e
 
-echo "🐳 Starting Docker deployment..."
+echo "⚠️ Docker deployment script is disabled - EC2/AWS services disconnected"
+exit 1
+
+# echo "🐳 Starting Docker deployment..."
 
 # 변수 설정
 IMAGE_NAME="football-club"

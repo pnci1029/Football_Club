@@ -1,9 +1,12 @@
 #!/bin/bash
 
-# 배포 스크립트
-set -e
+# 배포 스크립트 - 비활성화됨
+# set -e
 
-echo "🚀 Starting deployment..."
+echo "⚠️ Deployment script is disabled - EC2/AWS services disconnected"
+exit 1
+
+# echo "🚀 Starting deployment..."
 
 # 변수 설정
 APP_DIR="/opt/football-club"

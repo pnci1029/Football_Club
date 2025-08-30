@@ -1,8 +1,12 @@
 #!/bin/bash
 
-set -e  # 오류 발생 시 스크립트 종료
+# Frontend 배포 스크립트 - 비활성화됨
+# set -e  # 오류 발생 시 스크립트 종료
 
-echo "Starting Frontend deployment..."
+echo "⚠️ Frontend deployment script is disabled - EC2/AWS services disconnected"
+exit 1
+
+# echo "Starting Frontend deployment..."
 
 # Docker 이미지 파일 존재 확인
 if [ ! -f "football-club-frontend.tar.gz" ]; then

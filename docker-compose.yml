@@ -1,16 +1,22 @@
+# Docker Compose 파일 - AWS EC2 배포 비활성화됨
+# 로컬 개발환경에서만 사용
 
 services:
   football-club:
-    image: football-club:latest
+    # image: football-club:latest  # AWS 이미지 비활성화
+    build: .  # 로컬 빌드로 변경
     container_name: football-club-app
     ports:
       - "3000:3000"
       - "8082:8082"
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_PROFILES_ACTIVE=local  # prod -> local로 변경
     volumes:
-      - /opt/football-club/logs:/var/log/football-club
-      - /opt/football-club/uploads:/opt/football-club/uploads
+      # AWS 경로 비활성화
+      # - /opt/football-club/logs:/var/log/football-club
+      # - /opt/football-club/uploads:/opt/football-club/uploads
+      - ./logs:/var/log/football-club
+      - ./uploads:/opt/football-club/uploads
     restart: unless-stopped
     logging:
       driver: "json-file"

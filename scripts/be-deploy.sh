@@ -1,8 +1,12 @@
 #!/bin/bash
 
-set -e  # 오류 발생 시 스크립트 종료
+# Backend 배포 스크립트 - 비활성화됨
+# set -e  # 오류 발생 시 스크립트 종료
 
-echo "Starting Backend deployment..."
+echo "⚠️ Backend deployment script is disabled - EC2/AWS services disconnected"
+exit 1
+
+# echo "Starting Backend deployment..."
 
 # Docker 이미지 로드
 echo "Loading Docker image..."
