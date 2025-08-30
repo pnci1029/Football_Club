@@ -46,7 +46,7 @@ services:
         max-file: "3"
 
   football-club-mysql:
-    image: mysql:8.0
+    image: mysql:8.0.32
     container_name: football-club-mysql
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
