@@ -4,7 +4,7 @@ spring:
 
   # 활성 프로필 설정 (기본값: local)
   profiles:
-    active: local
+    active: prod
 
   # 파일 업로드 설정 (선수 사진용)
   servlet:
