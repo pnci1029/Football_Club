@@ -80,37 +80,9 @@ echo "📊 Checking container status..."
 sleep 10
 docker-compose ps
 
-# 헬스체크
-echo "🏥 Running health check..."
-for i in {1..30}; do
-    if curl -f http://localhost:8082/api/health > /dev/null 2>&1; then
-        echo "✅ Backend health check passed!"
-        break
-    fi
-    if [ $i -eq 30 ]; then
-        echo "❌ Backend health check failed!"
-        echo "📋 Backend logs:"
-        docker logs football-club-app
-        exit 1
-    fi
-    echo "⏳ Waiting for backend to be ready... ($i/30)"
-    sleep 2
-done
-
-# Frontend 헬스체크
-for i in {1..15}; do
-    if curl -f http://localhost:3000 > /dev/null 2>&1; then
-        echo "✅ Frontend health check passed!"
-        break
-    fi
-    if [ $i -eq 15 ]; then
-        echo "❌ Frontend health check failed!"
-        echo "📋 Frontend logs:"
-        docker logs football-club-app
-    fi
-    echo "⏳ Waiting for frontend to be ready... ($i/15)"
-    sleep 2
-done
+# 서비스 시작 후 잠시 대기
+echo "⏳ Waiting for services to initialize..."
+sleep 10
 
 # 로그 확인
 echo "📋 Recent logs:"

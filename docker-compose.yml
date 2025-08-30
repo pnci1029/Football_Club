@@ -6,7 +6,13 @@ services:
     container_name: football-club-frontend
     ports:
       - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://football-club-backend:8082
+    depends_on:
+      - football-club-backend
     restart: unless-stopped
+    networks:
+      - football-club-network
     logging:
       driver: "json-file"
       options:
@@ -25,8 +31,14 @@ services:
       - /opt/football-club/uploads:/opt/football-club/uploads
       - /opt/football-club/data:/app/data  # H2 데이터베이스 파일용
     restart: unless-stopped
+    networks:
+      - football-club-network
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+
+networks:
+  football-club-network:
+    driver: bridge

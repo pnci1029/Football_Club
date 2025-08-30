@@ -31,7 +31,7 @@ jobs:
       with:
         host: ${{ secrets.CAFE24_HOST }}
         username: root
-        password: ${{ secrets.CAFE24_ROOT_PASSWORD }}
+        key: ${{ secrets.CAFE24_SSH_KEY }}
         port: 22
         source: "football-club-backend.tar.gz,football-club-frontend.tar.gz,docker-compose.yml,scripts/cafe24-deploy.sh"
         target: "/opt/football-club"
@@ -41,7 +41,7 @@ jobs:
       with:
         host: ${{ secrets.CAFE24_HOST }}
         username: root
-        password: ${{ secrets.CAFE24_ROOT_PASSWORD }}
+        key: ${{ secrets.CAFE24_SSH_KEY }}
         port: 22
         script: |
           cd /opt/football-club

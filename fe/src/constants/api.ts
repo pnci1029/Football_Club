@@ -10,9 +10,13 @@ export const getApiBaseUrl = (): string => {
     return process.env.REACT_APP_API_URL;
   }
   
-  return window.location.hostname.includes('localhost') 
-    ? 'http://localhost:8082' 
-    : '/api';
+  // 로컬 개발 환경
+  if (window.location.hostname.includes('localhost')) {
+    return 'http://localhost:8082';
+  }
+  
+  // 배포 환경 - 호스트와 같은 서버의 8082 포트 사용
+  return `http://${window.location.hostname}:8082`;
 };
 
 /**
