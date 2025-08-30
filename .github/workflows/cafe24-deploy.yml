@@ -1,0 +1,49 @@
+name: Deploy to Cafe24 Server
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Backend Docker image
+      run: |
+        docker build -f be/Dockerfile -t football-club-backend:latest ./be
+        docker save football-club-backend:latest | gzip > football-club-backend.tar.gz
+
+    - name: Build Frontend Docker image
+      run: |
+        docker build -f fe/Dockerfile -t football-club-frontend:latest ./fe
+        docker save football-club-frontend:latest | gzip > football-club-frontend.tar.gz
+
+    - name: Copy files to Cafe24 server
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.CAFE24_HOST }}
+        username: root
+        password: ${{ secrets.CAFE24_ROOT_PASSWORD }}
+        port: 22
+        source: "football-club-backend.tar.gz,football-club-frontend.tar.gz,docker-compose.yml,scripts/cafe24-deploy.sh"
+        target: "/opt/football-club"
+
+    - name: Deploy to Cafe24 server
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.CAFE24_HOST }}
+        username: root
+        password: ${{ secrets.CAFE24_ROOT_PASSWORD }}
+        port: 22
+        script: |
+          cd /opt/football-club
+          chmod +x scripts/cafe24-deploy.sh
+          ./scripts/cafe24-deploy.sh
