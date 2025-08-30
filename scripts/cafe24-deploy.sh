@@ -12,6 +12,8 @@ BACKUP_DIR="/opt/football-club/backups/$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BACKUP_DIR"
 mkdir -p "$APP_DIR/logs"
 mkdir -p "$APP_DIR/uploads"
+mkdir -p "$APP_DIR/mysql-data"
+mkdir -p "$APP_DIR/mysql-init"
 
 # Docker 설치 확인
 if ! command -v docker &> /dev/null; then

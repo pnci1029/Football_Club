@@ -26,10 +26,40 @@ services:
       - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - MYSQL_HOST=football-club-mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     volumes:
       - /opt/football-club/logs:/var/log/football-club
       - /opt/football-club/uploads:/opt/football-club/uploads
-      - /opt/football-club/data:/app/data  # H2 데이터베이스 파일용
+    depends_on:
+      - football-club-mysql
+    restart: unless-stopped
+    networks:
+      - football-club-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  football-club-mysql:
+    image: mysql:8.0
+    container_name: football-club-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - TZ=Asia/Seoul
+    ports:
+      - "3306:3306"
+    volumes:
+      - /opt/football-club/mysql-data:/var/lib/mysql
+      - /opt/football-club/mysql-init:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: unless-stopped
     networks:
       - football-club-network
@@ -42,3 +72,9 @@ services:
 networks:
   football-club-network:
     driver: bridge
+
+secrets:
+  mysql_root_password:
+    file: /opt/football-club/secrets/mysql_root_password.txt
+  mysql_password:
+    file: /opt/football-club/secrets/mysql_password.txt

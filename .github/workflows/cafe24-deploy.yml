@@ -26,6 +26,7 @@ jobs:
         docker build -f fe/Dockerfile -t football-club-frontend:latest ./fe
         docker save football-club-frontend:latest | gzip > football-club-frontend.tar.gz
 
+
     - name: Copy files to Cafe24 server
       uses: appleboy/scp-action@v0.1.7
       with:
@@ -47,5 +48,9 @@ jobs:
         port: 22
         script: |
           cd /opt/football-club
+          echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" > .env
+          echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
           chmod +x scripts/cafe24-deploy.sh
           ./scripts/cafe24-deploy.sh
