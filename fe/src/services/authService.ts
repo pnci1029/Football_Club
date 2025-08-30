@@ -1,40 +1,38 @@
 import { LoginRequest, LoginResponse, AdminInfo, TokenValidationResponse } from '../types/auth';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 
-  (window.location.hostname === 'localhost' ? 'http://localhost:8082' : 'https://api.football-club.kr');
+import { buildApiUrl, handleApiError, createApiHeaders } from '../utils/api';
+import { TokenStorage } from '../utils/storage';
+import { Logger } from '../utils/logger';
+import { API_ENDPOINTS, CONTENT_TYPES } from '../constants/api';
+import { ERROR_MESSAGES } from '../constants/messages';
 
 class AuthService {
-  private readonly ACCESS_TOKEN_KEY = 'football_admin_access_token';
-  private readonly REFRESH_TOKEN_KEY = 'football_admin_refresh_token';
 
   /**
    * 관리자 로그인
    */
   async login(username: string, password: string): Promise<LoginResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/admin/auth/login`, {
+    const response = await fetch(buildApiUrl(API_ENDPOINTS.ADMIN_LOGIN), {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: createApiHeaders(CONTENT_TYPES.JSON),
       body: JSON.stringify({ username, password }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || 'Login failed');
+      throw new Error(handleApiError(errorData, ERROR_MESSAGES.LOGIN_FAILED));
     }
 
     const data = await response.json();
     if (!data.success) {
-      throw new Error(data.error?.message || 'Login failed');
+      throw new Error(handleApiError(data, ERROR_MESSAGES.LOGIN_FAILED));
     }
 
     const loginResponse = data.data;
-    
+
     // 토큰 저장
-    this.setAccessToken(loginResponse.accessToken);
-    this.setRefreshToken(loginResponse.refreshToken);
-    
+    TokenStorage.setAccessToken(loginResponse.accessToken);
+    TokenStorage.setRefreshToken(loginResponse.refreshToken);
+
     return loginResponse;
   }
 
@@ -43,23 +41,20 @@ class AuthService {
    */
   async logout(): Promise<void> {
     const admin = await this.getCurrentAdmin().catch(() => null);
-    
+
     try {
       if (admin) {
-        await fetch(`${API_BASE_URL}/api/admin/auth/logout`, {
+        await fetch(buildApiUrl(API_ENDPOINTS.ADMIN_LOGOUT), {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.getAccessToken()}`,
-          },
+          headers: createApiHeaders(CONTENT_TYPES.JSON, TokenStorage.getAccessToken() || undefined),
           body: JSON.stringify({ username: admin.username }),
         });
       }
     } catch (error) {
-      console.warn('Logout API call failed:', error);
+      Logger.warn('Logout API call failed:', error);
     } finally {
       // 로컬 토큰 삭제
-      this.clearTokens();
+      TokenStorage.clearTokens();
     }
   }
 
@@ -67,33 +62,31 @@ class AuthService {
    * 토큰 갱신
    */
   async refreshToken(): Promise<string> {
-    const refreshToken = this.getRefreshToken();
+    const refreshToken = TokenStorage.getRefreshToken();
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/admin/auth/refresh`, {
+    const response = await fetch(buildApiUrl(API_ENDPOINTS.ADMIN_REFRESH), {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: createApiHeaders(CONTENT_TYPES.JSON),
       body: JSON.stringify({ refreshToken }),
     });
 
     if (!response.ok) {
-      this.clearTokens();
-      throw new Error('Token refresh failed');
+      TokenStorage.clearTokens();
+      throw new Error(ERROR_MESSAGES.TOKEN_EXPIRED);
     }
 
     const data = await response.json();
     if (!data.success) {
-      this.clearTokens();
-      throw new Error(data.error?.message || 'Token refresh failed');
+      TokenStorage.clearTokens();
+      throw new Error(handleApiError(data, ERROR_MESSAGES.TOKEN_EXPIRED));
     }
 
     const newAccessToken = data.data.accessToken;
-    this.setAccessToken(newAccessToken);
-    
+    TokenStorage.setAccessToken(newAccessToken);
+
     return newAccessToken;
   }
 
@@ -101,16 +94,14 @@ class AuthService {
    * 현재 관리자 정보 조회
    */
   async getCurrentAdmin(): Promise<AdminInfo> {
-    const accessToken = this.getAccessToken();
+    const accessToken = TokenStorage.getAccessToken();
     if (!accessToken) {
       throw new Error('No access token');
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/admin/auth/me`, {
+    const response = await fetch(buildApiUrl(API_ENDPOINTS.ADMIN_ME), {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
+      headers: createApiHeaders(CONTENT_TYPES.JSON, accessToken),
     });
 
     if (!response.ok) {
@@ -119,11 +110,9 @@ class AuthService {
         try {
           const newToken = await this.refreshToken();
           // 새 토큰으로 다시 시도
-          const retryResponse = await fetch(`${API_BASE_URL}/api/admin/auth/me`, {
+          const retryResponse = await fetch(buildApiUrl(API_ENDPOINTS.ADMIN_ME), {
             method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${newToken}`,
-            },
+            headers: createApiHeaders(CONTENT_TYPES.JSON, newToken),
           });
 
           if (!retryResponse.ok) {
@@ -132,12 +121,12 @@ class AuthService {
 
           const retryData = await retryResponse.json();
           if (!retryData.success) {
-            throw new Error(retryData.error?.message || 'Failed to get admin info');
+            throw new Error(handleApiError(retryData, ERROR_MESSAGES.LOAD_FAILED));
           }
 
           return retryData.data;
         } catch (refreshError) {
-          this.clearTokens();
+          TokenStorage.clearTokens();
           throw new Error('Authentication failed');
         }
       }
@@ -147,7 +136,7 @@ class AuthService {
 
     const data = await response.json();
     if (!data.success) {
-      throw new Error(data.error?.message || 'Failed to get admin info');
+      throw new Error(handleApiError(data, ERROR_MESSAGES.LOAD_FAILED));
     }
 
     return data.data;
@@ -157,17 +146,15 @@ class AuthService {
    * 토큰 검증
    */
   async validateToken(token?: string): Promise<TokenValidationResponse> {
-    const tokenToValidate = token || this.getAccessToken();
+    const tokenToValidate = token || TokenStorage.getAccessToken();
     if (!tokenToValidate) {
       return { valid: false, admin: null };
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/auth/validate`, {
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.ADMIN_VALIDATE), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: createApiHeaders(CONTENT_TYPES.JSON),
         body: JSON.stringify({ token: tokenToValidate }),
       });
 
@@ -182,7 +169,7 @@ class AuthService {
 
       return data.data;
     } catch (error) {
-      console.warn('Token validation failed:', error);
+      Logger.warn('Token validation failed:', error);
       return { valid: false, admin: null };
     }
   }
@@ -191,7 +178,7 @@ class AuthService {
    * 인증된 API 요청을 위한 헤더 반환
    */
   getAuthHeaders(): HeadersInit {
-    const token = this.getAccessToken();
+    const token = TokenStorage.getAccessToken();
     return token ? { 'Authorization': `Bearer ${token}` } : {};
   }
 
@@ -199,30 +186,9 @@ class AuthService {
    * 로그인 상태 확인
    */
   isAuthenticated(): boolean {
-    return !!this.getAccessToken();
+    return TokenStorage.hasValidToken();
   }
 
-  // Private methods
-  private setAccessToken(token: string): void {
-    localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
-  }
-
-  private setRefreshToken(token: string): void {
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
-  }
-
-  private getAccessToken(): string | null {
-    return localStorage.getItem(this.ACCESS_TOKEN_KEY);
-  }
-
-  private getRefreshToken(): string | null {
-    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
-  }
-
-  private clearTokens(): void {
-    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-  }
 }
 
 export const authService = new AuthService();

@@ -1,45 +1,21 @@
-export const formatDate = (date: string | Date): string => {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
+/**
+ * 모든 유틸리티들을 재내보내는 인덱스 파일
+ */
 
-export const formatTime = (date: string | Date): string => {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleTimeString('ko-KR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
+// API 관련
+export * from './api';
 
-export const getSubdomain = (): string => {
-  if (typeof window === 'undefined') return '';
-  
-  const hostname = window.location.hostname;
-  const parts = hostname.split('.');
-  
-  if (parts.length >= 3) {
-    return parts[0];
-  }
-  
-  return '';
-};
+// 스토리지 관련
+export * from './storage';
 
-export const cn = (...classes: (string | undefined | null | false)[]): string => {
-  return classes.filter(Boolean).join(' ');
-};
+// 폼 관련
+export * from './form';
 
-export const debounce = <T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): ((...args: Parameters<T>) => void) => {
-  let timeout: NodeJS.Timeout;
-  
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-};
+// 이미지 관련
+export * from './image';
+
+// 로거 관련
+export * from './logger';
+
+// 날짜 관련
+export * from './date';

@@ -1,14 +1,14 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 
-  (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8082/api');
+import { getApiBaseUrl } from '../constants/api';
+import { TokenStorage } from '../utils/storage';
+import { Logger } from '../utils/logger';
 
 class ApiClient {
   private client: AxiosInstance;
 
   constructor() {
     this.client = axios.create({
-      baseURL: API_BASE_URL,
+      baseURL: getApiBaseUrl(),
       timeout: 10000,
       withCredentials: false, // 임시로 false로 설정
       headers: {
@@ -27,7 +27,7 @@ class ApiClient {
         const host = window.location.host;
         config.headers['X-Forwarded-Host'] = host;
 
-        const token = localStorage.getItem('accessToken');
+        const token = TokenStorage.getAccessToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -41,7 +41,7 @@ class ApiClient {
       (response: AxiosResponse) => response,
       async (error) => {
         if (error.response?.status === 401) {
-          localStorage.removeItem('accessToken');
+          TokenStorage.clearTokens();
           // 관리자 페이지가 아닌 경우에만 리다이렉트
           if (!window.location.hostname.startsWith('admin.')) {
             // 일반 사용자는 로그인이 필요하지 않으므로 에러만 로깅
