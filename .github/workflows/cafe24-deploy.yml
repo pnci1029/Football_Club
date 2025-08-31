@@ -16,6 +16,9 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
+    - name: Create application-prod.yml with secrets
+      run: echo "${{ secrets.APPLICATION_PROD_YML }}" > be/src/main/resources/application-prod.yml
+
     - name: Build Backend Docker image
       run: |
         docker build -f be/Dockerfile -t football-club-backend:latest ./be
