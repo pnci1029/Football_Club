@@ -17,12 +17,23 @@ sudo mkdir -p "$APP_DIR/mysql-data"
 sudo mkdir -p "$APP_DIR/mysql-init"
 sudo chown -R $USER:$USER "$APP_DIR"
 
-# Docker 이미지 로드
-if [ -f "football-club-backend.tar.gz" ]; then
+# Docker 이미지 빌드 및 로드
+echo "🔨 Building backend image..."
+cd be
+docker build -t football-club-backend:latest .
+cd ..
+
+echo "🔨 Building frontend image..."
+cd fe
+docker build -t football-club-frontend:latest .
+cd ..
+
+# 기존 tar.gz 파일이 있으면 로드 (fallback)
+if [ -f "football-club-backend.tar.gz" ] && ! docker images | grep -q football-club-backend; then
     gunzip -c football-club-backend.tar.gz | docker load
 fi
 
-if [ -f "football-club-frontend.tar.gz" ]; then
+if [ -f "football-club-frontend.tar.gz" ] && ! docker images | grep -q football-club-frontend; then
     gunzip -c football-club-frontend.tar.gz | docker load
 fi
 
