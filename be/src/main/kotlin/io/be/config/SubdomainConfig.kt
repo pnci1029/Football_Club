@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 import java.util.regex.Pattern
 
+
 @Configuration
 @EnableConfigurationProperties(SubdomainProperties::class)
 class SubdomainConfig
