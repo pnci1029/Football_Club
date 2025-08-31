@@ -15,6 +15,7 @@ data class SubdomainProperties(
     val enabled: Boolean = true,
     val pattern: String = "{team}.footballclub.com"
 ) {
+
     fun extractTeamCodeFromHost(host: String): String? {
         if (!enabled) return null
 
