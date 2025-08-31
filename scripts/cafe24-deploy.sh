@@ -34,9 +34,16 @@ fi
 # 기존 서비스 정리
 echo "⏹️ Cleaning up existing services..."
 
-# 기존 컨테이너 정지
-echo "💾 Stopping existing containers..."
-docker compose down --remove-orphans || true
+# 기존 앱 컨테이너만 정지 (MySQL 제외)
+echo "💾 Stopping existing app containers..."
+if docker ps -q -f name=frontend | grep -q .; then
+    docker stop frontend
+    docker rm frontend
+fi
+if docker ps -q -f name=backend | grep -q .; then
+    docker stop backend  
+    docker rm backend
+fi
 sleep 2
 
 # 포트 사용 중인 프로세스 정리
