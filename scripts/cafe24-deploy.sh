@@ -45,6 +45,10 @@ if docker ps -q -f name=backend | grep -q .; then
     docker rm backend
 fi
 
+# 네트워크 생성
+echo "🌐 Creating network..."
+docker network create football-club_football-club-network || true
+
 # MySQL 컨테이너가 없으면 시작
 if ! docker ps -q -f name=db | grep -q .; then
     echo "🗄️ Starting MySQL container..."
