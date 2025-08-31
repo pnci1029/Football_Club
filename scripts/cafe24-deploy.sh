@@ -35,11 +35,9 @@ fi
 echo "⏹️ Cleaning up existing services..."
 
 # 기존 컨테이너 정지
-if docker ps -q --filter "name=football-club" | grep -q .; then
-    echo "💾 Creating backup of existing containers..."
-    docker-compose down || true
-    sleep 2
-fi
+echo "💾 Stopping existing containers..."
+docker compose down --remove-orphans || true
+sleep 2
 
 # 포트 사용 중인 프로세스 정리
 echo "🔍 Checking ports..."
@@ -75,7 +73,7 @@ fi
 
 # Docker Compose로 서비스 시작
 echo "🚀 Starting services with Docker Compose..."
-docker-compose up -d
+docker compose up -d
 
 # nginx 설정 리로드
 echo "🔄 Reloading nginx configuration..."
@@ -89,7 +87,7 @@ fi
 # 컨테이너 상태 확인
 echo "📊 Checking container status..."
 sleep 10
-docker-compose ps
+docker compose ps
 
 # 서비스 시작 후 잠시 대기
 echo "⏳ Waiting for services to initialize..."
@@ -97,12 +95,12 @@ sleep 10
 
 # 로그 확인
 echo "📋 Recent logs:"
-docker-compose logs --tail=20
+docker compose logs --tail=20
 
 # 정리: 오래된 이미지 제거
 echo "🧹 Cleaning up old images..."
 docker image prune -f
 
 echo "🎉 Deployment completed successfully!"
-echo "📊 Container status: docker-compose ps"
-echo "📋 View logs: docker-compose logs -f"
+echo "📊 Container status: docker compose ps"
+echo "📋 View logs: docker compose logs -f"
