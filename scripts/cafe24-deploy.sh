@@ -4,11 +4,31 @@ set -e
 
 # 변수 설정
 APP_DIR="/opt/football-club"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_URL="https://github.com/pnci1029/Football_Club.git"
+BUILD_DIR="/tmp/football-club-build"
 
-# 현재 디렉토리를 프로젝트 루트로 변경
-cd "$PROJECT_DIR"
+echo "🔄 Fetching latest code from GitHub..."
+
+# 기존 빌드 디렉토리 제거 및 최신 코드 클론
+rm -rf "$BUILD_DIR"
+git clone "$REPO_URL" "$BUILD_DIR"
+cd "$BUILD_DIR"
+git checkout develop
+
+echo "🔨 Building Docker images..."
+
+# 백엔드 이미지 빌드
+cd "$BUILD_DIR/be"
+docker build -t football-club-backend:latest .
+
+# 프론트엔드 이미지 빌드 (fe 폴더가 있으면)
+if [ -d "$BUILD_DIR/fe" ]; then
+    cd "$BUILD_DIR/fe"
+    docker build -t football-club-frontend:latest .
+fi
+
+# 작업 디렉토리 변경
+cd "$APP_DIR"
 
 # 필수 디렉토리 생성
 sudo mkdir -p "$APP_DIR/logs"
@@ -17,25 +37,8 @@ sudo mkdir -p "$APP_DIR/mysql-data"
 sudo mkdir -p "$APP_DIR/mysql-init"
 sudo chown -R $USER:$USER "$APP_DIR"
 
-# Docker 이미지 빌드 및 로드
-echo "🔨 Building backend image..."
-cd be
-docker build -t football-club-backend:latest .
-cd ..
-
-echo "🔨 Building frontend image..."
-cd fe
-docker build -t football-club-frontend:latest .
-cd ..
-
-# 기존 tar.gz 파일이 있으면 로드 (fallback)
-if [ -f "football-club-backend.tar.gz" ] && ! docker images | grep -q football-club-backend; then
-    gunzip -c football-club-backend.tar.gz | docker load
-fi
-
-if [ -f "football-club-frontend.tar.gz" ] && ! docker images | grep -q football-club-frontend; then
-    gunzip -c football-club-frontend.tar.gz | docker load
-fi
+# docker-compose.yml 복사
+cp "$BUILD_DIR/docker-compose.yml" "$APP_DIR/"
 
 # 포트 정리
 for port in 3000 8082; do
@@ -59,3 +62,8 @@ sleep 3
 docker compose up -d frontend
 
 docker compose --profile with-db ps
+
+# 빌드 디렉토리 정리
+rm -rf "$BUILD_DIR"
+
+echo "✅ Deployment completed successfully!"
