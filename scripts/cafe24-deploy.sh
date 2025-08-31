@@ -34,19 +34,15 @@ for port in 3000 8082; do
     fi
 done
 
-# DB 상태 확인 및 필요시 시작
-if ! docker ps --format "table {{.Names}}" | grep -q "^db$"; then
-    docker compose --profile with-db up -d db
-    sleep 5
-fi
-
-# 네트워크 정리
+# 기존 컨테이너와 네트워크 완전 정리
+docker compose --profile with-db down --remove-orphans 2>/dev/null || true
 docker network rm football-club_football-club-network 2>/dev/null || true
 
-# 기존 앱 컨테이너 정리 후 시작
-docker stop frontend backend 2>/dev/null || true
-docker rm frontend backend 2>/dev/null || true
+# DB 먼저 시작
+docker compose --profile with-db up -d db
+sleep 5
 
+# 앱 서비스들 시작
 docker compose up -d backend
 sleep 3
 docker compose up -d frontend
