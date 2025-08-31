@@ -22,7 +22,7 @@ server:
 app:
   subdomain:
     enabled: true
-    pattern: "{team}.footballclub.com"
+    pattern: '{team}.footballclub.com'
   admin:
     subdomain: admin.footballclub.com
   upload:
@@ -35,4 +35,4 @@ logging:
     io.be.exception.GlobalExceptionHandler: ERROR
     root: WARN
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
