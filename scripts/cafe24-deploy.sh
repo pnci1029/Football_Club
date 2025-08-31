@@ -40,6 +40,9 @@ if ! docker ps --format "table {{.Names}}" | grep -q "^db$"; then
     sleep 5
 fi
 
+# 네트워크 정리
+docker network rm football-club_football-club-network 2>/dev/null || true
+
 # 기존 앱 컨테이너 정리 후 시작
 docker stop frontend backend 2>/dev/null || true
 docker rm frontend backend 2>/dev/null || true
