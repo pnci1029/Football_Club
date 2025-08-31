@@ -44,7 +44,13 @@ if docker ps -q -f name=backend | grep -q .; then
     docker stop backend  
     docker rm backend
 fi
-sleep 2
+
+# MySQL 컨테이너가 없으면 시작
+if ! docker ps -q -f name=db | grep -q .; then
+    echo "🗄️ Starting MySQL container..."
+    docker compose --profile with-db up -d db
+    sleep 5
+fi
 
 # 포트 사용 중인 프로세스 정리
 echo "🔍 Checking ports..."
@@ -78,9 +84,9 @@ else
     exit 1
 fi
 
-# Docker Compose로 서비스 시작
-echo "🚀 Starting services with Docker Compose..."
-docker compose up -d
+# 앱 컨테이너만 시작
+echo "🚀 Starting app containers..."
+docker compose up -d frontend backend
 
 # nginx 설정 리로드
 echo "🔄 Reloading nginx configuration..."
@@ -94,7 +100,7 @@ fi
 # 컨테이너 상태 확인
 echo "📊 Checking container status..."
 sleep 10
-docker compose ps
+docker compose --profile with-db ps
 
 # 서비스 시작 후 잠시 대기
 echo "⏳ Waiting for services to initialize..."
@@ -102,12 +108,12 @@ sleep 10
 
 # 로그 확인
 echo "📋 Recent logs:"
-docker compose logs --tail=20
+docker compose --profile with-db logs --tail=20
 
 # 정리: 오래된 이미지 제거
 echo "🧹 Cleaning up old images..."
 docker image prune -f
 
 echo "🎉 Deployment completed successfully!"
-echo "📊 Container status: docker compose ps"
-echo "📋 View logs: docker compose logs -f"
+echo "📊 Container status: docker compose --profile with-db ps"
+echo "📋 View logs: docker compose --profile with-db logs -f"
