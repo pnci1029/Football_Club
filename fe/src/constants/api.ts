@@ -15,8 +15,8 @@ export const getApiBaseUrl = (): string => {
     return 'http://localhost:8082';
   }
   
-  // 배포 환경 - 호스트와 같은 서버의 8082 포트 사용
-  return `http://${window.location.hostname}:8082`;
+  // 배포 환경 - nginx 프록시를 통해 같은 호스트로 요청
+  return `http://${window.location.hostname}`;
 };
 
 /**

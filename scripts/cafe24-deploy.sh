@@ -77,6 +77,15 @@ fi
 echo "🚀 Starting services with Docker Compose..."
 docker-compose up -d
 
+# nginx 설정 리로드
+echo "🔄 Reloading nginx configuration..."
+if systemctl is-active --quiet nginx; then
+    nginx -t && systemctl reload nginx
+    echo "✅ Nginx reloaded successfully"
+else
+    echo "⚠️ Nginx is not running, skipping reload"
+fi
+
 # 컨테이너 상태 확인
 echo "📊 Checking container status..."
 sleep 10
