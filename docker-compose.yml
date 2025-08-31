@@ -1,15 +1,15 @@
 # Docker Compose 파일 - Cafe24 서버 배포용
 
 services:
-  football-club-frontend:
+  frontend:
     image: football-club-frontend:latest
-    container_name: football-club-frontend
+    container_name: frontend
     ports:
       - "3000:3000"
     environment:
       - REACT_APP_API_URL=
     depends_on:
-      - football-club-backend
+      - backend
     restart: unless-stopped
     networks:
       - football-club-network
@@ -19,14 +19,14 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  football-club-backend:
+  backend:
     image: football-club-backend:latest
-    container_name: football-club-backend
+    container_name: backend
     ports:
       - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - MYSQL_HOST=football-club-mysql
+      - MYSQL_HOST=db
       - MYSQL_PORT=3306
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
@@ -35,7 +35,7 @@ services:
       - /opt/football-club/logs:/var/log/football-club
       - /opt/football-club/uploads:/opt/football-club/uploads
     depends_on:
-      - football-club-mysql
+      - db
     restart: unless-stopped
     networks:
       - football-club-network
@@ -45,9 +45,9 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  football-club-mysql:
+  db:
     image: mysql:8.0.32
-    container_name: football-club-mysql
+    container_name: db
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
