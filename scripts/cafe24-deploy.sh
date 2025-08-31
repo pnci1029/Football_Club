@@ -34,27 +34,32 @@ fi
 # 기존 서비스 정리
 echo "⏹️ Cleaning up existing services..."
 
-# 기존 앱 컨테이너만 정지 (MySQL 제외)
-echo "💾 Stopping existing app containers..."
+# 기존 컨테이너 정지 (실행 중인 것만)
+echo "💾 Stopping existing containers..."
 if docker ps -q -f name=frontend | grep -q .; then
+    echo "Stopping frontend..."
     docker stop frontend
     docker rm frontend
 fi
 if docker ps -q -f name=backend | grep -q .; then
+    echo "Stopping backend..."
     docker stop backend  
     docker rm backend
+fi
+if docker ps -q -f name=db | grep -q .; then
+    echo "Stopping MySQL..."
+    docker stop db
+    docker rm db
 fi
 
 # 네트워크 생성
 echo "🌐 Creating network..."
 docker network create football-club_football-club-network || true
 
-# MySQL 컨테이너가 없으면 시작
-if ! docker ps -q -f name=db | grep -q .; then
-    echo "🗄️ Starting MySQL container..."
-    docker compose --profile with-db up -d db
-    sleep 5
-fi
+# MySQL 컨테이너 시작
+echo "🗄️ Starting MySQL container..."
+docker compose --profile with-db up -d db
+sleep 10
 
 # 포트 사용 중인 프로세스 정리
 echo "🔍 Checking ports..."
