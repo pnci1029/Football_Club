@@ -34,27 +34,16 @@ fi
 # 기존 서비스 정리
 echo "⏹️ Cleaning up existing services..."
 
-# 기존 컨테이너 정지 (실행 중인 것만)
-echo "💾 Stopping existing containers..."
-if docker ps -q -f name=frontend | grep -q .; then
-    echo "Stopping frontend..."
-    docker stop frontend
-    docker rm frontend
-fi
-if docker ps -q -f name=backend | grep -q .; then
-    echo "Stopping backend..."
-    docker stop backend  
-    docker rm backend
-fi
-if docker ps -q -f name=db | grep -q .; then
-    echo "Stopping MySQL..."
-    docker stop db
-    docker rm db
-fi
+# 모든 관련 컨테이너 강제 정리
+echo "💾 Force cleaning all containers..."
+docker stop frontend backend db || true
+docker rm -f frontend backend db || true
 
-# 네트워크 생성
-echo "🌐 Creating network..."
-docker network create football-club_football-club-network || true
+# 네트워크 완전 정리 후 재생성
+echo "🗑️ Cleaning network..."
+docker network rm football-club_football-club-network || true
+echo "🌐 Creating fresh network..."
+docker network create football-club_football-club-network
 
 # MySQL 컨테이너 시작
 echo "🗄️ Starting MySQL container..."
