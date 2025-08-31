@@ -19,14 +19,14 @@ server:
     context-path: /api
 
 # 서브도메인 설정
-app:
-  subdomain:
-    enabled: true
-    pattern: '{team}.footballclub.com'
-  admin:
-    subdomain: admin.footballclub.com
-  upload:
-    path: /uploads/players
+#app:
+#  subdomain:
+#    enabled: true
+#    pattern: '{team}.footballclub.com'
+#  admin:
+#    subdomain: admin.footballclub.com
+#  upload:
+#    path: /uploads/players
 
 # 공통 로깅 설정
 logging:
