@@ -34,8 +34,8 @@ services:
     volumes:
       - /opt/football-club/logs:/var/log/football-club
       - /opt/football-club/uploads:/opt/football-club/uploads
-    depends_on:
-      - db
+    # depends_on:
+    #   - db
     restart: unless-stopped
     networks:
       - football-club-network
