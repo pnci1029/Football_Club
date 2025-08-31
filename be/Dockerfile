@@ -7,12 +7,12 @@ COPY gradle/ gradle/
 COPY gradlew build.gradle.kts settings.gradle.kts ./
 RUN chmod +x ./gradlew
 
-# 의존성 다운로드
-RUN ./gradlew dependencies --no-daemon --warning-mode=none
+# 의존성 다운로드 (병렬 처리)
+RUN ./gradlew dependencies --no-daemon --warning-mode=none --parallel
 
-# 소스 코드 복사 및 빌드
+# 소스 코드 복사 및 빌드 (병렬 처리)
 COPY src/ src/
-RUN ./gradlew clean build -x test --no-daemon --warning-mode=none
+RUN ./gradlew clean build -x test --no-daemon --warning-mode=none --parallel
 
 # JAR 파일을 app.jar로 복사 (plain jar 제외)
 RUN find build/libs -name "*.jar" -not -name "*-plain.jar" -exec cp {} app.jar \;

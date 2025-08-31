@@ -15,17 +15,20 @@ git clone "$REPO_URL" "$BUILD_DIR"
 cd "$BUILD_DIR"
 git checkout develop
 
-echo "🔨 Building Docker images..."
+echo "🔨 Building Docker images with cache..."
 
-# 백엔드 이미지 빌드
+# 백엔드 이미지 빌드 (캐시 사용 + 병렬 빌드)
 cd "$BUILD_DIR/be"
-docker build -t football-club-backend:latest .
+docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t football-club-backend:latest . &
 
 # 프론트엔드 이미지 빌드 (fe 폴더가 있으면)
 if [ -d "$BUILD_DIR/fe" ]; then
     cd "$BUILD_DIR/fe"
-    docker build -t football-club-frontend:latest .
+    docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t football-club-frontend:latest . &
 fi
+
+# 모든 빌드 완료 대기
+wait
 
 # 작업 디렉토리 변경
 cd "$APP_DIR"
