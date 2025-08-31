@@ -18,8 +18,8 @@ jobs:
 
     - name: Create project archive
       run: |
-        zip -r football-club.zip . -x ".git/*" ".github/*" "node_modules/*" ".gradle/*" ".idea/*" "*.iml" ".gitignore"
-        ls -la football-club.zip
+        tar -czf football-club.tar.gz --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='.gradle' --exclude='.idea' --exclude='*.iml' --exclude='.gitignore' .
+        ls -la football-club.tar.gz
 
     - name: Set up SSH
       run: |
@@ -31,7 +31,7 @@ jobs:
 
     - name: Copy archive to server
       run: |
-        scp -i ~/.ssh/id_rsa football-club.zip root@${{ secrets.CAFE24_HOST }}:/opt/football-club/
+        scp -i ~/.ssh/id_rsa football-club.tar.gz root@${{ secrets.CAFE24_HOST }}:/opt/football-club/
 
     - name: Deploy on server
       run: |
@@ -44,7 +44,7 @@ jobs:
           echo 'MYSQL_HOST=football-club-mysql' >> .env &&
           rm -rf app || true &&
           mkdir -p app &&
-          unzip -o football-club.zip -d app &&
+          tar -xzf football-club.tar.gz -C app &&
           cd app &&
           docker build -t football-club-backend:latest ./be &&
           docker build -t football-club-frontend:latest ./fe &&
