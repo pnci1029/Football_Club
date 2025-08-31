@@ -34,8 +34,8 @@ services:
     volumes:
       - /opt/football-club/logs:/var/log/football-club
       - /opt/football-club/uploads:/opt/football-club/uploads
-    # depends_on:
-    #   - db
+    depends_on:
+      - db
     restart: unless-stopped
     networks:
       - football-club-network
@@ -68,8 +68,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    profiles:
-      - with-db
 
 networks:
   football-club-network:
