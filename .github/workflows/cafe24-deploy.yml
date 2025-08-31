@@ -41,7 +41,7 @@ jobs:
           echo 'MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}' >> .env &&
           echo 'MYSQL_USER=${{ secrets.MYSQL_USER }}' >> .env &&
           echo 'MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}' >> .env &&
-          echo 'MYSQL_HOST=football-club-mysql' >> .env &&
+          echo 'MYSQL_HOST=db' >> .env &&
           rm -rf app || true &&
           mkdir -p app &&
           tar -xzf football-club.tar.gz -C app &&
