@@ -18,7 +18,7 @@ jobs:
 
     - name: Create project archive
       run: |
-        tar -czf football-club.tar.gz --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='.gradle' --exclude='.idea' --exclude='*.iml' --exclude='.gitignore' .
+        tar -czf football-club.tar.gz --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='.gradle' --exclude='.idea' --exclude='*.iml' --exclude='.gitignore' . || true
         ls -la football-club.tar.gz
 
     - name: Set up SSH
