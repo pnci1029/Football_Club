@@ -10,7 +10,6 @@ import java.util.regex.Pattern
 @Configuration
 @EnableConfigurationProperties(SubdomainProperties::class)
 class SubdomainConfig
-
 @ConfigurationProperties(prefix = "app.subdomain")
 data class SubdomainProperties(
     val enabled: Boolean = true,
