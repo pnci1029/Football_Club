@@ -27,7 +27,7 @@ class ImageController {
         @RequestParam("file") file: MultipartFile
     ) {
         println("file = ${file}")
-        println("555555 - ImageController 도착")
+        println("6666 - ImageController 도착")
 //        try {
 //            // 파일 검증
 //            if (file.isEmpty) {
