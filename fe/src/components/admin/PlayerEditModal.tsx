@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
-import { Button } from '../common';
+import { Button, ImageUpload } from '../common';
 import { AdminPlayer, UpdatePlayerRequest, adminPlayerService } from '../../services/adminPlayerService';
 
 interface PlayerEditModalProps {
@@ -131,18 +131,30 @@ const PlayerEditModal: React.FC<PlayerEditModalProps> = ({
           />
         </div>
 
-        {/* 프로필 이미지 URL */}
+        {/* 프로필 이미지 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            프로필 이미지 URL
+            프로필 이미지
           </label>
-          <input
-            type="url"
+          <ImageUpload
             value={formData.profileImageUrl}
-            onChange={(e) => handleChange('profileImageUrl', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="https://example.com/image.jpg"
+            onChange={(imageUrl) => handleChange('profileImageUrl', imageUrl)}
+            onError={(errorMsg) => setError(errorMsg)}
+            placeholder="선수 프로필 이미지를 업로드하세요"
+            className="w-full max-w-xs mx-auto"
           />
+          {formData.profileImageUrl && (
+            <div className="mt-2">
+              <p className="text-sm text-gray-600">업로드된 이미지:</p>
+              <input
+                type="url"
+                value={formData.profileImageUrl}
+                onChange={(e) => handleChange('profileImageUrl', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                placeholder="직접 URL 입력도 가능합니다"
+              />
+            </div>
+          )}
         </div>
 
         {/* 활성 상태 */}
