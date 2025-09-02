@@ -37,6 +37,8 @@ class WebConfig(
                     "https://127.0.0.1:*",
                     "http://*.localhost:*",
                     "https://*.localhost:*",
+                    "http://admin.localhost:3000",
+                    "https://admin.localhost:3000",
                     "http://*.football-club.kr",
                     "https://*.football-club.kr",
                     "http://222.122.81.196:*",
@@ -50,7 +52,7 @@ class WebConfig(
                     "https://*.football-club.kr",
                     "https://admin.football-club.kr",
                     "http://localhost:3000",
-                    "https://localhost:3000",
+                    "http://*.localhost:3000",
                     "http://222.122.81.196:*",
                 )
             }
@@ -78,7 +80,7 @@ class WebConfig(
                 "/api/actuator/**",  // Spring Actuator 경로 제외
                 "/api/h2-console/**", // H2 콘솔 제외 (개발용)
                 "/api/swagger-ui/**", // Swagger UI 제외
-                "/api/api-docs/**"    // API 문서 제외
+                "/api/api-docs/**",   // API 문서 제외
             )
 
         // 기존 서브도메인 인터셉터 - 특정 경로에만 적용
