@@ -9,18 +9,20 @@ export const getApiBaseUrl = (): string => {
   if (process.env.REACT_APP_API_URL) {
     return process.env.REACT_APP_API_URL;
   }
-  
+
   // 로컬 개발 환경
   if (window.location.hostname.includes('localhost')) {
     return 'http://localhost:8082';
   }
-  
+
   // 배포 환경 - 모든 서브도메인에서 메인 도메인으로 리다이렉트
   const hostname = window.location.hostname;
   if (hostname.includes('.football-club.kr')) {
     return 'https://football-club.kr';
   }
-  
+
+  console.log('hostname : ',hostname)
+
   // 기본 배포 환경 - nginx 프록시를 통해 같은 호스트로 요청 (HTTPS)
   return `https://${hostname}`;
 };
@@ -42,7 +44,7 @@ export const API_ENDPOINTS = {
   ADMIN_STADIUMS: '/api/v1/admin/stadiums',
   ADMIN_MATCHES: '/api/v1/admin/matches',
 
-  // 공용 리소스  
+  // 공용 리소스
   TEAMS: '/api/v1/teams',
   PLAYERS: '/api/v1/players',
   STADIUMS: '/api/v1/stadiums',
