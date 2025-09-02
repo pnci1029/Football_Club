@@ -1,8 +1,9 @@
-name: Deploy to Cafe24 Server
+name: Deploy Backend to Cafe24
 
 on:
   push:
-    branches: [ asdasd ]
+    branches: [ main ]
+    paths: ['be/**']
   workflow_dispatch:
 
 jobs:
@@ -33,7 +34,7 @@ jobs:
       run: |
         scp -i ~/.ssh/id_rsa football-club.tar.gz root@${{ secrets.CAFE24_HOST }}:/opt/football-club/
 
-    - name: Deploy on server
+    - name: Deploy backend on server
       run: |
         ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
           cd /opt/football-club &&
@@ -45,14 +46,11 @@ jobs:
           rm -rf app || true &&
           mkdir -p app &&
           tar -xzf football-club.tar.gz -C app &&
-          cd app &&
-          docker build -t football-club-backend:latest ./be &&
-          docker build -t football-club-frontend:latest ./fe &&
-          cd /opt/football-club &&
+          cp -r app/scripts . &&
+          chmod +x scripts/*.sh &&
           cp app/docker-compose.yml . &&
-          docker-compose --profile with-db down --remove-orphans || true &&
-          docker-compose --profile with-db up -d
+          ./scripts/cafe24-deploy.sh backend
         "
 
     - name: Deployment notification
-      run: echo "✅ Deployment completed successfully!"
+      run: echo "✅ Backend deployment completed successfully!"

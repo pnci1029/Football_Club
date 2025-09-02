@@ -1,8 +1,9 @@
-name: Deploy to Cafe24 Server
+name: Deploy Frontend to Cafe24
 
 on:
   push:
-    branches: [ asdasd ]
+    branches: [ main ]
+    paths: ['fe/**']
   workflow_dispatch:
 
 jobs:
@@ -12,9 +13,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
-    - name: Create application-prod.yml with secrets
-      run: echo "${{ secrets.APPLICATION_PROD_YML }}" > be/src/main/resources/application-prod.yml
 
     - name: Create project archive
       run: |
@@ -33,26 +31,18 @@ jobs:
       run: |
         scp -i ~/.ssh/id_rsa football-club.tar.gz root@${{ secrets.CAFE24_HOST }}:/opt/football-club/
 
-    - name: Deploy on server
+    - name: Deploy frontend on server
       run: |
         ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
           cd /opt/football-club &&
-          echo 'MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}' > .env &&
-          echo 'MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}' >> .env &&
-          echo 'MYSQL_USER=${{ secrets.MYSQL_USER }}' >> .env &&
-          echo 'MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}' >> .env &&
-          echo 'MYSQL_HOST=db' >> .env &&
           rm -rf app || true &&
           mkdir -p app &&
           tar -xzf football-club.tar.gz -C app &&
-          cd app &&
-          docker build -t football-club-backend:latest ./be &&
-          docker build -t football-club-frontend:latest ./fe &&
-          cd /opt/football-club &&
+          cp -r app/scripts . &&
+          chmod +x scripts/*.sh &&
           cp app/docker-compose.yml . &&
-          docker-compose --profile with-db down --remove-orphans || true &&
-          docker-compose --profile with-db up -d
+          ./scripts/cafe24-deploy.sh frontend
         "
 
     - name: Deployment notification
-      run: echo "✅ Deployment completed successfully!"
+      run: echo "✅ Frontend deployment completed successfully!"
