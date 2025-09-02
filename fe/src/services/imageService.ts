@@ -11,8 +11,13 @@ export interface ImageUploadError {
 }
 
 export class ImageService {
-  private static readonly UPLOAD_URL = 'http://localhost:8082/api/v1/images/upload';
-  private static readonly DELETE_URL = 'http://localhost:8082/api/v1/images';
+  private static readonly UPLOAD_URL = process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:8082/api/v1/images/upload'
+    : `https://${window.location.hostname}/api/v1/images/upload`;
+  
+  private static readonly DELETE_URL = process.env.NODE_ENV === 'development'
+    ? 'http://localhost:8082/api/v1/images'
+    : `https://${window.location.hostname}/api/v1/images`;
 
   /**
    * 이미지 파일을 업로드합니다.
@@ -97,6 +102,8 @@ export class ImageService {
    * 파일명에서 URL을 생성합니다.
    */
   static getImageUrl(filename: string): string {
-    return `http://localhost:8082/uploads/${filename}`;
+    return process.env.NODE_ENV === 'development'
+      ? `http://localhost:8082/uploads/${filename}`
+      : `https://${window.location.hostname}/uploads/${filename}`;
   }
 }
