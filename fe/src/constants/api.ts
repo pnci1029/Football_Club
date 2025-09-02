@@ -10,18 +10,18 @@ export const getApiBaseUrl = (): string => {
     return process.env.REACT_APP_API_URL;
   }
 
+  // 배포 환경 - 모든 서브도메인에서 메인 도메인으로 리다이렉트
+  const hostname = window.location.hostname;
+  console.log('hostname : ',hostname)
+
   // 로컬 개발 환경
   if (window.location.hostname.includes('localhost')) {
     return 'http://localhost:8082';
   }
 
-  // 배포 환경 - 모든 서브도메인에서 메인 도메인으로 리다이렉트
-  const hostname = window.location.hostname;
   if (hostname.includes('.football-club.kr')) {
     return 'https://football-club.kr';
   }
-
-  console.log('hostname : ',hostname)
 
   // 기본 배포 환경 - nginx 프록시를 통해 같은 호스트로 요청 (HTTPS)
   return `https://${hostname}`;

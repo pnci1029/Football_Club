@@ -42,7 +42,7 @@ deploy_backend() {
     rm -rf "$BUILD_DIR"
     git clone "$REPO_URL" "$BUILD_DIR"
     cd "$BUILD_DIR"
-    git checkout develop
+    git checkout main
     
     echo "🔨 Building backend Docker image..."
     cd "$BUILD_DIR/be"
@@ -73,7 +73,7 @@ deploy_frontend() {
     rm -rf "$BUILD_DIR"
     git clone "$REPO_URL" "$BUILD_DIR"
     cd "$BUILD_DIR"
-    git checkout develop
+    git checkout main
     
     if [ -d "$BUILD_DIR/fe" ]; then
         echo "🔨 Building frontend Docker image..."
@@ -109,7 +109,7 @@ deploy_all() {
     rm -rf "$BUILD_DIR"
     git clone "$REPO_URL" "$BUILD_DIR"
     cd "$BUILD_DIR"
-    git checkout develop
+    git checkout main
     
     echo "🔨 Building Docker images with cache..."
     
