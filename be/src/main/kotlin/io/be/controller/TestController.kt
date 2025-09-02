@@ -13,6 +13,7 @@ class TestController {
     fun test(
         @PathVariable value: String
     ): String {
+
         return value
     }
 }
