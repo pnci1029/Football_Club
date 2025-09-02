@@ -46,6 +46,13 @@ deploy_backend() {
     
     echo "🔨 Building backend Docker image..."
     cd "$BUILD_DIR/be"
+    
+    # application-prod.yml이 존재하는지 확인하고 없으면 환경변수에서 생성
+    if [ ! -f "src/main/resources/application-prod.yml" ] && [ -n "$APPLICATION_PROD_YML" ]; then
+        echo "Creating application-prod.yml from environment variable..."
+        echo "$APPLICATION_PROD_YML" > src/main/resources/application-prod.yml
+    fi
+    
     docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t football-club-backend:latest .
     
     cd "$APP_DIR"
@@ -115,6 +122,13 @@ deploy_all() {
     
     # 백엔드 이미지 빌드
     cd "$BUILD_DIR/be"
+    
+    # application-prod.yml이 존재하는지 확인하고 없으면 환경변수에서 생성
+    if [ ! -f "src/main/resources/application-prod.yml" ] && [ -n "$APPLICATION_PROD_YML" ]; then
+        echo "Creating application-prod.yml from environment variable..."
+        echo "$APPLICATION_PROD_YML" > src/main/resources/application-prod.yml
+    fi
+    
     docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t football-club-backend:latest . &
     
     # 프론트엔드 이미지 빌드

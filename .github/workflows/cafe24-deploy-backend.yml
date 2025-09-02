@@ -49,6 +49,7 @@ jobs:
           cp -r app/scripts . &&
           chmod +x scripts/*.sh &&
           cp app/docker-compose.yml . &&
+          export APPLICATION_PROD_YML='${{ secrets.APPLICATION_PROD_YML }}' &&
           ./scripts/cafe24-deploy.sh backend
         "
 
