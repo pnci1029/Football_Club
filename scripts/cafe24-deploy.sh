@@ -58,6 +58,15 @@ deploy_backend() {
     cd "$APP_DIR"
     cp "$BUILD_DIR/docker-compose.yml" "$APP_DIR/"
     
+    # 필수 디렉토리 생성
+    mkdir -p "$APP_DIR/logs"
+    mkdir -p "$APP_DIR/uploads"
+    mkdir -p "$APP_DIR/images"
+    
+    # 네트워크 생성
+    echo "📡 Creating backend network..."
+    docker network create backend-network 2>/dev/null || echo "Backend network already exists"
+    
     # 백엔드 포트 정리
     if lsof -Pi :8082 -sTCP:LISTEN -t >/dev/null 2>&1; then
         lsof -ti:8082 | xargs kill -9 || true
@@ -144,6 +153,7 @@ deploy_all() {
     # 필수 디렉토리 생성
     mkdir -p "$APP_DIR/logs"
     mkdir -p "$APP_DIR/uploads"
+    mkdir -p "$APP_DIR/images"
     
     cp "$BUILD_DIR/docker-compose.yml" "$APP_DIR/"
     
@@ -158,6 +168,11 @@ deploy_all() {
     # 기존 컨테이너 정리
     docker compose --profile with-db down --remove-orphans 2>/dev/null || true
     docker network rm football-club_football-club-network 2>/dev/null || true
+    
+    # 네트워크 생성
+    echo "📡 Creating networks..."
+    docker network create backend-network 2>/dev/null || echo "Backend network already exists"
+    docker network create frontend-network 2>/dev/null || echo "Frontend network already exists"
     
     # 서비스들 시작
     docker compose up -d backend
