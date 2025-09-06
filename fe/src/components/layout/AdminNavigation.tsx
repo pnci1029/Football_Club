@@ -36,37 +36,39 @@ const AdminNavigation: React.FC = () => {
 
   return (
     <nav className="bg-gray-800 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           <div className="flex items-center">
-            <Link to="/admin" className="flex-shrink-0">
+            <Link to="/admin" className="flex-shrink-0 touch-manipulation">
               <div className="flex items-center">
-                <span className="text-2xl mr-2">⚽</span>
-                <span className="font-bold text-xl">FC 관리자</span>
+                <span className="text-lg sm:text-2xl mr-2">⚽</span>
+                <span className="font-bold text-base sm:text-xl">FC 관리자</span>
               </div>
             </Link>
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
+            {/* 데스크톱 메뉴 */}
+            <div className="hidden lg:block">
+              <div className="ml-8 lg:ml-10 flex items-baseline space-x-3 lg:space-x-4">
                 {navigationItems.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                    className={`px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 touch-manipulation ${
                       isActive(item.path)
                         ? 'bg-gray-900 text-white'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                        : 'text-gray-300 hover:bg-gray-700 hover:text-white active:bg-gray-600'
                     }`}
                   >
-                    <span className="mr-2">{item.icon}</span>
+                    <span className="mr-1 lg:mr-2">{item.icon}</span>
                     {item.label}
                   </Link>
                 ))}
               </div>
             </div>
           </div>
-          <div className="hidden md:block">
-            <div className="ml-4 flex items-center md:ml-6 space-x-4">
-              <div className="text-gray-300 text-sm">
+          {/* 데스크톱 사용자 영역 */}
+          <div className="hidden lg:block">
+            <div className="ml-4 flex items-center lg:ml-6 space-x-3 lg:space-x-4">
+              <div className="text-gray-300 text-xs lg:text-sm hidden xl:block">
                 <span className="font-medium">{admin?.username || '관리자'}</span>님 환영합니다
               </div>
               <Button
@@ -74,7 +76,7 @@ const AdminNavigation: React.FC = () => {
                 size="sm"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="text-gray-300 hover:text-white hover:bg-gray-700"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 active:bg-gray-600 touch-manipulation text-xs lg:text-sm px-2 lg:px-3"
               >
                 {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
               </Button>
@@ -83,25 +85,25 @@ const AdminNavigation: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
-      <div className="md:hidden">
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+      {/* 모바일/태블릿 메뉴 - 최적화 */}
+      <div className="lg:hidden">
+        <div className="px-2 pt-2 pb-3 space-y-1">
           {navigationItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+              className={`block px-3 py-3 sm:py-2 rounded-md text-base sm:text-sm font-medium transition-colors duration-200 touch-manipulation ${
                 isActive(item.path)
                   ? 'bg-gray-900 text-white'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white active:bg-gray-600'
               }`}
             >
-              <span className="mr-2">{item.icon}</span>
+              <span className="mr-2 text-lg sm:text-base">{item.icon}</span>
               {item.label}
             </Link>
           ))}
           
-          {/* Mobile 사용자 정보 및 로그아웃 */}
+          {/* 모바일/태블릿 사용자 영역 - 최적화 */}
           <div className="border-t border-gray-700 mt-3 pt-3">
             <div className="px-3 py-2 text-gray-300 text-sm">
               <span className="font-medium">{admin?.username || '관리자'}</span>님
@@ -111,7 +113,7 @@ const AdminNavigation: React.FC = () => {
               size="sm"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="w-full text-left justify-start text-gray-300 hover:text-white hover:bg-gray-700 px-3"
+              className="w-full text-left justify-start text-gray-300 hover:text-white hover:bg-gray-700 active:bg-gray-600 px-3 py-3 sm:py-2 text-base sm:text-sm touch-manipulation"
             >
               {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
             </Button>

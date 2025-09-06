@@ -112,28 +112,30 @@ const MatchCard: React.FC<MatchCardProps> = ({
         hover 
         padding="sm" 
         onClick={handleClick}
-        className="cursor-pointer"
+        className="cursor-pointer touch-manipulation"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="text-sm text-gray-500">
+        {/* 컴팩트 모드 - 모바일 최적화 */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            <div className="text-xs sm:text-sm text-gray-500">
               {formatDate(match.date)} {match.time}
             </div>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(match.status)}`}>
+            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium w-fit ${getStatusColor(match.status)}`}>
               {getStatusText(match.status)}
             </span>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <div className={`text-sm font-medium ${isOurTeam(match.homeTeam) ? 'text-primary-600' : 'text-gray-900'}`}>
+          {/* 팀 정보 - 모바일 최적화 */}
+          <div className="flex items-center justify-center gap-3 sm:gap-4">
+            <div className="text-center flex-1 sm:flex-none">
+              <div className={`text-sm sm:text-sm font-medium truncate ${isOurTeam(match.homeTeam) ? 'text-primary-600' : 'text-gray-900'}`}>
                 {match.homeTeam}
               </div>
               <div className="text-xs text-gray-500">HOME</div>
             </div>
             
-            <div className="text-center">
-              <div className="text-lg font-bold text-gray-900">
+            <div className="text-center px-2">
+              <div className="text-base sm:text-lg font-bold text-gray-900">
                 {match.status === 'finished' && match.homeScore !== undefined && match.awayScore !== undefined ? (
                   `${match.homeScore} : ${match.awayScore}`
                 ) : (
@@ -141,14 +143,14 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 )}
               </div>
               {result && (
-                <div className={`inline-block px-2 py-1 rounded text-xs font-medium ${getResultColor(result)}`}>
+                <div className={`inline-block px-2 py-1 rounded text-xs font-medium mt-1 ${getResultColor(result)}`}>
                   {getResultText(result)}
                 </div>
               )}
             </div>
             
-            <div className="text-left">
-              <div className={`text-sm font-medium ${isOurTeam(match.awayTeam) ? 'text-primary-600' : 'text-gray-900'}`}>
+            <div className="text-center flex-1 sm:flex-none">
+              <div className={`text-sm sm:text-sm font-medium truncate ${isOurTeam(match.awayTeam) ? 'text-primary-600' : 'text-gray-900'}`}>
                 {match.awayTeam}
               </div>
               <div className="text-xs text-gray-500">AWAY</div>
@@ -164,12 +166,12 @@ const MatchCard: React.FC<MatchCardProps> = ({
       hover 
       padding="md" 
       onClick={handleClick}
-      className="cursor-pointer"
+      className="cursor-pointer touch-manipulation"
     >
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <div className="space-y-3 sm:space-y-4">
+        {/* Header - 모바일 최적화 */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+          <div className="flex flex-wrap items-center gap-2">
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(match.status)}`}>
               {getStatusText(match.status)}
             </span>
@@ -177,25 +179,25 @@ const MatchCard: React.FC<MatchCardProps> = ({
               {getMatchTypeText(match.matchType)}
             </span>
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-xs sm:text-sm text-gray-500">
             {formatDate(match.date)} {match.time}
           </div>
         </div>
 
-        {/* Match Info */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-8">
+        {/* Match Info - 모바일 최적화 */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex items-center justify-center gap-4 sm:gap-6 lg:gap-8">
             {/* Home Team */}
-            <div className="text-center">
-              <div className={`text-lg font-bold mb-1 ${isOurTeam(match.homeTeam) ? 'text-primary-600' : 'text-gray-900'}`}>
+            <div className="text-center flex-1 sm:flex-none">
+              <div className={`text-base sm:text-lg font-bold mb-1 truncate ${isOurTeam(match.homeTeam) ? 'text-primary-600' : 'text-gray-900'}`}>
                 {match.homeTeam}
               </div>
               <div className="text-xs text-gray-500 uppercase tracking-wider">Home</div>
             </div>
 
             {/* Score */}
-            <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900 mb-1">
+            <div className="text-center px-2">
+              <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
                 {match.status === 'finished' && match.homeScore !== undefined && match.awayScore !== undefined ? (
                   `${match.homeScore} : ${match.awayScore}`
                 ) : (
@@ -210,26 +212,26 @@ const MatchCard: React.FC<MatchCardProps> = ({
             </div>
 
             {/* Away Team */}
-            <div className="text-center">
-              <div className={`text-lg font-bold mb-1 ${isOurTeam(match.awayTeam) ? 'text-primary-600' : 'text-gray-900'}`}>
+            <div className="text-center flex-1 sm:flex-none">
+              <div className={`text-base sm:text-lg font-bold mb-1 truncate ${isOurTeam(match.awayTeam) ? 'text-primary-600' : 'text-gray-900'}`}>
                 {match.awayTeam}
               </div>
               <div className="text-xs text-gray-500 uppercase tracking-wider">Away</div>
             </div>
           </div>
 
-          {/* Venue & League */}
-          <div className="text-right">
-            <div className="text-sm text-gray-600 mb-1">📍 {match.venue}</div>
+          {/* Venue & League - 모바일 최적화 */}
+          <div className="text-center lg:text-right">
+            <div className="text-sm text-gray-600 mb-1 truncate">📍 {match.venue}</div>
             {match.league && (
-              <div className="text-xs text-gray-500">{match.league}</div>
+              <div className="text-xs text-gray-500 truncate">{match.league}</div>
             )}
           </div>
         </div>
 
-        {/* Live Status Indicator */}
+        {/* Live Status Indicator - 모바일 최적화 */}
         {match.status === 'live' && (
-          <div className="flex items-center justify-center py-2 bg-green-50 rounded-lg border border-green-200">
+          <div className="flex items-center justify-center py-3 sm:py-2 bg-green-50 rounded-lg border border-green-200">
             <div className="flex items-center text-green-700">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
               <span className="text-sm font-medium">경기 진행중</span>

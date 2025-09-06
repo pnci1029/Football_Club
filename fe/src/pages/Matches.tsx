@@ -80,8 +80,8 @@ const Matches: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="flex justify-center items-center h-48 sm:h-64">
           <LoadingSpinner />
         </div>
       </div>
@@ -90,28 +90,31 @@ const Matches: React.FC = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-red-600 mb-4 text-sm sm:text-base">{error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">경기 일정</h1>
-        <p className="text-gray-600">우리 팀의 경기 일정과 결과를 확인하세요</p>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      {/* 헤더 - 모바일 최적화 */}
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">경기 일정</h1>
+        <p className="text-sm sm:text-base text-gray-600">우리 팀의 경기 일정과 결과를 확인하세요</p>
       </div>
 
       {!selectedMatch ? (
         <>
-          <div className="flex gap-2 mb-6">
+          {/* 필터 버튼 - 모바일 최적화 */}
+          <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
             <Button
               variant={filter === 'all' ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setFilter('all')}
+              className="flex-1 sm:flex-none py-3 sm:py-2 text-sm sm:text-base touch-manipulation"
             >
               전체
             </Button>
@@ -119,6 +122,7 @@ const Matches: React.FC = () => {
               variant={filter === 'upcoming' ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setFilter('upcoming')}
+              className="flex-1 sm:flex-none py-3 sm:py-2 text-sm sm:text-base touch-manipulation"
             >
               예정된 경기
             </Button>
@@ -126,12 +130,14 @@ const Matches: React.FC = () => {
               variant={filter === 'finished' ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setFilter('finished')}
+              className="flex-1 sm:flex-none py-3 sm:py-2 text-sm sm:text-base touch-manipulation"
             >
               경기 결과
             </Button>
           </div>
 
-          <div className="space-y-4">
+          {/* 경기 목록 - 모바일 최적화 */}
+          <div className="space-y-3 sm:space-y-4">
             {filteredMatches.map((match) => (
               <MatchCard
                 key={match.id}
@@ -141,11 +147,12 @@ const Matches: React.FC = () => {
               />
             ))}
 
+            {/* 빈 상태 - 모바일 최적화 */}
             {filteredMatches.length === 0 && (
-              <div className="text-center text-gray-500 py-16 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="text-gray-400 text-6xl mb-4">⚽</div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">등록된 경기가 없습니다</h3>
-                <p className="text-gray-600">
+              <div className="text-center text-gray-500 py-12 sm:py-16 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="text-gray-400 text-4xl sm:text-6xl mb-3 sm:mb-4">⚽</div>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">등록된 경기가 없습니다</h3>
+                <p className="text-sm sm:text-base text-gray-600 px-4">
                   관리자 페이지에서 경기를 추가해주세요.
                 </p>
               </div>
