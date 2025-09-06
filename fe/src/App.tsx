@@ -116,6 +116,13 @@ const AppContent: React.FC = () => {
             </AdminLayout>
           </ProtectedRoute>
         } />
+        <Route path="/hero-slides/:teamId" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <AdminHeroSlides />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
         <Route path="*" element={<NotFound />} />
       </Routes>
     );

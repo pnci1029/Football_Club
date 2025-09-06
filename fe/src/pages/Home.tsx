@@ -8,7 +8,7 @@ import { GRADIENT_OPTIONS } from '../types/hero';
 const Home: React.FC = () => {
   const { currentTeam } = useTeam();
   const { data: playersPage } = usePlayers(0, 12);
-  const { slides: heroSlides, loading: slidesLoading } = useHeroSlides(true);
+  const { slides: heroSlides, loading: slidesLoading } = useHeroSlides(Number(currentTeam?.id) || 1, true);
   const [currentSlide, setCurrentSlide] = useState(0);
   
   const players = playersPage?.content || [];
@@ -42,7 +42,7 @@ const Home: React.FC = () => {
   }, [currentSlides.length]);
 
   const currentHero = currentSlides[currentSlide];
-  const gradientClass = GRADIENT_OPTIONS[currentHero.gradientColor];
+  const gradientClass = GRADIENT_OPTIONS[currentHero.gradientColor.toLowerCase() as keyof typeof GRADIENT_OPTIONS];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { HeroSlide } from '../types/hero';
 import { HeroService } from '../services/heroService';
 
-export const useHeroSlides = (activeOnly: boolean = true) => {
+export const useHeroSlides = (teamId: number, activeOnly: boolean = true) => {
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -12,11 +12,12 @@ export const useHeroSlides = (activeOnly: boolean = true) => {
     setError('');
     
     try {
-      const data = activeOnly 
-        ? await HeroService.getActiveSlides()
-        : await HeroService.getAllSlides();
+      const response: any = activeOnly 
+        ? await HeroService.getActiveSlides(teamId)
+        : await HeroService.getAllSlides(teamId);
       
-      setSlides(data.sort((a, b) => a.sortOrder - b.sortOrder));
+      const data = Array.isArray(response) ? response : response.data || [];
+      setSlides(data.sort((a: any, b: any) => a.sortOrder - b.sortOrder));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '슬라이드를 불러오는데 실패했습니다.';
       setError(errorMessage);
@@ -24,7 +25,7 @@ export const useHeroSlides = (activeOnly: boolean = true) => {
     } finally {
       setLoading(false);
     }
-  }, [activeOnly]);
+  }, [teamId, activeOnly]);
 
   const refetch = useCallback(() => {
     fetchSlides();

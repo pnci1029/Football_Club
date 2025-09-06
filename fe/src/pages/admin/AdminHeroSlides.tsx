@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { useHeroSlides } from '../../hooks/useHeroSlides';
 import { HeroSlide, CreateHeroSlideRequest, GRADIENT_OPTIONS } from '../../types/hero';
 import { HeroService } from '../../services/heroService';
@@ -6,7 +7,9 @@ import { Button, Card, LoadingSpinner, Modal } from '../../components/common';
 import ImageUpload from '../../components/common/ImageUpload';
 
 const AdminHeroSlides: React.FC = () => {
-  const { slides, loading, error, refetch } = useHeroSlides(false);
+  const { teamId } = useParams<{ teamId: string }>();
+  const teamIdNumber = Number(teamId);
+  const { slides, loading, error, refetch } = useHeroSlides(teamIdNumber, false);
   const [showModal, setShowModal] = useState(false);
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
   const [formData, setFormData] = useState<CreateHeroSlideRequest>({
@@ -66,7 +69,7 @@ const AdminHeroSlides: React.FC = () => {
       if (editingSlide) {
         await HeroService.updateSlide(editingSlide.id, formData);
       } else {
-        await HeroService.createSlide(formData);
+        await HeroService.createSlide(teamIdNumber, formData);
       }
       
       await refetch();

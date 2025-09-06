@@ -74,13 +74,6 @@ const AdminTeams: React.FC = () => {
           <p className="text-gray-600 mt-2">등록된 팀들을 관리합니다</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link 
-            to="/admin/hero-slides"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-          >
-            <span className="mr-2">🎬</span>
-            메인 슬라이드 관리
-          </Link>
           <Button className="bg-green-600 hover:bg-green-700">
             <span className="mr-2">➕</span>
             팀 추가
@@ -148,7 +141,7 @@ const AdminTeams: React.FC = () => {
             </div>
 
             {/* 액션 버튼 */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-3">
               <Button 
                 size="sm" 
                 variant="outline" 
@@ -173,6 +166,21 @@ const AdminTeams: React.FC = () => {
               >
                 🗑️
               </Button>
+            </div>
+            <div className="flex gap-2">
+              <Link
+                to={`/hero-slides/${team.id}`}
+                className="flex-1"
+              >
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full text-purple-600 border-purple-200 hover:bg-purple-50"
+                >
+                  <span className="mr-1">🎬</span>
+                  슬라이드 관리
+                </Button>
+              </Link>
             </div>
           </Card>
         ))}

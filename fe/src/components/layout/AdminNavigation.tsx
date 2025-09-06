@@ -11,30 +11,29 @@ const AdminNavigation: React.FC = () => {
 
   // 현재 페이지가 서브메뉴에 있으면 자동으로 확장
   React.useEffect(() => {
-    if (location.pathname === '/admin/hero-slides' && !expandedItems.includes('/admin/teams')) {
-      setExpandedItems(prev => [...prev, '/admin/teams']);
+    if (location.pathname.startsWith('/hero-slides/') && !expandedItems.includes('/teams')) {
+      setExpandedItems(prev => [...prev, '/teams']);
     }
   }, [location.pathname, expandedItems]);
 
   const navigationItems = [
-    { path: '/admin', label: '대시보드', icon: '📊' },
-    { path: '/admin/players', label: '선수 관리', icon: '👤' },
+    { path: '/', label: '대시보드', icon: '📊' },
+    { path: '/players', label: '선수 관리', icon: '👤' },
     { 
-      path: '/admin/teams', 
+      path: '/teams', 
       label: '팀 관리', 
       icon: '🏆',
       subItems: [
-        { path: '/admin/teams', label: '팀 목록', icon: '🏆' },
-        { path: '/admin/hero-slides', label: '메인 슬라이드', icon: '🎬' },
+        { path: '/teams', label: '팀 목록', icon: '🏆' },
       ]
     },
-    { path: '/admin/stadiums', label: '구장 관리', icon: '🏟️' },
-    { path: '/admin/matches', label: '경기 관리', icon: '⚽' },
+    { path: '/stadiums', label: '구장 관리', icon: '🏟️' },
+    { path: '/matches', label: '경기 관리', icon: '⚽' },
   ];
 
   const isActive = (path: string, subItems?: any[]) => {
-    if (path === '/admin') {
-      return location.pathname === '/admin';
+    if (path === '/') {
+      return location.pathname === '/';
     }
     if (subItems) {
       return subItems.some(subItem => location.pathname === subItem.path || location.pathname.startsWith(subItem.path));

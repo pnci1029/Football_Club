@@ -26,6 +26,15 @@ class HeroSlideService(
             .map { HeroSlideDto.from(it) }
     }
     
+    fun getActiveSlidesForTeam(teamId: Long): List<HeroSlideDto> {
+        val team = teamRepository.findById(teamId).orElseThrow {
+            IllegalArgumentException("Team not found: $teamId")
+        }
+        
+        return heroSlideRepository.findByTeamAndIsActiveTrueOrderBySortOrderAsc(team)
+            .map { HeroSlideDto.from(it) }
+    }
+    
     fun getAllSlides(): List<HeroSlideDto> {
         val teamCode = TenantContext.getCurrentTeamCode()
             ?: throw IllegalStateException("Team context not found")
@@ -33,6 +42,15 @@ class HeroSlideService(
         val team = teamRepository.findByCodeAndIsDeletedFalse(teamCode)
             ?: throw IllegalArgumentException("Team not found: $teamCode")
             
+        return heroSlideRepository.findByTeamOrderBySortOrderAsc(team)
+            .map { HeroSlideDto.from(it) }
+    }
+    
+    fun getAllSlidesForTeam(teamId: Long): List<HeroSlideDto> {
+        val team = teamRepository.findById(teamId).orElseThrow {
+            IllegalArgumentException("Team not found: $teamId")
+        }
+        
         return heroSlideRepository.findByTeamOrderBySortOrderAsc(team)
             .map { HeroSlideDto.from(it) }
     }
@@ -58,6 +76,32 @@ class HeroSlideService(
             
         val team = teamRepository.findByCodeAndIsDeletedFalse(teamCode)
             ?: throw IllegalArgumentException("Team not found: $teamCode")
+        
+        // 최대 5개 제한
+        val currentCount = heroSlideRepository.countByTeam(team)
+        if (currentCount >= 5) {
+            throw IllegalArgumentException("Maximum 5 hero slides allowed per team")
+        }
+        
+        val heroSlide = HeroSlide(
+            team = team,
+            title = request.title,
+            subtitle = request.subtitle,
+            backgroundImage = request.backgroundImage,
+            gradientColor = request.gradientColor,
+            isActive = request.isActive,
+            sortOrder = request.sortOrder
+        )
+        
+        val savedSlide = heroSlideRepository.save(heroSlide)
+        return HeroSlideDto.from(savedSlide)
+    }
+    
+    @Transactional
+    fun createSlideForTeam(teamId: Long, request: CreateHeroSlideRequest): HeroSlideDto {
+        val team = teamRepository.findById(teamId).orElseThrow {
+            IllegalArgumentException("Team not found: $teamId")
+        }
         
         // 최대 5개 제한
         val currentCount = heroSlideRepository.countByTeam(team)
