@@ -15,6 +15,7 @@ class TeamNotFoundException : RuntimeException {
 
 class StadiumNotFoundException(id: Long) : RuntimeException("Stadium not found with id: $id")
 class MatchNotFoundException(id: Long) : RuntimeException("Match not found with id: $id")
+class InquiryNotFoundException(id: Long) : RuntimeException("Inquiry not found with id: $id")
 
 // ========================================================================================
 // Business Rule Violations

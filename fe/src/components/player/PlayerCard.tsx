@@ -49,7 +49,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           <img 
             src={player.profileImageUrl || (player as Player).photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=random&size=300`} 
             alt={`${player.name} 프로필`}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             loading="lazy"
             onError={(e) => {
               const target = e.target as HTMLImageElement;

@@ -189,7 +189,7 @@ const AdminPlayers: React.FC = () => {
                 <img 
                   src={player.profileImageUrl || `https://via.placeholder.com/400x400/e5e7eb/9ca3af?text=${(player.name || 'N').charAt(0)}`}
                   alt={`${player.name || '선수'} 프로필`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               </div>
               

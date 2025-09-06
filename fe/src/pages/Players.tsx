@@ -182,7 +182,7 @@ const Players: React.FC = () => {
               <img 
                 src={selectedPlayer.profileImageUrl || `https://via.placeholder.com/400x400/e5e7eb/9ca3af?text=${selectedPlayer.name.charAt(0)}`}
                 alt={`${selectedPlayer.name} 프로필`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
             
