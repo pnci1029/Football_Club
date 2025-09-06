@@ -20,6 +20,7 @@ class TenantSecurityInterceptor(
 
     private val logger = LoggerFactory.getLogger(TenantSecurityInterceptor::class.java)
 
+
     // 허용된 호스트 패턴
     private val allowedHostPatterns = setOf(
         "localhost:8082",      // 개발용 백엔드
