@@ -16,14 +16,14 @@ class AdminHeroSlideController(
 ) {
     
     @GetMapping("/active")
-    fun getActiveSlides(): ResponseEntity<ApiResponse<List<HeroSlideDto>>> {
-        val slides = heroSlideService.getActiveSlides()
+    fun getActiveSlides(@RequestParam teamId: Long): ResponseEntity<ApiResponse<List<HeroSlideDto>>> {
+        val slides = heroSlideService.getActiveSlidesForTeam(teamId)
         return ResponseEntity.ok(ApiResponse.success(slides, "Active hero slides retrieved successfully"))
     }
     
     @GetMapping
-    fun getAllSlides(): ResponseEntity<ApiResponse<List<HeroSlideDto>>> {
-        val slides = heroSlideService.getAllSlides()
+    fun getAllSlides(@RequestParam teamId: Long): ResponseEntity<ApiResponse<List<HeroSlideDto>>> {
+        val slides = heroSlideService.getAllSlidesForTeam(teamId)
         return ResponseEntity.ok(ApiResponse.success(slides, "Hero slides retrieved successfully"))
     }
     
@@ -36,10 +36,11 @@ class AdminHeroSlideController(
     
     @PostMapping
     fun createSlide(
+        @RequestParam teamId: Long,
         @Valid @RequestBody request: CreateHeroSlideRequest
     ): ResponseEntity<ApiResponse<HeroSlideDto>> {
         try {
-            val slide = heroSlideService.createSlide(request)
+            val slide = heroSlideService.createSlideForTeam(teamId, request)
             return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(slide, "Hero slide created successfully"))
         } catch (e: IllegalArgumentException) {

@@ -39,13 +39,13 @@ setup_database() {
 deploy_backend() {
     echo "🔄 Fetching latest code for backend..."
     
-    rm -rf "$BUILD_DIR"
-    git clone "$REPO_URL" "$BUILD_DIR"
-    cd "$BUILD_DIR"
-    git checkout main
+    local BACKEND_BUILD_DIR="/tmp/football-club-backend-$(date +%s)"
+    rm -rf "$BACKEND_BUILD_DIR"
+    git clone --depth 1 "$REPO_URL" "$BACKEND_BUILD_DIR"
+    cd "$BACKEND_BUILD_DIR"
     
     echo "🔨 Building backend Docker image..."
-    cd "$BUILD_DIR/be"
+    cd "$BACKEND_BUILD_DIR/be"
     
     # application-prod.yml이 존재하는지 확인하고 없으면 환경변수에서 생성
     if [ ! -f "src/main/resources/application-prod.yml" ] && [ -n "$APPLICATION_PROD_YML" ]; then
@@ -56,7 +56,7 @@ deploy_backend() {
     docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t football-club-backend:latest .
     
     cd "$APP_DIR"
-    cp "$BUILD_DIR/docker-compose.yml" "$APP_DIR/"
+    cp "$BACKEND_BUILD_DIR/docker-compose.yml" "$APP_DIR/"
     
     # 필수 디렉토리 생성
     mkdir -p "$APP_DIR/logs"
@@ -78,7 +78,7 @@ deploy_backend() {
     docker compose rm -f backend 2>/dev/null || true
     docker compose up -d backend
     
-    rm -rf "$BUILD_DIR"
+    rm -rf "$BACKEND_BUILD_DIR"
     echo "✅ Backend deployment completed!"
 }
 
@@ -86,14 +86,14 @@ deploy_backend() {
 deploy_frontend() {
     echo "🔄 Fetching latest code for frontend..."
     
-    rm -rf "$BUILD_DIR"
-    git clone "$REPO_URL" "$BUILD_DIR"
-    cd "$BUILD_DIR"
-    git checkout main
+    local FRONTEND_BUILD_DIR="/tmp/football-club-frontend-$(date +%s)"
+    rm -rf "$FRONTEND_BUILD_DIR"
+    git clone --depth 1 "$REPO_URL" "$FRONTEND_BUILD_DIR"
+    cd "$FRONTEND_BUILD_DIR"
     
-    if [ -d "$BUILD_DIR/fe" ]; then
+    if [ -d "$FRONTEND_BUILD_DIR/fe" ]; then
         echo "🔨 Building frontend Docker image..."
-        cd "$BUILD_DIR/fe"
+        cd "$FRONTEND_BUILD_DIR/fe"
         docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t football-club-frontend:latest .
     else
         echo "❌ Frontend directory not found!"
@@ -101,7 +101,7 @@ deploy_frontend() {
     fi
     
     cd "$APP_DIR"
-    cp "$BUILD_DIR/docker-compose.yml" "$APP_DIR/"
+    cp "$FRONTEND_BUILD_DIR/docker-compose.yml" "$APP_DIR/"
     
     # 프론트엔드 포트 정리
     if lsof -Pi :3000 -sTCP:LISTEN -t >/dev/null 2>&1; then
@@ -114,7 +114,7 @@ deploy_frontend() {
     docker compose rm -f frontend 2>/dev/null || true
     docker compose up -d frontend
     
-    rm -rf "$BUILD_DIR"
+    rm -rf "$FRONTEND_BUILD_DIR"
     echo "✅ Frontend deployment completed!"
 }
 

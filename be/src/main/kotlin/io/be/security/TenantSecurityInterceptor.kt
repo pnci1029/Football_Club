@@ -67,15 +67,18 @@ class TenantSecurityInterceptor(
 
             // 2. 관리자 도메인 처리
             if (isAdminDomain(host)) {
+                println("admin")
                 return handleAdminAccess(request, response)
             }
 
             // 3. 메인 도메인 처리 (랜딩 페이지)
             if (isMainDomain(host)) {
+                println("no admin")
                 // 메인 도메인은 별도 검증 없이 통과
                 return true
             }
 
+                println("subdomain")
             // 4. 서브도메인 처리 (테넌트)
             return handleTenantAccess(request, response, host)
 
@@ -138,53 +141,18 @@ class TenantSecurityInterceptor(
         }
 
         // 팀 정보 조회 및 검증
-        val team = try {
-            subdomainService.getTeamByCode(subdomain)
-        } catch (e: TeamNotFoundException) {
-            logger.warn("Team not found for subdomain: $subdomain (host: $host)")
-            securityEventLogger.logSecurityEvent(
-                SecurityEvent.UNKNOWN_SUBDOMAIN_ACCESS,
-                request,
-                mapOf("subdomain" to subdomain, "host" to host, "error" to (e.message ?: "Unknown error"))
-            )
-
-            // 개발 환경에서는 404 대신 더 친화적인 에러 응답
-            if (host.contains("localhost")) {
-                response.status = HttpStatus.NOT_FOUND.value()
-                response.contentType = "application/json"
-                response.writer.write("""
-                    {
-                        "success": false,
-                        "error": {
-                            "code": "TEAM_NOT_FOUND",
-                            "message": "서브도메인 '$subdomain'에 해당하는 팀을 찾을 수 없습니다.",
-                            "suggestions": [
-                                "사용 가능한 서브도메인: admin.localhost:3000 (관리자)",
-                                "또는 localhost:3000 (메인 페이지)"
-                            ]
-                        }
-                    }
-                """.trimIndent())
-                return false
-            }
-
-            throw e
-        }
+        val team = subdomainService.getTeamByCode(subdomain)
 
         if (team == null) {
-            logger.warn("Team is null for subdomain: $subdomain (host: $host)")
-            securityEventLogger.logSecurityEvent(
-                SecurityEvent.UNKNOWN_SUBDOMAIN_ACCESS,
-                request,
-                mapOf("subdomain" to subdomain, "host" to host)
-            )
-            throw TeamNotFoundException(subdomain)
+            logger.warn("Team not found for subdomain: $subdomain (host: $host)")
+            response.status = HttpStatus.NOT_FOUND.value()
+            return false
         }
 
         // 테넌트 컨텍스트 설정
         TenantContextHolder.setContext(
             TenantInfo(
-                teamId = team.id,
+                teamId = team.id.toLong(),
                 subdomain = subdomain,
                 teamName = team.name,
                 host = host
@@ -226,11 +194,12 @@ class TenantSecurityInterceptor(
     }
 
     private fun isAdminDomain(host: String): Boolean {
-        return host.startsWith("admin.") || host == "admin.localhost:3000" || host == "admin.localhost:8082" || host == "localhost:8082"
+        return host.startsWith("admin.") || host == "admin.localhost:3000" || host == "admin.localhost:8082"
     }
 
     private fun isMainDomain(host: String): Boolean {
         return host == "localhost:3000" ||
+               host == "localhost:8082" ||
                host == "football-club.kr" ||
                host == "football-club.kr:8082" ||
                host == "footballclub.com"
