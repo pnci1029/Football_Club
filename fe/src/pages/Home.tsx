@@ -2,49 +2,66 @@ import React, { useState, useEffect } from 'react';
 import { useTeam } from '../contexts/TeamContext';
 import PlayerCard from '../components/player/PlayerCard';
 import { usePlayers } from '../hooks/usePlayers';
+import { useHeroSlides } from '../hooks/useHeroSlides';
+import { GRADIENT_OPTIONS } from '../types/hero';
 
 const Home: React.FC = () => {
   const { currentTeam } = useTeam();
   const { data: playersPage } = usePlayers(0, 12);
+  const { slides: heroSlides, loading: slidesLoading } = useHeroSlides(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   
   const players = playersPage?.content || [];
   const mainPlayers = players.filter(player => player.isActive).slice(0, 11);
 
-  // Hero 슬라이드 데이터
-  const heroSlides = [
+  // 슬라이드가 없을 때 기본 슬라이드
+  const defaultSlides = [
     {
+      id: 0,
       title: currentTeam?.name || 'Football Club',
       subtitle: currentTeam?.description || '우리들의 축구 클럽',
-      gradient: 'from-slate-800 via-slate-700 to-slate-900'
-    },
-    {
-      title: '선수단 소개',
-      subtitle: '뛰어난 실력과 팀워크를 자랑하는 우리 선수들',
-      gradient: 'from-blue-800 via-blue-700 to-blue-900'
-    },
-    {
-      title: '경기 일정',
-      subtitle: '다가오는 경기와 최신 경기 결과를 확인하세요',
-      gradient: 'from-green-800 via-green-700 to-green-900'
+      gradientColor: 'slate' as const,
+      backgroundImage: undefined,
+      isActive: true,
+      sortOrder: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
   ];
 
+  const currentSlides = heroSlides.length > 0 ? heroSlides : defaultSlides;
+
   // 자동 슬라이드
   useEffect(() => {
+    if (currentSlides.length <= 1) return;
+    
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+      setCurrentSlide((prev) => (prev + 1) % currentSlides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [heroSlides.length]);
+  }, [currentSlides.length]);
 
-  const currentHero = heroSlides[currentSlide];
+  const currentHero = currentSlides[currentSlide];
+  const gradientClass = GRADIENT_OPTIONS[currentHero.gradientColor];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Hero Section - 모바일 최적화 */}
-      <div className={`relative bg-gradient-to-r ${currentHero.gradient} text-white py-16 sm:py-20 lg:py-24 overflow-hidden transition-all duration-1000`}>
-        <div className="absolute inset-0 bg-black opacity-20"></div>
+      <div className={`relative text-white py-16 sm:py-20 lg:py-24 overflow-hidden transition-all duration-1000`}>
+        {/* 배경 이미지 또는 그라데이션 */}
+        {currentHero.backgroundImage ? (
+          <>
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: `url(${currentHero.backgroundImage})` }}
+            />
+            <div className="absolute inset-0 bg-black opacity-50"></div>
+          </>
+        ) : (
+          <div className={`absolute inset-0 bg-gradient-to-r ${gradientClass}`}>
+            <div className="absolute inset-0 bg-black opacity-20"></div>
+          </div>
+        )}
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
@@ -56,18 +73,20 @@ const Home: React.FC = () => {
               {currentHero.subtitle}
             </p>
             
-            {/* 슬라이드 인디케이터 - 모바일 최적화 */}
-            <div className="flex justify-center space-x-2 sm:space-x-3">
-              {heroSlides.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-300 touch-manipulation ${
-                    index === currentSlide ? 'bg-white scale-125' : 'bg-white bg-opacity-50'
-                  }`}
-                />
-              ))}
-            </div>
+            {/* 슬라이드 인디케이터 - 모바일 최적화 (2개 이상일 때만 표시) */}
+            {currentSlides.length > 1 && (
+              <div className="flex justify-center space-x-2 sm:space-x-3">
+                {currentSlides.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentSlide(index)}
+                    className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-300 touch-manipulation ${
+                      index === currentSlide ? 'bg-white scale-125' : 'bg-white bg-opacity-50'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

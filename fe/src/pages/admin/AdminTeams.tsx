@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button, Card } from '../../components/common';
 import { adminTeamService, AdminTeam, CreateTeamRequest } from '../../services/adminTeamService';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
@@ -72,10 +73,19 @@ const AdminTeams: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">팀 관리</h1>
           <p className="text-gray-600 mt-2">등록된 팀들을 관리합니다</p>
         </div>
-        <Button className="bg-green-600 hover:bg-green-700">
-          <span className="mr-2">➕</span>
-          팀 추가
-        </Button>
+        <div className="flex items-center gap-3">
+          <Link 
+            to="/admin/hero-slides"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+          >
+            <span className="mr-2">🎬</span>
+            메인 슬라이드 관리
+          </Link>
+          <Button className="bg-green-600 hover:bg-green-700">
+            <span className="mr-2">➕</span>
+            팀 추가
+          </Button>
+        </div>
       </div>
 
       {/* 검색 */}

@@ -16,6 +16,7 @@ import AdminTeams from './pages/admin/AdminTeams';
 import AdminStadiums from './pages/admin/AdminStadiums';
 import AdminMatches from './pages/admin/AdminMatches';
 import AdminInquiries from './pages/admin/AdminInquiries';
+import AdminHeroSlides from './pages/admin/AdminHeroSlides';
 import TenantManagement from './pages/admin/TenantManagement';
 import NotFound from './pages/NotFound';
 import Landing from './pages/Landing';
@@ -54,6 +55,7 @@ const AppContent: React.FC = () => {
               <Routes>
                 <Route path="/dashboard" element={<AdminDashboard />} />
                 <Route path="/tenants" element={<TenantManagement />} />
+                <Route path="/hero-slides" element={<AdminHeroSlides />} />
                 <Route path="/players" element={<AdminPlayers />} />
                 <Route path="/teams" element={<AdminTeams />} />
                 <Route path="/stadiums" element={<AdminStadiums />} />
