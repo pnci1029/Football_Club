@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 /**
  * 테넌트 컨텍스트 정보를 담는 데이터 클래스
  */
-data class TenantContext(
+data class TenantInfo(
     val teamId: Long,
     val subdomain: String,
     val teamName: String,
@@ -23,15 +23,27 @@ data class TenantContext(
 }
 
 /**
+ * TenantContext utility functions
+ */
+object TenantContext {
+    /**
+     * 현재 팀 코드 조회 (서브도메인과 동일)
+     */
+    fun getCurrentTeamCode(): String? {
+        return TenantContextHolder.getContextOrNull()?.subdomain
+    }
+}
+
+/**
  * Thread-Local을 사용한 테넌트 컨텍스트 홀더
  */
 object TenantContextHolder {
-    private val contextHolder = ThreadLocal<TenantContext>()
+    private val contextHolder = ThreadLocal<TenantInfo>()
     
     /**
      * 현재 스레드에 테넌트 컨텍스트 설정
      */
-    fun setContext(context: TenantContext) {
+    fun setContext(context: TenantInfo) {
         if (!context.isValid()) {
             throw IllegalArgumentException("Invalid tenant context: $context")
         }
@@ -42,7 +54,7 @@ object TenantContextHolder {
      * 현재 스레드의 테넌트 컨텍스트 조회
      * @throws SecurityException 컨텍스트가 설정되지 않은 경우
      */
-    fun getContext(): TenantContext {
+    fun getContext(): TenantInfo {
         return contextHolder.get() 
             ?: throw SecurityException("No tenant context found. This operation requires a valid tenant context.")
     }
@@ -50,7 +62,7 @@ object TenantContextHolder {
     /**
      * 현재 스레드의 테넌트 컨텍스트 조회 (Nullable)
      */
-    fun getContextOrNull(): TenantContext? {
+    fun getContextOrNull(): TenantInfo? {
         return contextHolder.get()
     }
     

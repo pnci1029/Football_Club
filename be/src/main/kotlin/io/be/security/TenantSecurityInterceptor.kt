@@ -183,7 +183,7 @@ class TenantSecurityInterceptor(
 
         // 테넌트 컨텍스트 설정
         TenantContextHolder.setContext(
-            TenantContext(
+            TenantInfo(
                 teamId = team.id,
                 subdomain = subdomain,
                 teamName = team.name,
@@ -226,12 +226,11 @@ class TenantSecurityInterceptor(
     }
 
     private fun isAdminDomain(host: String): Boolean {
-        return host.startsWith("admin.") || host == "admin.localhost:3000" || host == "admin.localhost:8082"
+        return host.startsWith("admin.") || host == "admin.localhost:3000" || host == "admin.localhost:8082" || host == "localhost:8082"
     }
 
     private fun isMainDomain(host: String): Boolean {
         return host == "localhost:3000" ||
-               host == "localhost:8082" ||
                host == "football-club.kr" ||
                host == "football-club.kr:8082" ||
                host == "footballclub.com"

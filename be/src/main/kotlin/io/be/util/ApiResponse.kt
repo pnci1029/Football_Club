@@ -24,6 +24,13 @@ data class ApiResponse<T>(
                 error = ErrorDetails(code, message, details)
             )
         }
+        
+        fun <T> error(message: String): ApiResponse<T> {
+            return ApiResponse(
+                success = false,
+                error = ErrorDetails("ERROR", message, null)
+            )
+        }
     }
 }
 
