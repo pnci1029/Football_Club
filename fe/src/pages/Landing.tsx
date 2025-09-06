@@ -1,19 +1,58 @@
 import React, { useState } from 'react';
 import { Button, Card } from '../components/common';
+import { inquiryService, CreateInquiryRequest } from '../services/inquiryService';
 
 const Landing: React.FC = () => {
   const [contactForm, setContactForm] = useState({
     name: '',
     email: '',
+    phone: '',
     teamName: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 문의 제출 로직 (실제로는 API 호출)
-    alert('문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.');
-    setContactForm({ name: '', email: '', teamName: '', message: '' });
+    setIsSubmitting(true);
+    setSubmitMessage(null);
+
+    try {
+      // 연락처 유효성 검사
+      const phoneRegex = /^[0-9]{11}$/;
+      if (!phoneRegex.test(contactForm.phone)) {
+        throw new Error('연락처는 11자리 숫자만 입력 가능합니다.');
+      }
+
+      const request: CreateInquiryRequest = {
+        name: contactForm.name,
+        email: contactForm.email,
+        phone: contactForm.phone,
+        teamName: contactForm.teamName,
+        message: contactForm.message || undefined
+      };
+
+      const response = await inquiryService.createInquiry(request);
+      
+      if (response.success) {
+        setSubmitMessage({
+          type: 'success',
+          text: response.message || '문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.'
+        });
+        setContactForm({ name: '', email: '', phone: '', teamName: '', message: '' });
+      } else {
+        throw new Error(response.error?.message || '문의 접수에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('문의 접수 실패:', error);
+      setSubmitMessage({
+        type: 'error',
+        text: error.message || '문의 접수 중 오류가 발생했습니다. 다시 시도해주세요.'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const features = [
@@ -163,6 +202,16 @@ const Landing: React.FC = () => {
           </div>
 
           <Card className="p-8">
+            {submitMessage && (
+              <div className={`mb-6 p-4 rounded-lg ${
+                submitMessage.type === 'success' 
+                  ? 'bg-green-50 text-green-800 border border-green-200' 
+                  : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
+                {submitMessage.text}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
@@ -176,6 +225,7 @@ const Landing: React.FC = () => {
                     onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="홍길동"
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -190,22 +240,47 @@ const Landing: React.FC = () => {
                     onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="team@example.com"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  팀 이름 *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={contactForm.teamName}
-                  onChange={(e) => setContactForm(prev => ({ ...prev, teamName: e.target.value }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="우리 축구단"
-                />
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    연락처 *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={contactForm.phone}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      if (value.length <= 11) {
+                        setContactForm(prev => ({ ...prev, phone: value }));
+                      }
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="01012345678"
+                    maxLength={11}
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    팀 이름 *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={contactForm.teamName}
+                    onChange={(e) => setContactForm(prev => ({ ...prev, teamName: e.target.value }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="우리 축구단"
+                    disabled={isSubmitting}
+                  />
+                </div>
               </div>
 
               <div>
@@ -218,6 +293,7 @@ const Landing: React.FC = () => {
                   onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="궁금한 점이나 요청사항을 자유롭게 작성해주세요."
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -226,8 +302,9 @@ const Landing: React.FC = () => {
                 variant="primary"
                 size="lg"
                 className="w-full"
+                disabled={isSubmitting}
               >
-                무료 체험 신청하기
+                {isSubmitting ? '신청 중...' : '무료 체험 신청하기'}
               </Button>
             </form>
           </Card>

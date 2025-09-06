@@ -17,6 +17,7 @@ const AdminSidebar: React.FC = () => {
     { path: '/players', label: '선수 관리', icon: '👤' },
     { path: '/stadiums', label: '구장 관리', icon: '🏟️' },
     { path: '/matches', label: '경기 관리', icon: '⚽' },
+    { path: '/inquiries', label: '문의 관리', icon: '📝' },
   ];
 
   const isActive = (path: string) => {
