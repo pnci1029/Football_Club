@@ -3,7 +3,7 @@ name: Deploy Frontend to Cafe24
 on:
   push:
     branches: [ main ]
-    paths: ['fe/**']
+#    paths: ['fe/**']
   workflow_dispatch:
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
 
     - name: Deploy frontend on server
       run: |
-        ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+        ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=120 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
           cd /opt/football-club &&
           rm -rf app || true &&
           mkdir -p app &&
@@ -41,7 +41,7 @@ jobs:
           cp -r app/scripts . &&
           chmod +x scripts/*.sh &&
           cp app/docker-compose.yml . &&
-          ./scripts/cafe24-deploy.sh frontend
+          nohup ./scripts/cafe24-deploy.sh frontend > deploy.log 2>&1 && echo 'Frontend deployment started in background' || cat deploy.log
         "
 
     - name: Deployment notification
