@@ -25,19 +25,12 @@ import './App.css';
 const AppContent: React.FC = () => {
   const hostname = window.location.hostname;
 
-  // 디버깅용 로그 (프로덕션에서 제거 필요)
-  console.log('Current hostname:', hostname);
-
-  // 메인 도메인인지 확인 (서브도메인이 없는 경우)
   const isMainDomain = hostname === 'localhost' ||
                       hostname === 'football-club.local' ||
                       hostname === 'football-club.kr';
 
-  // 관리자 도메인인지 확인
   const isAdminDomain = hostname === 'admin.localhost' ||
                        hostname.startsWith('admin.');
-
-  console.log('isMainDomain:', isMainDomain, 'isAdminDomain:', isAdminDomain);
 
   if (isMainDomain) {
     // 메인 도메인: 랜딩 페이지만 표시

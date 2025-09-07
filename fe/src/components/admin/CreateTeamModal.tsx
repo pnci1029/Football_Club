@@ -71,7 +71,7 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
       setErrors({});
       onClose();
     } catch (error) {
-      console.error('팀 생성 실패:', error);
+      // 에러는 상위 컴포넌트에서 처리
     }
   };
 

@@ -45,7 +45,6 @@ const Landing: React.FC = () => {
         throw new Error(response.error?.message || '문의 접수에 실패했습니다.');
       }
     } catch (error: any) {
-      console.error('문의 접수 실패:', error);
       setSubmitMessage({
         type: 'error',
         text: error.message || '문의 접수 중 오류가 발생했습니다. 다시 시도해주세요.'

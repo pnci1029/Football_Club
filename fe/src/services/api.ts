@@ -1,7 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { getApiBaseUrl } from '../constants/api';
 import { TokenStorage } from '../utils/storage';
-import { Logger } from '../utils/logger';
 
 class ApiClient {
   private client: AxiosInstance;
@@ -10,7 +9,7 @@ class ApiClient {
     this.client = axios.create({
       baseURL: getApiBaseUrl(),
       timeout: 10000,
-      withCredentials: false, // 임시로 false로 설정
+      withCredentials: false,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -42,11 +41,6 @@ class ApiClient {
       async (error) => {
         if (error.response?.status === 401) {
           TokenStorage.clearTokens();
-          // 관리자 페이지가 아닌 경우에만 리다이렉트
-          if (!window.location.hostname.startsWith('admin.')) {
-            // 일반 사용자는 로그인이 필요하지 않으므로 에러만 로깅
-            console.warn('인증이 필요한 요청입니다.');
-          }
         }
         return Promise.reject(error);
       }
