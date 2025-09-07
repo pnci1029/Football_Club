@@ -6,7 +6,7 @@ import { adminService, TeamStats, DashboardStats } from '../../services/adminSer
 
 const AdminDashboard: React.FC = () => {
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
-  const [selectedTeam, setSelectedTeam] = useState<TeamStats | null>(null);
+  // const [selectedTeam, setSelectedTeam] = useState<TeamStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,9 +14,9 @@ const AdminDashboard: React.FC = () => {
       try {
         const data = await adminService.getDashboardStats();
         setDashboardStats(data);
-        if (data.teams.length > 0) {
-          setSelectedTeam(data.teams[0]);
-        }
+        // if (data.teams.length > 0) {
+        //   setSelectedTeam(data.teams[0]);
+        // }
       } catch (error) {
         console.error('통계 데이터 로딩 실패:', error);
       } finally {

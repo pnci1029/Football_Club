@@ -39,9 +39,39 @@ const AdminMatches: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
   const handleMatchCreated = () => {
     fetchMatches();
+  };
+
+  const handleImportSchedule = () => {
+    alert('경기 일정 가져오기 기능이 구현되지 않았습니다.');
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 0 && newPage < totalPages && newPage !== currentPage) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(0, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
   };
 
   const teamId = searchParams.get('teamId');
@@ -56,7 +86,7 @@ const AdminMatches: React.FC = () => {
       setSelectedTeam(team || null);
     }
     fetchMatches();
-  }, [teamId, teams, statusFilter]);
+  }, [teamId, teams, statusFilter, currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchTeams = async () => {
     try {
@@ -72,14 +102,34 @@ const AdminMatches: React.FC = () => {
     setLoading(true);
     try {
       // TODO: Replace with real API call
-      // For now using empty array - matches should be added via admin panel
-      const mockMatches: Match[] = [];
+      // 임시로 페이지네이션을 위한 더미 데이터 생성
+      const allMatches: Match[] = Array.from({ length: 47 }, (_, index) => ({
+        id: index + 1,
+        homeTeam: {
+          id: (index % 4) + 1,
+          name: `팀 ${String.fromCharCode(65 + (index % 4))}`,
+          code: `TEAM${String.fromCharCode(65 + (index % 4))}`
+        },
+        awayTeam: {
+          id: ((index + 1) % 4) + 1,
+          name: `팀 ${String.fromCharCode(65 + ((index + 1) % 4))}`,
+          code: `TEAM${String.fromCharCode(65 + ((index + 1) % 4))}`
+        },
+        stadium: {
+          id: (index % 3) + 1,
+          name: `구장 ${(index % 3) + 1}`
+        },
+        matchDate: new Date(Date.now() + (index - 20) * 24 * 60 * 60 * 1000).toISOString(),
+        homeTeamScore: index < 20 ? Math.floor(Math.random() * 4) : null,
+        awayTeamScore: index < 20 ? Math.floor(Math.random() * 4) : null,
+        status: index < 20 ? 'COMPLETED' : index < 25 ? 'IN_PROGRESS' : index < 30 ? 'CANCELLED' : 'SCHEDULED'
+      }));
 
-      let filteredMatches = mockMatches;
+      let filteredMatches = allMatches;
 
       // 팀별 필터링
       if (teamId) {
-        filteredMatches = mockMatches.filter(match =>
+        filteredMatches = allMatches.filter(match =>
           match.homeTeam.id.toString() === teamId ||
           match.awayTeam.id.toString() === teamId
         );
@@ -92,7 +142,15 @@ const AdminMatches: React.FC = () => {
         );
       }
 
-      setMatches(filteredMatches);
+      // 페이지네이션 적용
+      const pageSize = 10;
+      const startIndex = currentPage * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedMatches = filteredMatches.slice(startIndex, endIndex);
+
+      setMatches(paginatedMatches);
+      setTotalElements(filteredMatches.length);
+      setTotalPages(Math.ceil(filteredMatches.length / pageSize));
     } catch (error) {
       console.error('경기 목록 로딩 실패:', error);
     } finally {
@@ -128,19 +186,19 @@ const AdminMatches: React.FC = () => {
     };
   };
 
-  const transformMatchForCard = (match: Match) => ({
-    id: match.id,
-    homeTeam: match.homeTeam.name,
-    awayTeam: match.awayTeam.name,
-    homeScore: match.homeTeamScore ?? undefined,
-    awayScore: match.awayTeamScore ?? undefined,
-    date: match.matchDate.split('T')[0],
-    time: formatDateTime(match.matchDate).time,
-    venue: match.stadium.name,
-    status: match.status.toLowerCase() as 'scheduled' | 'live' | 'finished' | 'cancelled',
-    matchType: 'league' as const,
-    league: '관리자 리그'
-  });
+  // const transformMatchForCard = (match: Match) => ({
+  //   id: match.id,
+  //   homeTeam: match.homeTeam.name,
+  //   awayTeam: match.awayTeam.name,
+  //   homeScore: match.homeTeamScore ?? undefined,
+  //   awayScore: match.awayTeamScore ?? undefined,
+  //   date: match.matchDate.split('T')[0],
+  //   time: formatDateTime(match.matchDate).time,
+  //   venue: match.stadium.name,
+  //   status: match.status.toLowerCase() as 'scheduled' | 'live' | 'finished' | 'cancelled',
+  //   matchType: 'league' as const,
+  //   league: '관리자 리그'
+  // });
 
   if (loading) {
     return (
@@ -171,7 +229,10 @@ const AdminMatches: React.FC = () => {
             >
               경기 생성
             </Button>
-            <Button variant="primary">
+            <Button 
+              variant="primary"
+              onClick={handleImportSchedule}
+            >
               경기 일정 가져오기
             </Button>
           </div>
@@ -192,6 +253,7 @@ const AdminMatches: React.FC = () => {
               } else {
                 setSearchParams({});
               }
+              setCurrentPage(0); // 팀 변경 시 첫 페이지로
             }}
             className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
@@ -209,7 +271,10 @@ const AdminMatches: React.FC = () => {
           <label className="text-sm font-medium text-gray-700">상태:</label>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(0); // 필터 변경 시 첫 페이지로
+            }}
             className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="all">전체</option>
@@ -342,14 +407,72 @@ const AdminMatches: React.FC = () => {
       </div>
 
       {/* 페이지네이션 */}
-      {matches.length > 0 && (
-        <div className="flex justify-center">
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">이전</Button>
-            <Button variant="primary" size="sm">1</Button>
-            <Button variant="outline" size="sm">2</Button>
-            <Button variant="outline" size="sm">3</Button>
-            <Button variant="outline" size="sm">다음</Button>
+      {totalPages > 1 && (
+        <div className="flex flex-col items-center gap-4">
+          {/* 페이지 정보 */}
+          <div className="text-sm text-gray-600">
+            총 {totalElements}개 경기 중 {currentPage * 10 + 1}-{Math.min((currentPage + 1) * 10, totalElements)}개 표시 
+            ({totalPages}페이지 중 {currentPage + 1}페이지)
+          </div>
+          
+          {/* 페이지네이션 버튼 */}
+          <div className="flex gap-1">
+            {/* 첫 페이지 */}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handlePageChange(0)}
+              disabled={currentPage === 0}
+              className="px-3"
+            >
+              ««
+            </Button>
+            
+            {/* 이전 페이지 */}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 0}
+              className="px-3"
+            >
+              ‹
+            </Button>
+            
+            {/* 페이지 번호들 */}
+            {getPageNumbers().map(pageNum => (
+              <Button 
+                key={pageNum}
+                variant={currentPage === pageNum ? "primary" : "outline"}
+                size="sm"
+                onClick={() => handlePageChange(pageNum)}
+                className="px-3"
+              >
+                {pageNum + 1}
+              </Button>
+            ))}
+            
+            {/* 다음 페이지 */}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages - 1}
+              className="px-3"
+            >
+              ›
+            </Button>
+            
+            {/* 마지막 페이지 */}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handlePageChange(totalPages - 1)}
+              disabled={currentPage >= totalPages - 1}
+              className="px-3"
+            >
+              »»
+            </Button>
           </div>
         </div>
       )}

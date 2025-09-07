@@ -8,7 +8,7 @@ import { GRADIENT_OPTIONS } from '../types/hero';
 const Home: React.FC = () => {
   const { currentTeam } = useTeam();
   const { data: playersPage } = usePlayers(0, 12);
-  const { slides: heroSlides, loading: slidesLoading } = useHeroSlides(Number(currentTeam?.id) || 1, true);
+  const { slides: heroSlides } = useHeroSlides(Number(currentTeam?.id) || 1, true);
   const [currentSlide, setCurrentSlide] = useState(0);
   
   const players = playersPage?.content || [];

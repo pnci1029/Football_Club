@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button, Card } from '../../components/common';
-import { adminStadiumService, CreateStadiumRequest } from '../../services/adminStadiumService';
+import { adminStadiumService } from '../../services/adminStadiumService';
 import { adminService, TeamStats, StadiumDto } from '../../services/adminService';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
+import StadiumCreateModal from '../../components/admin/StadiumCreateModal';
+import StadiumEditModal from '../../components/admin/StadiumEditModal';
 
 const AdminStadiums: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -17,6 +19,9 @@ const AdminStadiums: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingStadium, setDeletingStadium] = useState<StadiumDto | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingStadium, setEditingStadium] = useState<StadiumDto | null>(null);
 
   useEffect(() => {
     const teamId = searchParams.get('teamId');
@@ -38,7 +43,7 @@ const AdminStadiums: React.FC = () => {
 
   useEffect(() => {
     loadStadiums();
-  }, [page, selectedTeamId]);
+  }, [page, selectedTeamId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadStadiums = async () => {
     setLoading(true);
@@ -103,6 +108,29 @@ const AdminStadiums: React.FC = () => {
     }
   };
 
+  const handleViewMap = (stadium: StadiumDto) => {
+    const query = encodeURIComponent(stadium.address);
+    const mapUrl = `https://map.kakao.com/link/search/${query}`;
+    window.open(mapUrl, '_blank');
+  };
+
+  const handleEditStadium = (stadium: StadiumDto) => {
+    setEditingStadium(stadium);
+    setShowEditModal(true);
+  };
+
+  const handleCreateStadium = () => {
+    setShowCreateModal(true);
+  };
+
+  const handleStadiumCreated = () => {
+    loadStadiums();
+  };
+
+  const handleStadiumUpdated = () => {
+    loadStadiums();
+  };
+
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       if (searchTerm) {
@@ -113,7 +141,7 @@ const AdminStadiums: React.FC = () => {
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchTerm]);
+  }, [searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTeamChange = (teamId: number | null) => {
     setSelectedTeamId(teamId);
@@ -147,7 +175,10 @@ const AdminStadiums: React.FC = () => {
             {selectedTeam ? `${selectedTeam.name} 소속 구장들을 관리합니다` : '등록된 구장들을 관리합니다'}
           </p>
         </div>
-        <Button className="bg-purple-600 hover:bg-purple-700">
+        <Button 
+          className="bg-purple-600 hover:bg-purple-700"
+          onClick={handleCreateStadium}
+        >
           <span className="mr-2">➕</span>
           구장 추가
         </Button>
@@ -258,6 +289,7 @@ const AdminStadiums: React.FC = () => {
                 size="sm" 
                 variant="outline" 
                 className="flex-1 text-purple-600 border-purple-200 hover:bg-purple-50"
+                onClick={() => handleViewMap(stadium)}
               >
                 <span className="mr-1">📍</span>
                 지도 보기
@@ -266,6 +298,7 @@ const AdminStadiums: React.FC = () => {
                 size="sm" 
                 variant="outline" 
                 className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+                onClick={() => handleEditStadium(stadium)}
               >
                 <span className="mr-1">✏️</span>
                 수정
@@ -291,7 +324,10 @@ const AdminStadiums: React.FC = () => {
             <p className="text-gray-600 mb-4">
               {searchTerm ? '검색 조건에 맞는 구장이 없습니다.' : '등록된 구장이 없습니다.'}
             </p>
-            <Button className="bg-purple-600 hover:bg-purple-700">
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={handleCreateStadium}
+            >
               <span className="mr-2">➕</span>
               첫 번째 구장 추가하기
             </Button>
@@ -345,6 +381,21 @@ const AdminStadiums: React.FC = () => {
         itemName={deletingStadium?.name || ''}
         itemType="구장"
         loading={deleteLoading}
+      />
+
+      {/* 구장 생성 모달 */}
+      <StadiumCreateModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onStadiumCreated={handleStadiumCreated}
+      />
+
+      {/* 구장 수정 모달 */}
+      <StadiumEditModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        stadium={editingStadium}
+        onStadiumUpdated={handleStadiumUpdated}
       />
     </div>
   );

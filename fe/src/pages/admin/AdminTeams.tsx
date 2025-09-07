@@ -1,22 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button, Card } from '../../components/common';
-import { adminTeamService, AdminTeam, CreateTeamRequest } from '../../services/adminTeamService';
+import { adminTeamService, AdminTeam } from '../../services/adminTeamService';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
+import TeamEditModal from '../../components/admin/TeamEditModal';
+import TeamCreateModal from '../../components/admin/TeamCreateModal';
 
 const AdminTeams: React.FC = () => {
+  const navigate = useNavigate();
   const [teams, setTeams] = useState<AdminTeam[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
+  const [page] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingTeam, setDeletingTeam] = useState<AdminTeam | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingTeam, setEditingTeam] = useState<AdminTeam | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     loadTeams();
-  }, [page]);
+  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTeams = async () => {
     setLoading(true);
@@ -59,6 +65,27 @@ const AdminTeams: React.FC = () => {
     }
   };
 
+  const handleViewPlayers = (team: AdminTeam) => {
+    navigate(`/admin/players?teamId=${team.id}`);
+  };
+
+  const handleEditTeam = (team: AdminTeam) => {
+    setEditingTeam(team);
+    setShowEditModal(true);
+  };
+
+  const handleCreateTeam = () => {
+    setShowCreateModal(true);
+  };
+
+  const handleTeamUpdated = () => {
+    loadTeams();
+  };
+
+  const handleTeamCreated = () => {
+    loadTeams();
+  };
+
   const filteredTeams = teams.filter(team =>
     team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     team.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -74,7 +101,10 @@ const AdminTeams: React.FC = () => {
           <p className="text-gray-600 mt-2">등록된 팀들을 관리합니다</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button className="bg-green-600 hover:bg-green-700">
+          <Button 
+            className="bg-green-600 hover:bg-green-700"
+            onClick={handleCreateTeam}
+          >
             <span className="mr-2">➕</span>
             팀 추가
           </Button>
@@ -146,6 +176,7 @@ const AdminTeams: React.FC = () => {
                 size="sm" 
                 variant="outline" 
                 className="flex-1 text-green-600 border-green-200 hover:bg-green-50"
+                onClick={() => handleViewPlayers(team)}
               >
                 <span className="mr-1">👥</span>
                 선수 보기
@@ -154,6 +185,7 @@ const AdminTeams: React.FC = () => {
                 size="sm" 
                 variant="outline" 
                 className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+                onClick={() => handleEditTeam(team)}
               >
                 <span className="mr-1">✏️</span>
                 수정
@@ -194,7 +226,10 @@ const AdminTeams: React.FC = () => {
             <p className="text-gray-600 mb-4">
               {searchTerm ? '검색 조건에 맞는 팀이 없습니다.' : '등록된 팀이 없습니다.'}
             </p>
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button 
+              className="bg-green-600 hover:bg-green-700"
+              onClick={handleCreateTeam}
+            >
               <span className="mr-2">➕</span>
               첫 번째 팀 추가하기
             </Button>
@@ -240,6 +275,21 @@ const AdminTeams: React.FC = () => {
         itemName={deletingTeam?.name || ''}
         itemType="팀"
         loading={deleteLoading}
+      />
+
+      {/* 팀 생성 모달 */}
+      <TeamCreateModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onTeamCreated={handleTeamCreated}
+      />
+
+      {/* 팀 수정 모달 */}
+      <TeamEditModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        team={editingTeam}
+        onTeamUpdated={handleTeamUpdated}
       />
     </div>
   );

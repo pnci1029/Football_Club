@@ -33,7 +33,7 @@ export function useApi<T>(
       setState({ data: null, loading: false, error: errorMessage });
       throw error;
     }
-  }, deps);
+  }, deps); // eslint-disable-line react-hooks/exhaustive-deps
 
   const reset = useCallback(() => {
     setState({ data: null, loading: false, error: null });

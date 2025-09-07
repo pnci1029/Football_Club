@@ -1,5 +1,5 @@
 import React from 'react';
-import { Player, PlayerDto, Position } from '../../types/player';
+import { Player, PlayerDto } from '../../types/player';
 
 // PlayerCard는 두 타입 모두 지원 (더미 데이터와 실제 API 데이터)
 interface PlayerCardProps {

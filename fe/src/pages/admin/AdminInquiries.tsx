@@ -129,7 +129,7 @@ const AdminInquiries: React.FC = () => {
 
   useEffect(() => {
     loadInquiries();
-  }, [currentPage, selectedStatus, searchForm]);
+  }, [currentPage, selectedStatus, searchForm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     loadStats();
