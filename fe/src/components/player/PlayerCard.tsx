@@ -8,7 +8,7 @@ interface PlayerCardProps {
   showStats?: boolean;
 }
 
-const PlayerCard: React.FC<PlayerCardProps> = ({ 
+const PlayerCard = React.memo<PlayerCardProps>(({ 
   player, 
   onClick, 
   showStats = false 
@@ -112,6 +112,6 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default PlayerCard;

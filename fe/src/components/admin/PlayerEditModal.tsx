@@ -62,7 +62,7 @@ const PlayerEditModal: React.FC<PlayerEditModalProps> = ({
     }
   };
 
-  const handleChange = (field: keyof UpdatePlayerRequest, value: any) => {
+  const handleChange = (field: keyof UpdatePlayerRequest, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

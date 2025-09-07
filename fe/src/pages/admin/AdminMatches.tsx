@@ -2,40 +2,15 @@ import React, {useEffect, useState} from 'react';
 import {useSearchParams} from 'react-router-dom';
 import {Button, Card, LoadingSpinner} from '../../components/common';
 import MatchCreateModal from '../../components/admin/MatchCreateModal';
+import { adminMatchService, AdminMatch } from '../../services/adminMatchService';
+import { adminTeamService, AdminTeam } from '../../services/adminTeamService';
 
-interface Match {
-  id: number;
-  homeTeam: {
-    id: number;
-    name: string;
-    code: string;
-  };
-  awayTeam: {
-    id: number;
-    name: string;
-    code: string;
-  };
-  stadium: {
-    id: number;
-    name: string;
-  };
-  matchDate: string;
-  homeTeamScore: number | null;
-  awayTeamScore: number | null;
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-}
-
-interface Team {
-  id: number;
-  name: string;
-  code: string;
-}
 
 const AdminMatches: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [matches, setMatches] = useState<AdminMatch[]>([]);
+  const [teams, setTeams] = useState<AdminTeam[]>([]);
+  const [selectedTeam, setSelectedTeam] = useState<AdminTeam | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -90,9 +65,10 @@ const AdminMatches: React.FC = () => {
 
   const fetchTeams = async () => {
     try {
-      // TODO: Replace with real API call to get teams from backend
-      const mockTeams: Team[] = [];
-      setTeams(mockTeams);
+      const response = await adminTeamService.getAllTeams(0, 100);
+      if (response.success) {
+        setTeams(response.data.content);
+      }
     } catch (error) {
       console.error('팀 목록 로딩 실패:', error);
     }
@@ -101,58 +77,28 @@ const AdminMatches: React.FC = () => {
   const fetchMatches = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with real API call
-      // 임시로 페이지네이션을 위한 더미 데이터 생성
-      const allMatches: Match[] = Array.from({ length: 47 }, (_, index) => ({
-        id: index + 1,
-        homeTeam: {
-          id: (index % 4) + 1,
-          name: `팀 ${String.fromCharCode(65 + (index % 4))}`,
-          code: `TEAM${String.fromCharCode(65 + (index % 4))}`
-        },
-        awayTeam: {
-          id: ((index + 1) % 4) + 1,
-          name: `팀 ${String.fromCharCode(65 + ((index + 1) % 4))}`,
-          code: `TEAM${String.fromCharCode(65 + ((index + 1) % 4))}`
-        },
-        stadium: {
-          id: (index % 3) + 1,
-          name: `구장 ${(index % 3) + 1}`
-        },
-        matchDate: new Date(Date.now() + (index - 20) * 24 * 60 * 60 * 1000).toISOString(),
-        homeTeamScore: index < 20 ? Math.floor(Math.random() * 4) : null,
-        awayTeamScore: index < 20 ? Math.floor(Math.random() * 4) : null,
-        status: index < 20 ? 'COMPLETED' : index < 25 ? 'IN_PROGRESS' : index < 30 ? 'CANCELLED' : 'SCHEDULED'
-      }));
-
-      let filteredMatches = allMatches;
-
-      // 팀별 필터링
-      if (teamId) {
-        filteredMatches = allMatches.filter(match =>
-          match.homeTeam.id.toString() === teamId ||
-          match.awayTeam.id.toString() === teamId
-        );
+      let response;
+      
+      if (selectedTeam) {
+        response = await adminMatchService.getMatchesByTeam(selectedTeam.id, currentPage, 10);
+      } else {
+        response = await adminMatchService.getAllMatches(currentPage, 10, statusFilter);
       }
-
-      // 상태별 필터링
-      if (statusFilter !== 'all') {
-        filteredMatches = filteredMatches.filter(match =>
-          match.status.toLowerCase() === statusFilter.toLowerCase()
-        );
+      
+      if (response.success && response.data) {
+        setMatches(response.data.content);
+        setTotalPages(response.data.totalPages);
+        setTotalElements(response.data.totalElements);
+      } else {
+        setMatches([]);
+        setTotalPages(0);
+        setTotalElements(0);
       }
-
-      // 페이지네이션 적용
-      const pageSize = 10;
-      const startIndex = currentPage * pageSize;
-      const endIndex = startIndex + pageSize;
-      const paginatedMatches = filteredMatches.slice(startIndex, endIndex);
-
-      setMatches(paginatedMatches);
-      setTotalElements(filteredMatches.length);
-      setTotalPages(Math.ceil(filteredMatches.length / pageSize));
     } catch (error) {
       console.error('경기 목록 로딩 실패:', error);
+      setMatches([]);
+      setTotalPages(0);
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }
@@ -381,7 +327,7 @@ const AdminMatches: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      // TODO: 경기 수정 모달
+                      console.log('Edit match:', match.id);
                       console.log('경기 수정:', match.id);
                     }}
                   >
@@ -392,7 +338,7 @@ const AdminMatches: React.FC = () => {
                       variant="primary"
                       size="sm"
                       onClick={() => {
-                        // TODO: 스코어 업데이트 모달
+                        console.log('Update score:', match.id);
                         console.log('스코어 업데이트:', match.id);
                       }}
                     >

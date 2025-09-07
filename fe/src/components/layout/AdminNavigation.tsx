@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../common';
+import { NavigationItem } from './types';
 
 const AdminNavigation: React.FC = () => {
   const location = useLocation();
@@ -31,7 +32,7 @@ const AdminNavigation: React.FC = () => {
     { path: '/matches', label: '경기 관리', icon: '⚽' },
   ];
 
-  const isActive = (path: string, subItems?: any[]) => {
+  const isActive = (path: string, subItems?: NavigationItem[]) => {
     if (path === '/') {
       return location.pathname === '/';
     }
@@ -74,7 +75,7 @@ const AdminNavigation: React.FC = () => {
             {/* 데스크톱 메뉴 */}
             <div className="hidden lg:block">
               <div className="ml-8 lg:ml-10 flex items-baseline space-x-3 lg:space-x-4">
-                {navigationItems.map((item: any) => (
+                {navigationItems.map((item: NavigationItem) => (
                   <div key={item.path} className="relative">
                     {item.subItems ? (
                       <div className="group relative">
@@ -93,7 +94,7 @@ const AdminNavigation: React.FC = () => {
                         {/* 드롭다운 메뉴 */}
                         <div className="absolute left-0 top-full mt-1 w-48 bg-gray-700 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
                           <div className="py-1">
-                            {item.subItems.map((subItem: any) => (
+                            {item.subItems.map((subItem: NavigationItem) => (
                               <Link
                                 key={subItem.path}
                                 to={subItem.path}
@@ -151,7 +152,7 @@ const AdminNavigation: React.FC = () => {
       {/* 모바일/태블릿 메뉴 - 최적화 */}
       <div className="lg:hidden">
         <div className="px-2 pt-2 pb-3 space-y-1">
-          {navigationItems.map((item: any) => (
+          {navigationItems.map((item: NavigationItem) => (
             <div key={item.path}>
               {item.subItems ? (
                 <div>
@@ -174,7 +175,7 @@ const AdminNavigation: React.FC = () => {
                   
                   {expandedItems.includes(item.path) && (
                     <div className="mt-1 ml-4 space-y-1">
-                      {item.subItems.map((subItem: any) => (
+                      {item.subItems.map((subItem: NavigationItem) => (
                         <Link
                           key={subItem.path}
                           to={subItem.path}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import { Button } from '../common';
+import { CreateMatchRequest } from '../../services/adminMatchService';
 
 interface Team {
   id: number;
@@ -126,7 +127,7 @@ const MatchCreateModal: React.FC<MatchCreateModalProps> = ({
     onClose();
   };
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { usePlayers } from '../hooks/usePlayers';
 import { PlayerDto } from '../types/player';
 import { LoadingSpinner, Button, Card } from '../components/common';
@@ -13,6 +13,10 @@ const Players: React.FC = () => {
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerDto | null>(null);
   const [filter, setFilter] = useState<FilterState>({ position: 'ALL', isActive: null });
   const { data: playersPage, loading, error, refetch } = usePlayers(0, 50);
+  
+  const handlePlayerSelect = useCallback((player: PlayerDto | any) => {
+    setSelectedPlayer(player as PlayerDto);
+  }, []);
   
   const positions = ['ALL', 'GK', 'DF', 'MF', 'FW'];
   const positionNames: {[key: string]: string} = {
@@ -139,7 +143,7 @@ const Players: React.FC = () => {
             <PlayerCard 
               key={player.id}
               player={player}
-              onClick={() => setSelectedPlayer(player)}
+              onClick={handlePlayerSelect}
               showStats={false}
             />
           ))}
