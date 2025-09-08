@@ -58,14 +58,13 @@ const Matches: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'finished'>('all');
   const [selectedMatch, setSelectedMatch] = useState<MatchDto | null>(null);
   const { data: matchesPage, loading, error } = useMatches(0, 50);
-  
-  const matches = matchesPage?.content || [];
 
   const filteredMatches = useMemo(() => {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
+    const matchesData = matchesPage?.content || [];
 
-    return matches.filter(match => {
+    return matchesData.filter(match => {
       if (filter === 'upcoming') {
         return match.status === 'SCHEDULED' || match.matchDate >= today;
       }
@@ -74,7 +73,7 @@ const Matches: React.FC = () => {
       }
       return true;
     }).sort((a, b) => new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime());
-  }, [filter, matches]);
+  }, [filter, matchesPage?.content]);
 
 
 

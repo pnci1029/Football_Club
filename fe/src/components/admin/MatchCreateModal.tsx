@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import { Button } from '../common';
-import { CreateMatchRequest } from '../../services/adminMatchService';
 
 interface Team {
   id: number;

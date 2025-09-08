@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Card } from '../../components/common';
-import { adminService, TeamStats, DashboardStats } from '../../services/adminService';
+import { adminService, DashboardStats } from '../../services/adminService';
 
 
 const AdminDashboard: React.FC = () => {

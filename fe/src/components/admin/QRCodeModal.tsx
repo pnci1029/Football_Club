@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import QRCode from 'qrcode';
 import Modal from '../common/Modal';
 import { Button } from '../common';
@@ -21,13 +21,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
 
   const url = `https://${teamCode}.football-club.kr`;
 
-  useEffect(() => {
-    if (isOpen && teamCode) {
-      generateQRCode();
-    }
-  }, [isOpen, teamCode]);
-
-  const generateQRCode = async () => {
+  const generateQRCode = useCallback(async () => {
     try {
       setLoading(true);
       const qrDataURL = await QRCode.toDataURL(url, {
@@ -44,7 +38,13 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [url]);
+
+  useEffect(() => {
+    if (isOpen && teamCode) {
+      generateQRCode();
+    }
+  }, [isOpen, teamCode, generateQRCode]);
 
   const downloadQRCode = () => {
     if (!qrCodeDataURL) return;

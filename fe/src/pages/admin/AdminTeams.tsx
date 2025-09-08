@@ -11,9 +11,7 @@ const AdminTeams: React.FC = () => {
   const navigate = useNavigate();
   const [teams, setTeams] = useState<AdminTeam[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [loading, setLoading] = useState(false);
   const [page] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingTeam, setDeletingTeam] = useState<AdminTeam | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -28,17 +26,13 @@ const AdminTeams: React.FC = () => {
   }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTeams = async () => {
-    setLoading(true);
     try {
       const response = await adminTeamService.getAllTeams(page, 10);
       if (response.success) {
         setTeams(response.data.content);
-        setTotalPages(response.data.totalPages);
       }
     } catch (error) {
       console.error('Failed to load teams:', error);
-    } finally {
-      setLoading(false);
     }
   };
 

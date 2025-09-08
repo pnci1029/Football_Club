@@ -15,9 +15,7 @@ const AdminPlayers: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('');
-  const [loading, setLoading] = useState(false);
   const [page] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
   const [editingPlayer, setEditingPlayer] = useState<AdminPlayer | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -25,26 +23,7 @@ const AdminPlayers: React.FC = () => {
   const [deletingPlayer, setDeletingPlayer] = useState<AdminPlayer | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  useEffect(() => {
-    loadTeams();
-  }, []);
-
-  // Debounce search term
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  useEffect(() => {
-    if (selectedTeam) {
-      loadPlayers();
-    }
-  }, [selectedTeam, page, debouncedSearchTerm]);
-
-  const loadTeams = async () => {
+  const loadTeams = useCallback(async () => {
     try {
       const response = await adminTeamService.getAllTeams(0, 100);
       if (response.success) {
@@ -73,24 +52,39 @@ const AdminPlayers: React.FC = () => {
     } catch (error) {
       console.error('Failed to load teams:', error);
     }
-  };
+  }, [searchParams]);
 
   const loadPlayers = useCallback(async () => {
     if (!selectedTeam) return;
 
-    setLoading(true);
     try {
       const response = await adminPlayerService.getAllPlayers(page, 10, selectedTeam, debouncedSearchTerm);
       if (response.success && response.data) {
         setPlayers(response.data.content || []);
-        setTotalPages(response.data.totalPages || 0);
       }
     } catch (error) {
       console.error('Failed to load players:', error);
-    } finally {
-      setLoading(false);
     }
   }, [selectedTeam, page, debouncedSearchTerm]);
+
+  useEffect(() => {
+    loadTeams();
+  }, [loadTeams]);
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (selectedTeam) {
+      loadPlayers();
+    }
+  }, [selectedTeam, page, debouncedSearchTerm, loadPlayers]);
 
   const handleDeletePlayer = (player: AdminPlayer) => {
     setDeletingPlayer(player);

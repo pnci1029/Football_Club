@@ -14,9 +14,7 @@ const AdminStadiums: React.FC = () => {
   const [teams, setTeams] = useState<TeamStats[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingStadium, setDeletingStadium] = useState<StadiumDto | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -49,7 +47,6 @@ const AdminStadiums: React.FC = () => {
   }, [page, selectedTeamId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadStadiums = async () => {
-    setLoading(true);
     try {
       let result;
       if (selectedTeamId) {
@@ -58,11 +55,8 @@ const AdminStadiums: React.FC = () => {
         result = await adminService.getAllStadiums(page, 10);
       }
       setStadiums(result.content);
-      setTotalPages(Math.ceil(result.totalElements / 10));
     } catch (error) {
       console.error('Failed to load stadiums:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -98,7 +92,6 @@ const AdminStadiums: React.FC = () => {
       return;
     }
 
-    setLoading(true);
     try {
       const response = await adminStadiumService.searchStadiumsByName(searchTerm);
       if (response.success) {
@@ -106,8 +99,6 @@ const AdminStadiums: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to search stadiums:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
