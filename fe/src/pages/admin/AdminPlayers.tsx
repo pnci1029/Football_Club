@@ -5,13 +5,16 @@ import { adminTeamService, AdminTeam } from '../../services/adminTeamService';
 import PlayerEditModal from '../../components/admin/PlayerEditModal';
 import PlayerCreateModal from '../../components/admin/PlayerCreateModal';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
+import { useSearchParams } from 'react-router-dom';
 
 const AdminPlayers: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [players, setPlayers] = useState<AdminPlayer[]>([]);
   const [teams, setTeams] = useState<AdminTeam[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [page] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -26,19 +29,45 @@ const AdminPlayers: React.FC = () => {
     loadTeams();
   }, []);
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   useEffect(() => {
     if (selectedTeam) {
       loadPlayers();
     }
-  }, [selectedTeam, page]);
+  }, [selectedTeam, page, debouncedSearchTerm]);
 
   const loadTeams = async () => {
     try {
       const response = await adminTeamService.getAllTeams(0, 100);
       if (response.success) {
         setTeams(response.data.content);
-        if (response.data.content.length > 0) {
-          setSelectedTeam(response.data.content[0].id);
+        
+        // URL 파라미터에서 teamId를 확인
+        const teamIdParam = searchParams.get('teamId');
+        if (teamIdParam) {
+          const teamId = parseInt(teamIdParam, 10);
+          const teamExists = response.data.content.some(team => team.id === teamId);
+          if (teamExists) {
+            setSelectedTeam(teamId);
+          } else {
+            // URL의 teamId가 존재하지 않으면 첫 번째 팀 선택
+            if (response.data.content.length > 0) {
+              setSelectedTeam(response.data.content[0].id);
+            }
+          }
+        } else {
+          // URL 파라미터가 없으면 첫 번째 팀 선택
+          if (response.data.content.length > 0) {
+            setSelectedTeam(response.data.content[0].id);
+          }
         }
       }
     } catch (error) {
@@ -51,7 +80,7 @@ const AdminPlayers: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await adminPlayerService.getAllPlayers(page, 10, selectedTeam);
+      const response = await adminPlayerService.getAllPlayers(page, 10, selectedTeam, debouncedSearchTerm);
       if (response.success && response.data) {
         setPlayers(response.data.content || []);
         setTotalPages(response.data.totalPages || 0);
@@ -61,7 +90,7 @@ const AdminPlayers: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedTeam, page]);
+  }, [selectedTeam, page, debouncedSearchTerm]);
 
   const handleDeletePlayer = (player: AdminPlayer) => {
     setDeletingPlayer(player);
@@ -109,12 +138,10 @@ const AdminPlayers: React.FC = () => {
   const filteredPlayers = (players || []).filter(player => {
     if (!player) return false;
 
-    const matchesSearch = (player.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (player.team?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = selectedFilter === 'all' ||
                          (selectedFilter === 'active' && player.isActive) ||
                          (selectedFilter === 'inactive' && !player.isActive);
-    return matchesSearch && matchesFilter;
+    return matchesFilter;
   });
 
   const getPositionBadgeColor = (position: string) => {

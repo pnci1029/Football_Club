@@ -72,7 +72,7 @@ const TeamCreateModal: React.FC<TeamCreateModalProps> = ({
       isOpen={isOpen}
       onClose={handleClose}
       title="새 팀 생성"
-      size="md"
+      size="sm"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (

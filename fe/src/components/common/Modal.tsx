@@ -16,10 +16,10 @@ const Modal: React.FC<ModalProps> = ({
   size = 'md' 
 }) => {
   const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-lg', 
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl'
+    sm: 'w-full max-w-sm sm:max-w-md lg:max-w-[400px]',
+    md: 'w-full max-w-md sm:max-w-lg lg:max-w-[480px]', 
+    lg: 'w-full max-w-lg sm:max-w-xl lg:max-w-[600px]',
+    xl: 'w-full max-w-xl sm:max-w-2xl lg:max-w-[800px]'
   };
 
   // 모바일에서 바디 스크롤 방지
@@ -52,10 +52,9 @@ const Modal: React.FC<ModalProps> = ({
           &#8203;
         </span>
 
-        <div className={`relative w-full sm:inline-block bg-white rounded-t-2xl sm:rounded-lg shadow-xl transform transition-all duration-300 ease-in-out
+        <div className={`relative sm:inline-block bg-white rounded-t-2xl sm:rounded-lg shadow-xl transform transition-all duration-300 ease-in-out
           h-auto max-h-[90vh] sm:max-h-[85vh] overflow-hidden
-          sm:align-middle sm:my-8 sm:${sizeClasses[size]} sm:w-full
-          ${size === 'xl' ? 'sm:max-w-6xl' : ''}`}>
+          sm:align-middle sm:my-8 ${sizeClasses[size]}`}>
           {/* Header - 모바일 최적화 */}
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-white sticky top-0 z-10">
             {/* Mobile drag indicator */}

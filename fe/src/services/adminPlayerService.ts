@@ -46,8 +46,12 @@ export interface ApiResponse<T> {
 }
 
 export class AdminPlayerService {
-  async getAllPlayers(page: number = 0, size: number = 10, teamId: number): Promise<ApiResponse<PlayersPageResponse>> {
-    return apiClient.get(`/api/v1/admin/players?page=${page}&size=${size}&teamId=${teamId}`);
+  async getAllPlayers(page: number = 0, size: number = 10, teamId: number, search?: string): Promise<ApiResponse<PlayersPageResponse>> {
+    let url = `/api/v1/admin/players?page=${page}&size=${size}&teamId=${teamId}`;
+    if (search && search.trim()) {
+      url += `&search=${encodeURIComponent(search.trim())}`;
+    }
+    return apiClient.get(url);
   }
 
   async createPlayer(teamId: number, request: CreatePlayerRequest): Promise<ApiResponse<AdminPlayer>> {

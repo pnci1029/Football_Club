@@ -69,7 +69,7 @@ const TeamEditModal: React.FC<TeamEditModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="팀 정보 수정"
-      size="md"
+      size="sm"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
