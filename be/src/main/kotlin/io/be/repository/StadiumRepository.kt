@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository
 interface StadiumRepository : JpaRepository<Stadium, Long> {
     fun findByNameContaining(name: String): List<Stadium>
     fun findByAddressContaining(address: String): List<Stadium>
+    fun findByTeamId(teamId: Long): List<Stadium>
+    fun findByTeamId(teamId: Long, pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<Stadium>
     
     @Query("SELECT s FROM Stadium s WHERE s.hourlyRate BETWEEN :minRate AND :maxRate")
     fun findByHourlyRateBetween(@Param("minRate") minRate: Int, @Param("maxRate") maxRate: Int): List<Stadium>

@@ -17,6 +17,10 @@ data class Stadium(
     @Column(nullable = false)
     val address: String,
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id", nullable = false)
+    val team: Team,
+    
     val latitude: Double,
     val longitude: Double,
     
