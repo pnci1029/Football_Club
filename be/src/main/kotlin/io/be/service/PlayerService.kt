@@ -25,6 +25,10 @@ class PlayerService(
         return playerRepository.findByTeamIdAndIsDeletedFalse(teamId, pageable).map { PlayerDto.from(it) }
     }
     
+    fun findPlayersByTeamWithSearch(teamId: Long, search: String, pageable: Pageable): Page<PlayerDto> {
+        return playerRepository.findByTeamIdAndNameContainingAndIsDeletedFalse(teamId, search, pageable).map { PlayerDto.from(it) }
+    }
+    
     fun findActivePlayersByTeam(teamId: Long): List<PlayerDto> {
         return playerRepository.findByTeamIdAndIsActiveTrueAndIsDeletedFalse(teamId).map { PlayerDto.from(it) }
     }

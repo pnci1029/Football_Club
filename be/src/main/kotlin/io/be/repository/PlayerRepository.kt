@@ -20,6 +20,7 @@ interface PlayerRepository : JpaRepository<Player, Long> {
     fun findByIdAndTeamIdAndIsDeletedFalse(id: Long, teamId: Long): Player?
     fun findByTeamIdAndPositionAndIsDeletedFalse(teamId: Long, position: String): List<Player>
     fun findByTeamIdAndNameContainingAndIsDeletedFalse(teamId: Long, name: String): List<Player>
+    fun findByTeamIdAndNameContainingAndIsDeletedFalse(teamId: Long, name: String, pageable: Pageable): Page<Player>
     fun findByTeamIdAndBackNumberAndIsDeletedFalse(teamId: Long, backNumber: Int): Player?
     fun countByTeamIdAndIsDeletedFalse(teamId: Long): Long
     fun countByTeamIdAndIsActiveTrueAndIsDeletedFalse(teamId: Long): Long

@@ -7,8 +7,9 @@ import io.be.dto.TeamSummaryDto
 import io.be.entity.Team
 import io.be.repository.TeamRepository
 import io.be.util.logger
-import org.springframework.cache.annotation.Cacheable
-import org.springframework.cache.annotation.CacheEvict
+// Redis 캐시 기능 비활성화됨
+// import org.springframework.cache.annotation.Cacheable
+// import org.springframework.cache.annotation.CacheEvict
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -28,17 +29,17 @@ class TeamService(
         return teamRepository.findAllByIsDeletedFalse(pageable).map { TeamDto.from(it) }
     }
 
-    @Cacheable(value = ["teams"], key = "'all'")
+    // @Cacheable(value = ["teams"], key = "'all'")
     fun getAllTeams(): List<TeamDto> {
         return teamRepository.findAllByIsDeletedFalse().map { TeamDto.from(it) }
     }
     
-    @Cacheable(value = ["teams"], key = "'summary'")
+    // @Cacheable(value = ["teams"], key = "'summary'")
     fun getAllTeamSummaries(): List<TeamSummaryDto> {
         return teamRepository.findAllByIsDeletedFalse().map { TeamSummaryDto.from(it) }
     }
 
-    @Cacheable(value = ["teams"], key = "#id")
+    // @Cacheable(value = ["teams"], key = "#id")
     fun findTeamById(id: Long): TeamDto? {
         return teamRepository.findById(id).orElse(null)?.let { TeamDto.from(it) }
     }
@@ -51,13 +52,13 @@ class TeamService(
         }
     }
 
-    @Cacheable(value = ["teams"], key = "'code_' + #code")
+    // @Cacheable(value = ["teams"], key = "'code_' + #code")
     fun findTeamByCode(code: String): TeamDto? {
         return teamRepository.findByCodeAndIsDeletedFalse(code)?.let { TeamDto.from(it) }
     }
 
     @Transactional
-    @CacheEvict(value = ["teams"], allEntries = true)
+    // @CacheEvict(value = ["teams"], allEntries = true)
     fun createTeam(request: CreateTeamRequest): TeamDto {
         logger.info("Creating team with code: ${request.code}")
         
@@ -79,7 +80,7 @@ class TeamService(
     }
 
     @Transactional
-    @CacheEvict(value = ["teams"], allEntries = true)
+    // @CacheEvict(value = ["teams"], allEntries = true)
     fun updateTeam(id: Long, request: UpdateTeamRequest): TeamDto {
         val team = teamRepository.findById(id).orElseThrow {
             io.be.exception.TeamNotFoundException(id)

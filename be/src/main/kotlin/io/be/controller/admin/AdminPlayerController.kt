@@ -32,7 +32,11 @@ class AdminPlayerController(
     ): ResponseEntity<ApiResponse<PagedResponse<PlayerDto>>> {
         val actualTeamId = teamId ?: throw MissingRequiredFieldException("teamId")
         
-        val players = playerService.findPlayersByTeam(actualTeamId, PageRequest.of(page, size))
+        val players = if (!search.isNullOrBlank()) {
+            playerService.findPlayersByTeamWithSearch(actualTeamId, search, PageRequest.of(page, size))
+        } else {
+            playerService.findPlayersByTeam(actualTeamId, PageRequest.of(page, size))
+        }
         
         val filters = mutableMapOf<String, Any>()
         teamId?.let { filters["teamId"] = it }
