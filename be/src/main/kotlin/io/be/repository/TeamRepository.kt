@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
@@ -18,6 +19,13 @@ interface TeamRepository : JpaRepository<Team, Long> {
     fun findByNameContainingAndIsDeletedFalse(name: String): List<Team>
     fun findAllByIsDeletedFalse(): List<Team>
     fun findAllByIsDeletedFalse(pageable: Pageable): Page<Team>
+    
+    // N+1 해결을 위한 EntityGraph 적용
+    @EntityGraph(attributePaths = ["players"])
+    fun findWithPlayersById(id: Long): Team?
+    
+    @EntityGraph(attributePaths = ["players"])
+    fun findWithPlayersByCodeAndIsDeletedFalse(code: String): Team?
     fun existsByCodeAndIsDeletedFalse(code: String): Boolean
     fun existsByNameAndIsDeletedFalse(name: String): Boolean
     

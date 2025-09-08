@@ -1,6 +1,7 @@
 package io.be.dto
 
 import io.be.entity.Player
+import jakarta.validation.constraints.*
 
 data class PlayerDto(
     val id: Long,
@@ -29,16 +30,35 @@ data class PlayerDto(
 }
 
 data class CreatePlayerRequest(
+    @field:NotBlank(message = "선수명은 필수입니다")
+    @field:Size(min = 1, max = 50, message = "선수명은 1-50자여야 합니다")
     val name: String,
+    
+    @field:NotBlank(message = "포지션은 필수입니다")
+    @field:Pattern(regexp = "^(GK|DF|MF|FW)$", message = "포지션은 GK, DF, MF, FW 중 하나여야 합니다")
     val position: String,
-    val backNumber: Int?,
-    val profileImageUrl: String?
+    
+    @field:Min(value = 1, message = "등번호는 1 이상이어야 합니다")
+    @field:Max(value = 99, message = "등번호는 99 이하여야 합니다")
+    val backNumber: Int? = null,
+    
+    @field:Pattern(regexp = "^(https?://.+)?$", message = "올바른 URL 형식이어야 합니다")
+    val profileImageUrl: String? = null
 )
 
 data class UpdatePlayerRequest(
-    val name: String?,
-    val position: String?,
-    val backNumber: Int?,
-    val profileImageUrl: String?,
-    val isActive: Boolean?
+    @field:Size(min = 1, max = 50, message = "선수명은 1-50자여야 합니다")
+    val name: String? = null,
+    
+    @field:Pattern(regexp = "^(GK|DF|MF|FW)$", message = "포지션은 GK, DF, MF, FW 중 하나여야 합니다")
+    val position: String? = null,
+    
+    @field:Min(value = 1, message = "등번호는 1 이상이어야 합니다")
+    @field:Max(value = 99, message = "등번호는 99 이하여야 합니다")
+    val backNumber: Int? = null,
+    
+    @field:Pattern(regexp = "^(https?://.+)?$", message = "올바른 URL 형식이어야 합니다")
+    val profileImageUrl: String? = null,
+    
+    val isActive: Boolean? = null
 )

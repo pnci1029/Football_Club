@@ -6,7 +6,13 @@ import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "teams")
+@Table(
+    name = "teams",
+    indexes = [
+        Index(name = "idx_team_code_deleted", columnList = "code, isDeleted"),
+        Index(name = "idx_team_name_deleted", columnList = "name, isDeleted")
+    ]
+)
 data class Team(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

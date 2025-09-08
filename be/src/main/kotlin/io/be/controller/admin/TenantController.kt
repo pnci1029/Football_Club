@@ -58,7 +58,7 @@ class TenantController(
             ?: return ResponseEntity.notFound().build()
             
         val stats = teamService.getTeamStats(team.id)
-        val players = playerService.findPlayersByTeam(team.id)
+        val players = playerService.findActivePlayersByTeam(team.id)
         val stadiums = stadiumService.findStadiumsByTeam(team.id)
         
         val dashboard = mapOf(
@@ -81,7 +81,7 @@ class TenantController(
         val team = teamService.findTeamByCode(teamCode)
             ?: return ResponseEntity.notFound().build()
             
-        val players = playerService.findPlayersByTeam(team.id)
+        val players = playerService.findActivePlayersByTeam(team.id)
         
         val result = mapOf(
             "team" to team,

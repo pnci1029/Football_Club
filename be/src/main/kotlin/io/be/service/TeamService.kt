@@ -3,8 +3,12 @@ package io.be.service
 import io.be.dto.CreateTeamRequest
 import io.be.dto.TeamDto
 import io.be.dto.UpdateTeamRequest
+import io.be.dto.TeamSummaryDto
 import io.be.entity.Team
 import io.be.repository.TeamRepository
+import io.be.util.logger
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.cache.annotation.CacheEvict
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -18,15 +22,23 @@ class TeamService(
     private val playerRepository: io.be.repository.PlayerRepository,
     private val stadiumRepository: io.be.repository.StadiumRepository
 ) {
+    private val logger = logger()
 
     fun findAllTeams(pageable: Pageable): Page<TeamDto> {
         return teamRepository.findAllByIsDeletedFalse(pageable).map { TeamDto.from(it) }
     }
 
+    @Cacheable(value = ["teams"], key = "'all'")
     fun getAllTeams(): List<TeamDto> {
         return teamRepository.findAllByIsDeletedFalse().map { TeamDto.from(it) }
     }
+    
+    @Cacheable(value = ["teams"], key = "'summary'")
+    fun getAllTeamSummaries(): List<TeamSummaryDto> {
+        return teamRepository.findAllByIsDeletedFalse().map { TeamSummaryDto.from(it) }
+    }
 
+    @Cacheable(value = ["teams"], key = "#id")
     fun findTeamById(id: Long): TeamDto? {
         return teamRepository.findById(id).orElse(null)?.let { TeamDto.from(it) }
     }
@@ -39,13 +51,18 @@ class TeamService(
         }
     }
 
+    @Cacheable(value = ["teams"], key = "'code_' + #code")
     fun findTeamByCode(code: String): TeamDto? {
         return teamRepository.findByCodeAndIsDeletedFalse(code)?.let { TeamDto.from(it) }
     }
 
     @Transactional
+    @CacheEvict(value = ["teams"], allEntries = true)
     fun createTeam(request: CreateTeamRequest): TeamDto {
+        logger.info("Creating team with code: ${request.code}")
+        
         if (teamRepository.findByCodeAndIsDeletedFalse(request.code) != null) {
+            logger.warn("Team code already exists: ${request.code}")
             throw io.be.exception.TeamCodeAlreadyExistsException(request.code)
         }
 
@@ -57,10 +74,12 @@ class TeamService(
         )
 
         val savedTeam = teamRepository.save(team)
+        logger.info("Team created successfully with id: ${savedTeam.id}")
         return TeamDto.from(savedTeam)
     }
 
     @Transactional
+    @CacheEvict(value = ["teams"], allEntries = true)
     fun updateTeam(id: Long, request: UpdateTeamRequest): TeamDto {
         val team = teamRepository.findById(id).orElseThrow {
             io.be.exception.TeamNotFoundException(id)

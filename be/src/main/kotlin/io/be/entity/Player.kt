@@ -6,7 +6,14 @@ import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "players")
+@Table(
+    name = "players",
+    indexes = [
+        Index(name = "idx_player_team_deleted", columnList = "team_id, isDeleted"),
+        Index(name = "idx_player_team_back_number", columnList = "team_id, backNumber", unique = true),
+        Index(name = "idx_player_position_active", columnList = "position, isActive, isDeleted")
+    ]
+)
 data class Player(
 
     @Id
