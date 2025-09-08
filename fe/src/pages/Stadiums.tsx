@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useStadiums } from '../hooks/useStadiums';
 import { StadiumDto } from '../types/stadium';
 import { Card, Button, LoadingSpinner } from '../components/common';
+import StadiumMapModal from '../components/admin/StadiumMapModal';
 
 const formatPrice = (price?: number) => {
   return price ? `${price.toLocaleString()}원/시간` : '문의';
@@ -27,7 +28,14 @@ const parseFacilities = (facilities?: string): string[] => {
 
 const Stadiums: React.FC = () => {
   const [selectedStadium, setSelectedStadium] = useState<StadiumDto | null>(null);
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [mapStadium, setMapStadium] = useState<StadiumDto | null>(null);
   const { data: stadiumsPage, loading, error, refetch } = useStadiums(0, 20);
+
+  const handleViewMap = (stadium: StadiumDto) => {
+    setMapStadium(stadium);
+    setShowMapModal(true);
+  };
 
   if (loading) {
     return (
@@ -95,10 +103,25 @@ const Stadiums: React.FC = () => {
               <div className="p-3 sm:p-4">
                 <div className="mb-3">
                   <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 truncate">{stadium.name}</h3>
-                  <p className="text-xs sm:text-sm text-gray-600 flex items-center">
-                    <span className="mr-1 text-sm">📍</span>
-                    <span className="truncate">{stadium.address}</span>
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs sm:text-sm text-gray-600 flex items-center flex-1 min-w-0">
+                      <span className="mr-1 text-sm">📍</span>
+                      <span className="truncate">{stadium.address}</span>
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewMap(stadium);
+                      }}
+                      className="ml-2 p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      title="지도에서 보기"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-2 mb-3 sm:mb-4">
@@ -240,9 +263,14 @@ const Stadiums: React.FC = () => {
                   <Button variant="primary" className="flex-1 py-3 sm:py-2 text-sm sm:text-base touch-manipulation">
                     예약 문의
                   </Button>
-                  <Button variant="outline" className="py-3 sm:py-2 px-4 touch-manipulation">
+                  <Button 
+                    variant="outline" 
+                    className="py-3 sm:py-2 px-4 touch-manipulation"
+                    onClick={() => handleViewMap(selectedStadium)}
+                  >
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </Button>
                 </div>
@@ -252,6 +280,16 @@ const Stadiums: React.FC = () => {
         </div>
         </>
       )}
+      
+      {/* 구장 위치 지도 모달 */}
+      <StadiumMapModal
+        isOpen={showMapModal}
+        onClose={() => {
+          setShowMapModal(false);
+          setMapStadium(null);
+        }}
+        stadium={mapStadium}
+      />
     </div>
   );
 };

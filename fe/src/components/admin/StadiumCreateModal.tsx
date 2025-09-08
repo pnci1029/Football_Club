@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import DaumPostcode from 'react-daum-postcode';
 import Modal from '../common/Modal';
 import { Button } from '../common';
 import { CreateStadiumRequest, adminStadiumService } from '../../services/adminStadiumService';
@@ -28,6 +29,7 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [facilityInput, setFacilityInput] = useState('');
+  const [showPostcode, setShowPostcode] = useState(false);
 
   // 기본 시설 옵션들
   const defaultFacilities = [
@@ -111,21 +113,50 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
     onClose();
   };
 
-  // 주소로 좌표 검색 (실제로는 Geocoding API를 사용해야 함)
-  const searchCoordinates = async () => {
-    if (!formData.address) {
-      alert('주소를 먼저 입력해주세요.');
-      return;
+  // 다음 우편번호 서비스 완료 핸들러
+  const handlePostcodeComplete = (data: any) => {
+    let fullAddress = data.address;
+    let extraAddress = '';
+
+    if (data.addressType === 'R') {
+      if (data.bname !== '') {
+        extraAddress += data.bname;
+      }
+      if (data.buildingName !== '') {
+        extraAddress += (extraAddress !== '' ? `, ${data.buildingName}` : data.buildingName);
+      }
+      fullAddress += (extraAddress !== '' ? ` (${extraAddress})` : '');
     }
-    
-    // 임시로 서울 시청 좌표로 설정
+
+    // 주소 설정
     setFormData(prev => ({
       ...prev,
-      latitude: 37.5666805,
-      longitude: 126.9784147
+      address: fullAddress
     }));
-    
-    alert('실제로는 Geocoding API를 통해 좌표를 검색해야 합니다.\n임시로 서울시청 좌표로 설정되었습니다.');
+
+    // 좌표 검색
+    searchCoordinatesFromAddress(fullAddress);
+    setShowPostcode(false);
+  };
+
+  // 주소로 좌표 검색
+  const searchCoordinatesFromAddress = async (address: string) => {
+    try {
+      const geocoder = new window.kakao.maps.services.Geocoder();
+      
+      geocoder.addressSearch(address, (result: any, status: any) => {
+        if (status === window.kakao.maps.services.Status.OK) {
+          const coords = result[0];
+          setFormData(prev => ({
+            ...prev,
+            latitude: parseFloat(coords.y),
+            longitude: parseFloat(coords.x)
+          }));
+        }
+      });
+    } catch (error) {
+      console.error('좌표 검색 오류:', error);
+    }
   };
 
   return (
@@ -168,52 +199,22 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
               value={formData.address}
               onChange={(e) => handleChange('address', e.target.value)}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              placeholder="구장 주소를 입력하세요"
+              placeholder="주소 검색 버튼을 클릭하세요"
+              readOnly
               required
             />
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={searchCoordinates}
+              onClick={() => setShowPostcode(true)}
               className="text-purple-600 border-purple-200 hover:bg-purple-50"
             >
-              좌표 검색
+              주소 검색
             </Button>
           </div>
         </div>
 
-        {/* 좌표 */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              위도 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              step="any"
-              value={formData.latitude}
-              onChange={(e) => handleChange('latitude', parseFloat(e.target.value) || 0)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              placeholder="37.5666805"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              경도 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              step="any"
-              value={formData.longitude}
-              onChange={(e) => handleChange('longitude', parseFloat(e.target.value) || 0)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              placeholder="126.9784147"
-              required
-            />
-          </div>
-        </div>
 
         {/* 시간당 요금 */}
         <div>
@@ -362,6 +363,32 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
           </Button>
         </div>
       </form>
+
+      {/* 다음 우편번호 서비스 모달 */}
+      {showPostcode && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
+            <div className="p-4 border-b">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">주소 검색</h3>
+                <button
+                  onClick={() => setShowPostcode(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="p-4">
+              <DaumPostcode
+                onComplete={handlePostcodeComplete}
+                autoClose={false}
+                style={{ height: '400px' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </Modal>
   );
 };

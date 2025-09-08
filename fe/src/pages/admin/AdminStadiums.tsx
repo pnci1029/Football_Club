@@ -6,6 +6,7 @@ import { adminService, TeamStats, StadiumDto } from '../../services/adminService
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import StadiumCreateModal from '../../components/admin/StadiumCreateModal';
 import StadiumEditModal from '../../components/admin/StadiumEditModal';
+import StadiumMapModal from '../../components/admin/StadiumMapModal';
 
 const AdminStadiums: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,6 +23,8 @@ const AdminStadiums: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingStadium, setEditingStadium] = useState<StadiumDto | null>(null);
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [mapStadium, setMapStadium] = useState<StadiumDto | null>(null);
 
   useEffect(() => {
     const teamId = searchParams.get('teamId');
@@ -109,9 +112,8 @@ const AdminStadiums: React.FC = () => {
   };
 
   const handleViewMap = (stadium: StadiumDto) => {
-    const query = encodeURIComponent(stadium.address);
-    const mapUrl = `https://map.kakao.com/link/search/${query}`;
-    window.open(mapUrl, '_blank');
+    setMapStadium(stadium);
+    setShowMapModal(true);
   };
 
   const handleEditStadium = (stadium: StadiumDto) => {
@@ -396,6 +398,16 @@ const AdminStadiums: React.FC = () => {
         onClose={() => setShowEditModal(false)}
         stadium={editingStadium}
         onStadiumUpdated={handleStadiumUpdated}
+      />
+
+      {/* 구장 위치 지도 모달 */}
+      <StadiumMapModal
+        isOpen={showMapModal}
+        onClose={() => {
+          setShowMapModal(false);
+          setMapStadium(null);
+        }}
+        stadium={mapStadium}
       />
     </div>
   );
