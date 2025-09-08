@@ -1,4 +1,4 @@
-import { LoginRequest, LoginResponse, AdminInfo, TokenValidationResponse } from '../types/auth';
+import { LoginResponse, AdminInfo, TokenValidationResponse } from '../types/auth';
 import { buildApiUrl, handleApiError, createApiHeaders } from '../utils/api';
 import { TokenStorage } from '../utils/storage';
 import { Logger } from '../utils/logger';

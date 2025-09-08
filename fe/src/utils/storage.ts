@@ -2,7 +2,7 @@
  * 스토리지 관련 유틸리티 함수
  */
 
-import { STORAGE_KEYS, SESSION_KEYS } from '../constants/storage';
+import { STORAGE_KEYS } from '../constants/storage';
 
 /**
  * LocalStorage 유틸리티

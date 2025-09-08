@@ -2,7 +2,7 @@
  * API 관련 유틸리티 함수
  */
 
-import { getApiBaseUrl, API_ENDPOINTS, CONTENT_TYPES } from '../constants/api';
+import { getApiBaseUrl, CONTENT_TYPES } from '../constants/api';
 
 /**
  * API 요청을 위한 전체 URL 생성
