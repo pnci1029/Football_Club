@@ -4,7 +4,9 @@ import io.be.dto.CreateStadiumRequest
 import io.be.dto.StadiumDto
 import io.be.dto.UpdateStadiumRequest
 import io.be.service.StadiumService
+import io.be.service.SubdomainService
 import io.be.util.ApiResponse
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -16,7 +18,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/v1/admin/stadiums")
 @CrossOrigin(origins = ["*"])
 class AdminStadiumController(
-    private val stadiumService: StadiumService
+    private val stadiumService: StadiumService,
+    private val subdomainService: SubdomainService
 ) {
     
     @GetMapping
@@ -35,9 +38,19 @@ class AdminStadiumController(
     
     @PostMapping
     fun createStadium(
-        @Valid @RequestBody request: CreateStadiumRequest
+        @Valid @RequestBody request: CreateStadiumRequest,
+        httpRequest: HttpServletRequest
     ): ResponseEntity<ApiResponse<StadiumDto>> {
-        val stadium = stadiumService.createStadium(request)
+        val teamCode = subdomainService.extractTeamCodeFromRequest(httpRequest)
+            ?: return ResponseEntity.badRequest()
+                .body(ApiResponse.error("INVALID_SUBDOMAIN", "유효하지 않은 서브도메인입니다."))
+        
+        val team = subdomainService.getTeamByCode(teamCode)
+            ?: return ResponseEntity.badRequest()
+                .body(ApiResponse.error("TEAM_NOT_FOUND", "팀을 찾을 수 없습니다."))
+        
+        val requestWithTeam = request.copy(teamId = team.id)
+        val stadium = stadiumService.createStadium(requestWithTeam)
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success(stadium))
     }
