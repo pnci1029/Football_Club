@@ -49,7 +49,7 @@ export const useSubdomain = () => {
         // localhost 환경에서 서브도메인 처리 (개발용)
         if (host.includes('localhost') || host.includes('127.0.0.1')) {
           console.log('🖥️ localhost 환경 감지');
-          // kim.localhost:3000, park.localhost:3000 형태 처리
+          // kim.localhost:3000 형태 처리 (개발 환경)
           const subdomainMatch = host.match(/^([a-zA-Z0-9-]+)\.localhost/);
           if (subdomainMatch) {
             const teamCode = subdomainMatch[1];

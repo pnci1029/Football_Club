@@ -34,7 +34,7 @@ const Landing: React.FC = () => {
       };
 
       const response = await inquiryService.createInquiry(request);
-      
+
       if (response.success) {
         setSubmitMessage({
           type: 'success',
@@ -78,8 +78,8 @@ const Landing: React.FC = () => {
   ];
 
   const sampleTeams = [
-    { name: '김철수 FC', domain: 'kim.football-club.local:3000', description: '서울 지역 축구 동호회' },
-    { name: '박영희 유나이티드', domain: 'park.football-club.local:3000', description: '부산 지역 축구 동호회' }
+    { name: '김철수 FC', domain: 'kim.football-club', description: '서울 지역 축구 동호회' },
+    { name: '박영희 유나이티드', domain: 'park.football-club', description: '부산 지역 축구 동호회' }
   ];
 
   return (

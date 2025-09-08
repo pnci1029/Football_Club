@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { adminService, TeamStats, CreateTeamData } from '../../services/adminService';
 import CreateTeamModal from '../../components/admin/CreateTeamModal';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
+import QRCodeModal from '../../components/admin/QRCodeModal';
 import { adminTeamService } from '../../services/adminTeamService';
 
 const TenantManagement: React.FC = () => {
@@ -13,6 +14,8 @@ const TenantManagement: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingTenant, setDeletingTenant] = useState<TeamStats | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrTenant, setQrTenant] = useState<TeamStats | null>(null);
 
   useEffect(() => {
     const fetchTenants = async () => {
@@ -34,7 +37,7 @@ const TenantManagement: React.FC = () => {
   };
 
   const getTenantUrl = (code: string) => {
-    return `${code}.localhost:3000`;
+    return `${code}.football-club.kr`;
   };
 
   const handleCreateTeam = async (teamData: CreateTeamData) => {
@@ -66,6 +69,11 @@ const TenantManagement: React.FC = () => {
   const handleDeleteTenant = (tenant: TeamStats) => {
     setDeletingTenant(tenant);
     setShowDeleteModal(true);
+  };
+
+  const handleShowQR = (tenant: TeamStats) => {
+    setQrTenant(tenant);
+    setShowQRModal(true);
   };
 
   const confirmDeleteTenant = async () => {
@@ -183,14 +191,15 @@ const TenantManagement: React.FC = () => {
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            alert('테넌트 설정 기능은 아직 구현 중입니다.');
+                            handleShowQR(tenant);
                           }}
-                          className="text-gray-600 hover:text-gray-900"
+                          className="text-purple-600 hover:text-purple-900"
+                          title="QR 코드 생성"
                         >
-                          설정
+                          QR
                         </button>
                         <a 
-                          href={`http://${getTenantUrl(tenant.code)}`}
+                          href={`https://${getTenantUrl(tenant.code)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-green-600 hover:text-green-900"
@@ -269,6 +278,12 @@ const TenantManagement: React.FC = () => {
                       🏟️ 구장 관리
                     </button>
                     <button 
+                      onClick={() => handleShowQR(selectedTenant)}
+                      className="w-full text-left px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded"
+                    >
+                      📱 QR 코드 생성
+                    </button>
+                    <button 
                       onClick={() => alert('테넌트 설정 기능은 아직 구현 중입니다.')}
                       className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
                     >
@@ -327,6 +342,17 @@ const TenantManagement: React.FC = () => {
         itemName={deletingTenant?.name || ''}
         itemType="테넌트"
         loading={deleteLoading}
+      />
+
+      {/* QR 코드 모달 */}
+      <QRCodeModal
+        isOpen={showQRModal}
+        onClose={() => {
+          setShowQRModal(false);
+          setQrTenant(null);
+        }}
+        teamName={qrTenant?.name || ''}
+        teamCode={qrTenant?.code || ''}
       />
     </div>
   );

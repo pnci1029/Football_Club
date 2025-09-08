@@ -141,7 +141,7 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
                 maxLength={20}
               />
               <div className="absolute right-3 top-2 text-sm text-gray-400">
-                .localhost:3000
+                .football-club.kr
               </div>
             </div>
             {errors.code && (

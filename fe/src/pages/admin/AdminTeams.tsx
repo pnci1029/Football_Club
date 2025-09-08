@@ -5,6 +5,7 @@ import { adminTeamService, AdminTeam } from '../../services/adminTeamService';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import TeamEditModal from '../../components/admin/TeamEditModal';
 import TeamCreateModal from '../../components/admin/TeamCreateModal';
+import QRCodeModal from '../../components/admin/QRCodeModal';
 
 const AdminTeams: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ const AdminTeams: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingTeam, setEditingTeam] = useState<AdminTeam | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrTeam, setQrTeam] = useState<AdminTeam | null>(null);
 
   useEffect(() => {
     loadTeams();
@@ -76,6 +79,11 @@ const AdminTeams: React.FC = () => {
 
   const handleCreateTeam = () => {
     setShowCreateModal(true);
+  };
+
+  const handleShowQR = (team: AdminTeam) => {
+    setQrTeam(team);
+    setShowQRModal(true);
   };
 
   const handleTeamUpdated = () => {
@@ -200,6 +208,15 @@ const AdminTeams: React.FC = () => {
               </Button>
             </div>
             <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 text-purple-600 border-purple-200 hover:bg-purple-50"
+                onClick={() => handleShowQR(team)}
+              >
+                <span className="mr-1">📱</span>
+                QR 코드
+              </Button>
               <Link
                 to={`/hero-slides/${team.id}`}
                 className="flex-1"
@@ -207,10 +224,10 @@ const AdminTeams: React.FC = () => {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="w-full text-purple-600 border-purple-200 hover:bg-purple-50"
+                  className="w-full text-orange-600 border-orange-200 hover:bg-orange-50"
                 >
                   <span className="mr-1">🎬</span>
-                  슬라이드 관리
+                  슬라이드
                 </Button>
               </Link>
             </div>
@@ -290,6 +307,17 @@ const AdminTeams: React.FC = () => {
         onClose={() => setShowEditModal(false)}
         team={editingTeam}
         onTeamUpdated={handleTeamUpdated}
+      />
+
+      {/* QR 코드 모달 */}
+      <QRCodeModal
+        isOpen={showQRModal}
+        onClose={() => {
+          setShowQRModal(false);
+          setQrTeam(null);
+        }}
+        teamName={qrTeam?.name || ''}
+        teamCode={qrTeam?.code || ''}
       />
     </div>
   );

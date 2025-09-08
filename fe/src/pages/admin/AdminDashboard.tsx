@@ -110,10 +110,10 @@ const AdminDashboard: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="font-semibold text-gray-900">{team.name}</h3>
-                    <p className="text-sm text-gray-500">{team.code}.localhost:3000</p>
+                    <p className="text-sm text-gray-500">{team.code}.football-club.kr</p>
                   </div>
                   <a 
-                    href={`http://${team.code}.localhost:3000`}
+                    href={`https://${team.code}.football-club.kr`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-gray-600"
