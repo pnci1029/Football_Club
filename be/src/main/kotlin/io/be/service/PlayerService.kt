@@ -88,7 +88,4 @@ class PlayerService(
         playerRepository.softDeleteById(id, LocalDateTime.now())
     }
     
-    fun findPlayersByTeam(teamId: Long): List<PlayerDto> {
-        return playerRepository.findByTeamIdAndIsDeletedFalse(teamId).map { PlayerDto.from(it) }
-    }
 }
