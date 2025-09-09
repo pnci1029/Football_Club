@@ -14,6 +14,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Create frontend .env file with secrets
+      run: echo "${{ secrets.FRONTEND_ENV }}" > fe/.env
+
     - name: Create project archive
       run: |
         tar -czf football-club.tar.gz --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='.gradle' --exclude='.idea' --exclude='*.iml' --exclude='.gitignore' . || true

@@ -7,7 +7,7 @@
  */
 export class ImageUtil {
   /**
-   * via.placeholder.com을 이용한 플레이스홀더 이미지 생성
+   * Canvas를 이용한 플레이스홀더 이미지 생성 (Data URI)
    */
   static createPlaceholder(
     width: number = 400,
@@ -16,8 +16,9 @@ export class ImageUtil {
     backgroundColor: string = 'e5e7eb',
     textColor: string = '9ca3af'
   ): string {
+    // ui-avatars.com을 우선적으로 사용
     const placeholderText = text || 'No Image';
-    return `https://via.placeholder.com/${width}x${height}/${backgroundColor}/${textColor}?text=${encodeURIComponent(placeholderText)}`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(placeholderText)}&size=${Math.min(width, height)}&background=${backgroundColor}&color=${textColor}&bold=true&rounded=false`;
   }
 
   /**

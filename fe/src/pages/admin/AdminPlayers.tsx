@@ -6,6 +6,7 @@ import PlayerEditModal from '../../components/admin/PlayerEditModal';
 import PlayerCreateModal from '../../components/admin/PlayerCreateModal';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import { useSearchParams } from 'react-router-dom';
+import { ImageUtil } from '../../utils/image';
 
 const AdminPlayers: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -208,7 +209,7 @@ const AdminPlayers: React.FC = () => {
             <div className="text-center">
               <div className="w-20 h-20 mx-auto rounded-full overflow-hidden bg-gray-100 mb-4">
                 <img
-                  src={player.profileImageUrl || `https://via.placeholder.com/400x400/e5e7eb/9ca3af?text=${(player.name || 'N').charAt(0)}`}
+                  src={ImageUtil.createSafeImageSrc(player.profileImageUrl, () => ImageUtil.createPlayerProfile(player.name || 'Player'))}
                   alt={`${player.name || '선수'} 프로필`}
                   className="w-full h-full object-contain"
                 />

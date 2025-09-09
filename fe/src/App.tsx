@@ -13,6 +13,7 @@ import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPlayers from './pages/admin/AdminPlayers';
 import AdminTeams from './pages/admin/AdminTeams';
+import AdminTeamDetail from './pages/admin/AdminTeamDetail';
 import AdminStadiums from './pages/admin/AdminStadiums';
 import AdminMatches from './pages/admin/AdminMatches';
 import AdminInquiries from './pages/admin/AdminInquiries';
@@ -51,7 +52,8 @@ const AppContent: React.FC = () => {
                 <Route path="/hero-slides" element={<AdminHeroSlides />} />
                 <Route path="/players" element={<AdminPlayers />} />
                 <Route path="/teams" element={<AdminTeams />} />
-                <Route path="/stadiums" element={<AdminStadiums />} />
+                <Route path="/teams/:teamId" element={<AdminTeamDetail />} />
+                <Route path="/teams/stadiums" element={<AdminStadiums />} />
                 <Route path="/matches" element={<AdminMatches />} />
                 <Route path="/inquiries" element={<AdminInquiries />} />
                 <Route path="*" element={<NotFound />} />
@@ -88,7 +90,14 @@ const AppContent: React.FC = () => {
             </AdminLayout>
           </ProtectedRoute>
         } />
-        <Route path="/stadiums" element={
+        <Route path="/teams/:teamId" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <AdminTeamDetail />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/teams/stadiums" element={
           <ProtectedRoute>
             <AdminLayout>
               <AdminStadiums />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button, Card } from '../../components/common';
 import { adminStadiumService } from '../../services/adminStadiumService';
 import { adminService, TeamStats, StadiumDto } from '../../services/adminService';
@@ -10,6 +10,7 @@ import StadiumMapModal from '../../components/admin/StadiumMapModal';
 
 const AdminStadiums: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [stadiums, setStadiums] = useState<StadiumDto[]>([]);
   const [teams, setTeams] = useState<TeamStats[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
@@ -162,11 +163,22 @@ const AdminStadiums: React.FC = () => {
     <div className="space-y-6">
       {/* 헤더 */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">구장 관리</h1>
-          <p className="text-gray-600 mt-2">
-            {selectedTeam ? `${selectedTeam.name} 소속 구장들을 관리합니다` : '등록된 구장들을 관리합니다'}
-          </p>
+        <div className="flex items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/admin/teams')}
+            className="mr-4 text-gray-600 border-gray-300 hover:bg-gray-50"
+          >
+            <span className="mr-1">←</span>
+            팀 관리로 돌아가기
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">구장 관리</h1>
+            <p className="text-gray-600 mt-2">
+              {selectedTeam ? `${selectedTeam.name} 소속 구장들을 관리합니다` : '등록된 구장들을 관리합니다'}
+            </p>
+          </div>
         </div>
         <Button 
           className="bg-purple-600 hover:bg-purple-700"
@@ -381,6 +393,7 @@ const AdminStadiums: React.FC = () => {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onStadiumCreated={handleStadiumCreated}
+        teamId={selectedTeamId || undefined}
       />
 
       {/* 구장 수정 모달 */}
