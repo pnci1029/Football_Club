@@ -66,6 +66,14 @@ const AdminTeams: React.FC = () => {
     navigate(`/admin/players?teamId=${team.id}`);
   };
 
+  const handleViewStadiums = (team: AdminTeam) => {
+    navigate(`/admin/teams/stadiums?teamId=${team.id}`);
+  };
+
+  const handleViewTeamDetail = (team: AdminTeam) => {
+    navigate(`/admin/teams/${team.id}`);
+  };
+
   const handleEditTeam = (team: AdminTeam) => {
     setEditingTeam(team);
     setShowEditModal(true);
@@ -132,7 +140,10 @@ const AdminTeams: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredTeams.map((team) => (
           <Card key={team.id} className="hover:shadow-lg transition-shadow duration-200">
-            <div className="text-center mb-4">
+            <div 
+              className="text-center mb-4 cursor-pointer"
+              onClick={() => handleViewTeamDetail(team)}
+            >
               <div className="w-20 h-20 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-green-400 to-green-600 mb-4 flex items-center justify-center">
                 {team.logoUrl ? (
                   <img 
@@ -145,7 +156,9 @@ const AdminTeams: React.FC = () => {
                 )}
               </div>
               
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{team.name}</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2 hover:text-green-600 transition-colors">
+                {team.name}
+              </h3>
               
               <div className="flex justify-center mb-3">
                 <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
@@ -176,17 +189,16 @@ const AdminTeams: React.FC = () => {
             <div className="flex gap-2 mb-3">
               <Button 
                 size="sm" 
-                variant="outline" 
-                className="flex-1 text-green-600 border-green-200 hover:bg-green-50"
-                onClick={() => handleViewPlayers(team)}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => handleViewTeamDetail(team)}
               >
-                <span className="mr-1">👥</span>
-                선수 보기
+                <span className="mr-1">👁️</span>
+                상세 보기
               </Button>
               <Button 
                 size="sm" 
                 variant="outline" 
-                className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+                className="text-blue-600 border-blue-200 hover:bg-blue-50"
                 onClick={() => handleEditTeam(team)}
               >
                 <span className="mr-1">✏️</span>

@@ -57,8 +57,11 @@ export class AdminStadiumService {
     return apiClient.get(`/api/v1/admin/stadiums?page=${page}&size=${size}`);
   }
 
-  async createStadium(request: CreateStadiumRequest): Promise<ApiResponse<AdminStadium>> {
-    return apiClient.post('/api/v1/admin/stadiums', request);
+  async createStadium(request: CreateStadiumRequest, teamId?: number): Promise<ApiResponse<AdminStadium>> {
+    const url = teamId 
+      ? `/api/v1/admin/stadiums?teamId=${teamId}`
+      : '/api/v1/admin/stadiums';
+    return apiClient.post(url, request);
   }
 
   async getStadium(id: number): Promise<ApiResponse<AdminStadium>> {

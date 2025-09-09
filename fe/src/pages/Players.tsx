@@ -3,6 +3,7 @@ import { usePlayers } from '../hooks/usePlayers';
 import { PlayerDto } from '../types/player';
 import { LoadingSpinner, Button, Card } from '../components/common';
 import PlayerCard from '../components/player/PlayerCard';
+import { ImageUtil } from '../utils/image';
 
 interface FilterState {
   position: string;
@@ -187,7 +188,7 @@ const Players: React.FC = () => {
             {/* 프로필 이미지 - 모바일 최적화 */}
             <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full overflow-hidden bg-gray-100 mb-4">
               <img 
-                src={selectedPlayer.profileImageUrl || `https://via.placeholder.com/400x400/e5e7eb/9ca3af?text=${selectedPlayer.name.charAt(0)}`}
+                src={ImageUtil.createSafeImageSrc(selectedPlayer.profileImageUrl, () => ImageUtil.createPlayerProfile(selectedPlayer.name))}
                 alt={`${selectedPlayer.name} 프로필`}
                 className="w-full h-full object-contain"
               />
