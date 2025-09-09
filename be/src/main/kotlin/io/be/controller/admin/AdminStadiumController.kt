@@ -39,17 +39,26 @@ class AdminStadiumController(
     @PostMapping
     fun createStadium(
         @Valid @RequestBody request: CreateStadiumRequest,
+        @RequestParam(required = false) teamId: Long?,
         httpRequest: HttpServletRequest
     ): ResponseEntity<ApiResponse<StadiumDto>> {
-        val teamCode = subdomainService.extractTeamCodeFromRequest(httpRequest)
-            ?: return ResponseEntity.badRequest()
-                .body(ApiResponse.error("INVALID_SUBDOMAIN", "유효하지 않은 서브도메인입니다."))
+        // 관리자 페이지에서는 teamId 파라미터 사용
+        val finalTeamId = if (teamId != null) {
+            teamId
+        } else {
+            // 서브도메인에서는 기존 로직 사용
+            val teamCode = subdomainService.extractTeamCodeFromRequest(httpRequest)
+                ?: return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("INVALID_SUBDOMAIN", "유효하지 않은 서브도메인입니다."))
+            
+            val team = subdomainService.getTeamByCode(teamCode)
+                ?: return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("TEAM_NOT_FOUND", "팀을 찾을 수 없습니다."))
+            
+            team.id
+        }
         
-        val team = subdomainService.getTeamByCode(teamCode)
-            ?: return ResponseEntity.badRequest()
-                .body(ApiResponse.error("TEAM_NOT_FOUND", "팀을 찾을 수 없습니다."))
-        
-        val requestWithTeam = request.copy(teamId = team.id)
+        val requestWithTeam = request.copy(teamId = finalTeamId)
         val stadium = stadiumService.createStadium(requestWithTeam)
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success(stadium))

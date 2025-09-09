@@ -1,5 +1,6 @@
 package io.be.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.be.dto.CreateStadiumRequest
 import io.be.dto.StadiumDto
 import io.be.dto.UpdateStadiumRequest
@@ -17,6 +18,19 @@ class StadiumService(
     private val stadiumRepository: StadiumRepository,
     private val teamRepository: TeamRepository
 ) {
+    private val objectMapper = ObjectMapper()
+    
+    private fun listToJson(list: List<String>?): String? {
+        return if (list.isNullOrEmpty()) {
+            null
+        } else {
+            try {
+                objectMapper.writeValueAsString(list)
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
     
     fun findAllStadiums(pageable: Pageable): Page<StadiumDto> {
         return stadiumRepository.findAll(pageable).map { StadiumDto.from(it) }
@@ -50,11 +64,11 @@ class StadiumService(
             latitude = request.latitude,
             longitude = request.longitude,
             team = team,
-            facilities = request.facilities,
+            facilities = listToJson(request.facilities),
             hourlyRate = request.hourlyRate,
             availableHours = request.availableHours,
             contactNumber = request.contactNumber,
-            imageUrls = request.imageUrls
+            imageUrls = listToJson(request.imageUrls)
         )
         
         val savedStadium = stadiumRepository.save(stadium)
@@ -72,11 +86,11 @@ class StadiumService(
             address = request.address ?: stadium.address,
             latitude = request.latitude ?: stadium.latitude,
             longitude = request.longitude ?: stadium.longitude,
-            facilities = request.facilities ?: stadium.facilities,
+            facilities = if (request.facilities != null) listToJson(request.facilities) else stadium.facilities,
             hourlyRate = request.hourlyRate ?: stadium.hourlyRate,
             availableHours = request.availableHours ?: stadium.availableHours,
             contactNumber = request.contactNumber ?: stadium.contactNumber,
-            imageUrls = request.imageUrls ?: stadium.imageUrls
+            imageUrls = if (request.imageUrls != null) listToJson(request.imageUrls) else stadium.imageUrls
         )
         
         val savedStadium = stadiumRepository.save(updatedStadium)

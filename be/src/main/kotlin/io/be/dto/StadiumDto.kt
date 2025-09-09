@@ -1,5 +1,7 @@
 package io.be.dto
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.be.entity.Stadium
 
 data class StadiumDto(
@@ -10,13 +12,15 @@ data class StadiumDto(
     val longitude: Double,
     val teamId: Long,
     val teamName: String,
-    val facilities: String?,
+    val facilities: List<String>?,
     val hourlyRate: Int?,
     val availableHours: String?,
     val contactNumber: String?,
-    val imageUrls: String?
+    val imageUrls: List<String>?
 ) {
     companion object {
+        private val objectMapper = ObjectMapper()
+        
         fun from(stadium: Stadium): StadiumDto {
             return StadiumDto(
                 id = stadium.id,
@@ -26,12 +30,24 @@ data class StadiumDto(
                 longitude = stadium.longitude,
                 teamId = stadium.team.id,
                 teamName = stadium.team.name,
-                facilities = stadium.facilities,
+                facilities = parseJsonToList(stadium.facilities),
                 hourlyRate = stadium.hourlyRate,
                 availableHours = stadium.availableHours,
                 contactNumber = stadium.contactNumber,
-                imageUrls = stadium.imageUrls
+                imageUrls = parseJsonToList(stadium.imageUrls)
             )
+        }
+        
+        private fun parseJsonToList(jsonString: String?): List<String>? {
+            return if (jsonString.isNullOrBlank()) {
+                null
+            } else {
+                try {
+                    objectMapper.readValue(jsonString, object : TypeReference<List<String>>() {})
+                } catch (e: Exception) {
+                    null
+                }
+            }
         }
     }
 }
@@ -42,11 +58,11 @@ data class CreateStadiumRequest(
     val latitude: Double,
     val longitude: Double,
     val teamId: Long? = null,
-    val facilities: String?,
+    val facilities: List<String>?,
     val hourlyRate: Int?,
     val availableHours: String?,
     val contactNumber: String?,
-    val imageUrls: String?
+    val imageUrls: List<String>?
 )
 
 data class UpdateStadiumRequest(
@@ -54,9 +70,9 @@ data class UpdateStadiumRequest(
     val address: String?,
     val latitude: Double?,
     val longitude: Double?,
-    val facilities: String?,
+    val facilities: List<String>?,
     val hourlyRate: Int?,
     val availableHours: String?,
     val contactNumber: String?,
-    val imageUrls: String?
+    val imageUrls: List<String>?
 )

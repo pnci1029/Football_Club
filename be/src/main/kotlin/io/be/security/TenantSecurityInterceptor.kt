@@ -67,18 +67,15 @@ class TenantSecurityInterceptor(
 
             // 2. 관리자 도메인 처리
             if (isAdminDomain(host)) {
-                println("admin")
                 return handleAdminAccess(request, response)
             }
 
             // 3. 메인 도메인 처리 (랜딩 페이지)
             if (isMainDomain(host)) {
-                println("no admin")
                 // 메인 도메인은 별도 검증 없이 통과
                 return true
             }
 
-                println("subdomain")
             // 4. 서브도메인 처리 (테넌트)
             return handleTenantAccess(request, response, host)
 
