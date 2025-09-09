@@ -8,12 +8,14 @@ interface StadiumCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStadiumCreated: () => void;
+  teamId?: number;
 }
 
 const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
   isOpen,
   onClose,
-  onStadiumCreated
+  onStadiumCreated,
+  teamId
 }) => {
   const [formData, setFormData] = useState<CreateStadiumRequest>({
     name: '',
@@ -49,7 +51,7 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
     setError('');
 
     try {
-      const response = await adminStadiumService.createStadium(formData);
+      const response = await adminStadiumService.createStadium(formData, teamId);
       if (response.success) {
         onStadiumCreated();
         onClose();
@@ -142,15 +144,33 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
   // 주소로 좌표 검색
   const searchCoordinatesFromAddress = async (address: string) => {
     try {
+      if (!window.kakao || !window.kakao.maps || !window.kakao.maps.services) {
+        console.error('카카오맵 서비스가 로드되지 않았습니다.');
+        return;
+      }
+
       const geocoder = new window.kakao.maps.services.Geocoder();
       
       geocoder.addressSearch(address, (result: any, status: any) => {
         if (status === window.kakao.maps.services.Status.OK) {
           const coords = result[0];
+          const lat = parseFloat(coords.y);
+          const lng = parseFloat(coords.x);
+          
           setFormData(prev => ({
             ...prev,
-            latitude: parseFloat(coords.y),
-            longitude: parseFloat(coords.x)
+            latitude: lat,
+            longitude: lng
+          }));
+          
+          console.log(`좌표 검색 성공: ${address} -> (${lat}, ${lng})`);
+        } else {
+          console.error('주소 검색 실패:', address, status);
+          // 검색 실패시 기본 좌표 설정 (서울시청)
+          setFormData(prev => ({
+            ...prev,
+            latitude: 37.5666805,
+            longitude: 126.9784147
           }));
         }
       });

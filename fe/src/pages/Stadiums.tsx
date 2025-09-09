@@ -3,6 +3,8 @@ import { useStadiums } from '../hooks/useStadiums';
 import { StadiumDto } from '../types/stadium';
 import { Card, Button, LoadingSpinner } from '../components/common';
 import StadiumMapModal from '../components/admin/StadiumMapModal';
+import StadiumsMapView from '../components/stadiums/StadiumsMapView';
+import { ImageUtil } from '../utils/image';
 
 const formatPrice = (price?: number) => {
   return price ? `${price.toLocaleString()}원/시간` : '문의';
@@ -28,9 +30,11 @@ const parseFacilities = (facilities?: string): string[] => {
 
 const Stadiums: React.FC = () => {
   const [selectedStadium, setSelectedStadium] = useState<StadiumDto | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [showMapModal, setShowMapModal] = useState(false);
   const [mapStadium, setMapStadium] = useState<StadiumDto | null>(null);
-  const { data: stadiumsPage, loading, error, refetch } = useStadiums(0, 20);
+  const { data: stadiumsData, loading, error } = useStadiums();
+  const stadiums = stadiumsData?.content || [];
 
   const handleViewMap = (stadium: StadiumDto) => {
     setMapStadium(stadium);
@@ -51,142 +55,214 @@ const Stadiums: React.FC = () => {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="text-center">
-          <p className="text-red-600 mb-4 text-sm sm:text-base">{error}</p>
-          <button
-            onClick={refetch}
-            className="bg-primary-600 text-white px-4 py-3 sm:py-2 text-sm sm:text-base rounded-lg hover:bg-primary-700 touch-manipulation"
-          >
-            다시 시도
-          </button>
+          <p className="text-red-600 mb-4 text-sm sm:text-base">경기장을 불러오는데 실패했습니다: {error}</p>
         </div>
       </div>
     );
   }
 
-  const stadiums = stadiumsPage?.content || [];
-
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-      {/* 헤더 - 모바일 최적화 */}
+      {/* 헤더 */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">경기장 정보</h1>
-        <p className="text-sm sm:text-base text-gray-600">우리가 경기할 수 있는 다양한 경기장을 소개합니다</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              경기장 정보
+            </h1>
+            <p className="text-gray-600 text-sm sm:text-base mt-1">
+              총 <span className="font-semibold text-primary-600">{stadiums?.length || 0}</span>개의 경기장
+            </p>
+          </div>
+
+          {/* 뷰 모드 토글 */}
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'grid' 
+                  ? 'bg-white text-gray-900 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+              <span className="hidden sm:inline">목록</span>
+            </button>
+            <button
+              onClick={() => setViewMode('map')}
+              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'map' 
+                  ? 'bg-white text-gray-900 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="hidden sm:inline">지도</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {!selectedStadium ? (
         <>
-        {/* 경기장 그리드 - 모바일 최적화 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {stadiums.map((stadium) => {
-            const images = parseImageUrls(stadium.imageUrls);
-            const facilities = parseFacilities(stadium.facilities);
-            return (
-              <Card
-                key={stadium.id}
-                hover
-                padding="none"
-                onClick={() => setSelectedStadium(stadium)}
-              >
-              <div className="relative">
-                <img
-                  src={images[0] || 'https://via.placeholder.com/800x600/e5e7eb/9ca3af?text=경기장'}
-                  alt={stadium.name}
-                  className="w-full h-40 sm:h-48 object-cover"
-                  loading="lazy"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = 'https://via.placeholder.com/800x600/e5e7eb/9ca3af?text=경기장';
-                  }}
-                />
-              </div>
+          {viewMode === 'grid' ? (
+            /* 경기장 대형 카드 - 한 줄에 하나씩 */
+            <div className="space-y-6">
+              {stadiums.map((stadium) => {
+                const images = parseImageUrls(stadium.imageUrls);
+                const facilities = parseFacilities(stadium.facilities);
+                return (
+                  <Card
+                    key={stadium.id}
+                    hover
+                    padding="none"
+                    onClick={() => setSelectedStadium(stadium)}
+                    className="overflow-hidden"
+                  >
+                    <div className="md:flex">
+                      {/* 구장 이미지 - 큰 사이즈 */}
+                      <div className="md:w-1/2 lg:w-2/3">
+                        <div className="relative">
+                          <img
+                            src={ImageUtil.createSafeImageSrc(images[0], () => ImageUtil.createStadiumPlaceholder(stadium.name))}
+                            alt={stadium.name}
+                            className="w-full h-64 md:h-80 lg:h-96 object-cover"
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = ImageUtil.createStadiumPlaceholder(stadium.name);
+                            }}
+                          />
+                          {/* 이미지 개수 표시 */}
+                          {images.length > 1 && (
+                            <div className="absolute top-4 right-4 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-sm">
+                              📸 {images.length}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* 구장 정보 */}
+                      <div className="md:w-1/2 lg:w-1/3 p-6 flex flex-col justify-between">
+                        <div>
+                          <div className="mb-4">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">{stadium.name}</h3>
+                            <div className="flex items-start">
+                              <span className="text-gray-400 mr-2 mt-1">📍</span>
+                              <p className="text-gray-600 text-sm leading-relaxed">{stadium.address}</p>
+                            </div>
+                          </div>
 
-              <div className="p-3 sm:p-4">
-                <div className="mb-3">
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 truncate">{stadium.name}</h3>
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs sm:text-sm text-gray-600 flex items-center flex-1 min-w-0">
-                      <span className="mr-1 text-sm">📍</span>
-                      <span className="truncate">{stadium.address}</span>
-                    </p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewMap(stadium);
-                      }}
-                      className="ml-2 p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                      title="지도에서 보기"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
+                          <div className="space-y-3 mb-4">
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-600">이용요금</span>
+                              <span className="font-semibold text-lg text-primary-600">{formatPrice(stadium.hourlyRate)}</span>
+                            </div>
+                            {stadium.availableHours && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-600">이용시간</span>
+                                <span className="font-medium">{stadium.availableHours}</span>
+                              </div>
+                            )}
+                            {stadium.contactNumber && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-600">연락처</span>
+                                <span className="font-medium">{stadium.contactNumber}</span>
+                              </div>
+                            )}
+                          </div>
 
-                <div className="space-y-2 mb-3 sm:mb-4">
-                  <div className="flex justify-between text-xs sm:text-sm">
-                    <span className="text-gray-600">이용요금</span>
-                    <span className="font-medium text-primary-600 truncate ml-2">{formatPrice(stadium.hourlyRate)}</span>
-                  </div>
-                  {stadium.availableHours && (
-                    <div className="flex justify-between text-xs sm:text-sm">
-                      <span className="text-gray-600">이용시간</span>
-                      <span className="font-medium truncate ml-2">{stadium.availableHours}</span>
+                          {/* 시설 */}
+                          {facilities.length > 0 && (
+                            <div className="mb-4">
+                              <h4 className="text-sm font-medium text-gray-900 mb-2">이용 가능한 시설</h4>
+                              <div className="flex flex-wrap gap-1">
+                                {facilities.slice(0, 4).map((facility, index) => (
+                                  <span
+                                    key={index}
+                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
+                                  >
+                                    {facility}
+                                  </span>
+                                ))}
+                                {facilities.length > 4 && (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
+                                    +{facilities.length - 4}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewMap(stadium);
+                            }}
+                            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-200 rounded-lg hover:bg-gray-200 transition-colors"
+                          >
+                            📍 지도보기
+                          </button>
+                          <button
+                            onClick={() => setSelectedStadium(stadium)}
+                            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 transition-colors"
+                          >
+                            자세히 보기
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            /* 지도 뷰 */
+            <div className="h-96 sm:h-[500px] lg:h-[600px]">
+              <StadiumsMapView
+                stadiums={stadiums}
+                onStadiumClick={setSelectedStadium}
+                height="100%"
+              />
+            </div>
+          )}
 
-                {facilities.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs sm:text-sm text-gray-600 mb-2">주요 시설</p>
-                    <div className="flex flex-wrap gap-1">
-                      {facilities.slice(0, 3).map((facility, index) => (
-                        <span key={index} className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                          {facility}
-                        </span>
-                      ))}
-                      {facilities.length > 3 && (
-                        <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                          +{facilities.length - 3}개
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-              </Card>
-            );
-          })}
-        </div>
+          {/* 경기장이 없는 경우 */}
+          {stadiums.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-gray-400 text-6xl mb-4">🏟️</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">등록된 경기장이 없습니다</h3>
+              <p className="text-gray-600">아직 등록된 경기장이 없습니다.</p>
+            </div>
+          )}
         </>
       ) : (
-        <>
-        {/* 경기장 상세 - 모바일 최적화 */}
-        <div className="max-w-4xl mx-auto">
+        /* 선택된 경기장 상세 정보 */
+        <div>
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={() => setSelectedStadium(null)}
-            leftIcon={
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            }
-            className="mb-4 sm:mb-6 text-sm sm:text-base touch-manipulation"
+            className="mb-6"
           >
-            목록으로 돌아가기
+            ← 목록으로 돌아가기
           </Button>
 
           <Card padding="lg">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-              {/* 이미지 섹션 - 모바일 최적화 */}
-              <div>
+            <div className="max-w-4xl mx-auto">
+              <div className="mb-6">
                 {(() => {
                   const images = parseImageUrls(selectedStadium.imageUrls);
                   return (
                     <>
                       <img
-                        src={images[0] || 'https://via.placeholder.com/800x600/e5e7eb/9ca3af?text=경기장'}
+                        src={ImageUtil.createSafeImageSrc(images[0], () => ImageUtil.createStadiumPlaceholder(selectedStadium.name))}
                         alt={selectedStadium.name}
                         className="w-full h-48 sm:h-56 lg:h-64 object-cover rounded-lg mb-4"
                       />
@@ -197,8 +273,7 @@ const Stadiums: React.FC = () => {
                               key={index}
                               src={image}
                               alt={`${selectedStadium.name} ${index + 2}`}
-                              className="w-full h-16 sm:h-20 object-cover rounded"
-                              loading="lazy"
+                              className="w-full h-20 object-cover rounded"
                             />
                           ))}
                         </div>
@@ -207,89 +282,81 @@ const Stadiums: React.FC = () => {
                   );
                 })()}
               </div>
+              
+              <div className="text-center mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{selectedStadium.name}</h1>
+                <p className="text-gray-600 flex items-center justify-center">
+                  <span className="mr-1">📍</span>
+                  {selectedStadium.address}
+                </p>
+              </div>
 
-              {/* 정보 섹션 - 모바일 최적화 */}
-              <div>
-                <div className="mb-4 lg:mb-6">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">{selectedStadium.name}</h1>
-                  <p className="text-sm sm:text-base text-gray-600 flex items-center mb-2">
-                    <span className="mr-2">📍</span>
-                    <span className="break-words">{selectedStadium.address}</span>
-                  </p>
-                </div>
-
-                {/* 정보 카드 - 모바일 최적화 */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 lg:mb-6">
-                  <div className="bg-primary-50 p-3 sm:p-4 rounded-lg">
-                    <div className="text-primary-600 font-semibold text-base sm:text-lg">{formatPrice(selectedStadium.hourlyRate)}</div>
-                    <div className="text-xs sm:text-sm text-gray-600">이용요금</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h3 className="font-semibold text-blue-900 mb-2">이용요금</h3>
+                    <p className="text-2xl font-bold text-blue-600">{formatPrice(selectedStadium.hourlyRate)}</p>
                   </div>
+                  
                   {selectedStadium.availableHours && (
-                    <div className="bg-green-50 p-3 sm:p-4 rounded-lg">
-                      <div className="text-green-600 font-semibold text-base sm:text-lg break-words">
-                        {selectedStadium.availableHours}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600">이용시간</div>
-                    </div>
-                  )}
-                  {selectedStadium.contactNumber && (
-                    <div className="bg-orange-50 p-3 sm:p-4 rounded-lg">
-                      <div className="text-orange-600 font-semibold text-base sm:text-lg">{selectedStadium.contactNumber}</div>
-                      <div className="text-xs sm:text-sm text-gray-600">연락처</div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-green-900 mb-2">이용시간</h3>
+                      <p className="text-lg font-medium text-green-800">{selectedStadium.availableHours}</p>
                     </div>
                   )}
                 </div>
 
-                {/* 편의시설 - 모바일 최적화 */}
-                {(() => {
-                  const facilities = parseFacilities(selectedStadium.facilities);
-                  return facilities.length > 0 && (
-                    <div className="mb-4 lg:mb-6">
-                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">편의시설</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {facilities.map((facility, index) => (
-                          <div key={index} className="flex items-center text-sm text-gray-700">
-                            <span className="w-2 h-2 bg-primary-500 rounded-full mr-2 flex-shrink-0"></span>
-                            <span className="break-words">{facility}</span>
-                          </div>
-                        ))}
-                      </div>
+                <div className="space-y-4">
+                  {selectedStadium.contactNumber && (
+                    <div className="bg-orange-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-orange-900 mb-2">연락처</h3>
+                      <p className="text-lg font-medium text-orange-800">{selectedStadium.contactNumber}</p>
                     </div>
-                  );
-                })()}
-
-                {/* 액션 버튼 - 모바일 최적화 */}
-                <div className="flex gap-3">
-                  <Button variant="primary" className="flex-1 py-3 sm:py-2 text-sm sm:text-base touch-manipulation">
-                    예약 문의
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="py-3 sm:py-2 px-4 touch-manipulation"
+                  )}
+                  
+                  <button
                     onClick={() => handleViewMap(selectedStadium)}
+                    className="w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-700 transition-colors"
                   >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </Button>
+                    📍 지도에서 보기
+                  </button>
                 </div>
               </div>
+
+              {(() => {
+                const facilities = parseFacilities(selectedStadium.facilities);
+                return facilities.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">이용 가능한 시설</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {facilities.map((facility, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                        >
+                          {facility}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </Card>
         </div>
-        </>
       )}
-      
-      {/* 구장 위치 지도 모달 */}
-      <StadiumMapModal
-        isOpen={showMapModal}
-        onClose={() => {
-          setShowMapModal(false);
-          setMapStadium(null);
-        }}
-        stadium={mapStadium}
-      />
+
+      {/* 지도 모달 */}
+      {showMapModal && mapStadium && (
+        <StadiumMapModal
+          stadium={mapStadium}
+          isOpen={showMapModal}
+          onClose={() => {
+            setShowMapModal(false);
+            setMapStadium(null);
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -124,21 +124,42 @@ const StadiumEditModal: React.FC<StadiumEditModalProps> = ({
     onClose();
   };
 
-  // 주소로 좌표 검색 (실제로는 Geocoding API를 사용해야 함)
+  // 주소로 좌표 검색
   const searchCoordinates = async () => {
     if (!formData.address) {
       alert('주소를 먼저 입력해주세요.');
       return;
     }
-    
-    // 임시로 서울 시청 좌표로 설정
-    setFormData(prev => ({
-      ...prev,
-      latitude: 37.5666805,
-      longitude: 126.9784147
-    }));
-    
-    alert('실제로는 Geocoding API를 통해 좌표를 검색해야 합니다.\n임시로 서울시청 좌표로 설정되었습니다.');
+
+    try {
+      if (!window.kakao || !window.kakao.maps || !window.kakao.maps.services) {
+        alert('카카오맵 서비스가 로드되지 않았습니다.');
+        return;
+      }
+
+      const geocoder = new window.kakao.maps.services.Geocoder();
+      
+      geocoder.addressSearch(formData.address, (result: any, status: any) => {
+        if (status === window.kakao.maps.services.Status.OK) {
+          const coords = result[0];
+          const lat = parseFloat(coords.y);
+          const lng = parseFloat(coords.x);
+          
+          setFormData(prev => ({
+            ...prev,
+            latitude: lat,
+            longitude: lng
+          }));
+          
+          alert(`좌표 검색 완료!\n위도: ${lat}\n경도: ${lng}`);
+        } else {
+          alert('주소를 찾을 수 없습니다. 정확한 주소를 입력해주세요.');
+        }
+      });
+    } catch (error) {
+      console.error('좌표 검색 오류:', error);
+      alert('좌표 검색 중 오류가 발생했습니다.');
+    }
   };
 
   if (!stadium) return null;

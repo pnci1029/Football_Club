@@ -2,7 +2,9 @@ package io.be.controller.public
 
 import io.be.dto.StadiumDto
 import io.be.service.StadiumService
+import io.be.service.SubdomainService
 import io.be.util.ApiResponse
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.ResponseEntity
@@ -12,15 +14,32 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/v1/stadiums")
 @CrossOrigin(origins = ["*"])
 class StadiumController(
-    private val stadiumService: StadiumService
+    private val stadiumService: StadiumService,
+    private val subdomainService: SubdomainService
 ) {
     
     @GetMapping
     fun getAllStadiums(
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int
+        @RequestParam(defaultValue = "10") size: Int,
+        httpRequest: HttpServletRequest
     ): ResponseEntity<ApiResponse<Page<StadiumDto>>> {
-        val stadiums = stadiumService.findAllStadiums(PageRequest.of(page, size))
+        // 서브도메인에서 팀 코드 추출
+        val teamCode = subdomainService.extractTeamCodeFromRequest(httpRequest)
+        
+        val stadiums = if (teamCode != null) {
+            // 특정 팀의 구장만 반환
+            val team = subdomainService.getTeamByCode(teamCode)
+            if (team != null) {
+                stadiumService.findStadiumsByTeam(team.id, PageRequest.of(page, size))
+            } else {
+                stadiumService.findAllStadiums(PageRequest.of(page, size))
+            }
+        } else {
+            // 모든 구장 반환 (메인 도메인 등)
+            stadiumService.findAllStadiums(PageRequest.of(page, size))
+        }
+        
         return ResponseEntity.ok(ApiResponse.success(stadiums))
     }
     
