@@ -69,3 +69,25 @@ allOpen {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+// Gradle 빌드 성능 최적화
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs = listOf("-Xjsr305=strict", "-Xjvm-default=all")
+        jvmTarget = "17"
+    }
+}
+
+// Kapt 성능 최적화
+kapt {
+    useBuildCache = true
+    arguments {
+        arg("querydsl.entityAccessors", "true")
+    }
+}
+
+// 빌드 캐시 활성화
+tasks.withType<JavaCompile> {
+    options.isIncremental = true
+    options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked"))
+}

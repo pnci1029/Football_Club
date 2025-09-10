@@ -1,36 +1,54 @@
-# Build artifacts
+# Build artifacts (빌드 결과물 제외로 캐시 최적화)
 build/
 .gradle/
 *.jar
 *.war
 *.ear
+out/
 
-# IDE files
+# IDE files (불필요한 파일 제외)
 .idea/
 *.iml
 *.ipr
 *.iws
 .vscode/
+*.swp
+*.swo
 
 # OS files
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Logs
 *.log
+logs/
 
 # Temporary files
 *.tmp
 *.temp
+*.cache
 
-# Git
+# Git (버전 관리 파일 제외)
 .git/
 .gitignore
+.gitattributes
 
-# Docker
-Dockerfile
+# Docker (Docker 관련 파일 제외)
+Dockerfile*
 .dockerignore
+docker-compose*.yml
 
-# Test reports
+# Test reports (테스트 결과 제외)
 build/reports/
 build/test-results/
+coverage/
+
+# Node modules (혹시 있을 수 있는)
+node_modules/
+
+# Kotlin 컴파일 캐시
+.kotlin/
+
+# Gradle wrapper jar는 포함 (필수)
+!gradle/wrapper/gradle-wrapper.jar
