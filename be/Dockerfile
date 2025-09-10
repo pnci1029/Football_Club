@@ -1,5 +1,5 @@
-# Backend 빌드
-FROM amazoncorretto:17-alpine AS builder
+# 의존성 캐싱 스테이지
+FROM amazoncorretto:17-alpine AS deps
 
 WORKDIR /app
 
@@ -8,8 +8,11 @@ COPY gradle/ gradle/
 COPY gradlew build.gradle.kts settings.gradle.kts ./
 RUN chmod +x ./gradlew
 
-# 의존성 다운로드
+# 의존성만 다운로드 (캐시 레이어)
 RUN ./gradlew dependencies --no-daemon
+
+# Backend 빌드 스테이지
+FROM deps AS builder
 
 # 소스 코드 복사 및 빌드
 COPY src/ src/

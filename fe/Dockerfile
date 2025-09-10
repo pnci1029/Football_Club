@@ -1,12 +1,13 @@
-FROM node:20-alpine AS build
-
+# 의존성 캐싱 스테이지
+FROM node:20-alpine AS deps
 WORKDIR /app
-
-# package.json과 yarn.lock 먼저 복사 (캐싱 최적화)
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --production=false
 
-# 소스 코드 복사 및 빌드
+# 빌드 스테이지
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . ./
 ENV NODE_ENV=production
 RUN CI=false yarn build
