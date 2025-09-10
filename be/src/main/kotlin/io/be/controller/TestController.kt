@@ -14,7 +14,6 @@ class TestController {
         @PathVariable value: String
     ): String {
 
-
         return value
     }
 }

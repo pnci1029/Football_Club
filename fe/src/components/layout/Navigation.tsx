@@ -8,10 +8,10 @@ const Navigation: React.FC = () => {
   const location = useLocation();
 
   const menuItems = [
-    { name: '홈', href: '/', icon: '🏠' },
-    { name: '선수단', href: '/players', icon: '⚽' },
-    { name: '구장정보', href: '/stadiums', icon: '🏟️' },
-    { name: '경기일정', href: '/matches', icon: '📅' },
+    { name: '홈', href: '/' },
+    { name: '선수', href: '/players' },
+    { name: '구장', href: '/stadiums' },
+    { name: '경기', href: '/matches' },
   ];
 
   if (isLoading) {
@@ -43,7 +43,7 @@ const Navigation: React.FC = () => {
                 />
               ) : (
                 <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary-500 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm sm:text-lg">⚽</span>
+                  <span className="text-white font-bold text-sm sm:text-lg">FC</span>
                 </div>
               )}
               <div className="ml-2 sm:ml-3">
@@ -63,13 +63,12 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center space-x-2 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium touch-manipulation ${
+                className={`transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium touch-manipulation ${
                   location.pathname === item.href 
                     ? 'text-primary-600 bg-primary-50' 
                     : 'text-gray-700 hover:text-primary-600 hover:bg-primary-50/50'
                 }`}
               >
-                <span>{item.icon}</span>
                 <span>{item.name}</span>
               </Link>
             ))}
@@ -107,7 +106,7 @@ const Navigation: React.FC = () => {
             <Link
               key={item.name}
               to={item.href}
-              className={`flex items-center space-x-4 px-4 py-4 rounded-xl text-base font-medium transition-all duration-200 touch-manipulation ${
+              className={`flex items-center px-4 py-4 rounded-xl text-base font-medium transition-all duration-200 touch-manipulation ${
                 location.pathname === item.href 
                   ? 'text-primary-700 bg-primary-50 border border-primary-100 shadow-sm' 
                   : 'text-gray-700 hover:text-primary-600 hover:bg-primary-50/50 active:bg-primary-50'
@@ -118,13 +117,6 @@ const Navigation: React.FC = () => {
                 animation: isOpen ? 'slideInLeft 0.3s ease-out forwards' : undefined
               }}
             >
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg ${
-                location.pathname === item.href 
-                  ? 'bg-primary-100' 
-                  : 'bg-gray-100'
-              }`}>
-                {item.icon}
-              </div>
               <span className="flex-1">{item.name}</span>
               {location.pathname === item.href && (
                 <div className="w-2 h-2 bg-primary-500 rounded-full"></div>

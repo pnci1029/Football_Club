@@ -5,6 +5,7 @@ import { Card, Button, LoadingSpinner } from '../components/common';
 import StadiumMapModal from '../components/admin/StadiumMapModal';
 import StadiumsMapView from '../components/stadiums/StadiumsMapView';
 import { ImageUtil } from '../utils/image';
+import { Map, MapMarker } from 'react-kakao-maps-sdk';
 
 const formatPrice = (price?: number) => {
   return price ? `${price.toLocaleString()}원/시간` : '문의';
@@ -114,7 +115,6 @@ const Stadiums: React.FC = () => {
             /* 경기장 대형 카드 - 한 줄에 하나씩 */
             <div className="space-y-6">
               {stadiums.map((stadium) => {
-                const images = parseImageUrls(stadium.imageUrls);
                 const facilities = parseFacilities(stadium.facilities);
                 return (
                   <Card
@@ -125,25 +125,41 @@ const Stadiums: React.FC = () => {
                     className="overflow-hidden"
                   >
                     <div className="md:flex">
-                      {/* 구장 이미지 - 큰 사이즈 */}
+                      {/* 구장 지도 - 큰 사이즈 */}
                       <div className="md:w-1/2 lg:w-2/3">
-                        <div className="relative">
-                          <img
-                            src={ImageUtil.createSafeImageSrc(images[0], () => ImageUtil.createStadiumPlaceholder(stadium.name))}
-                            alt={stadium.name}
-                            className="w-full h-64 md:h-80 lg:h-96 object-cover"
-                            loading="lazy"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = ImageUtil.createStadiumPlaceholder(stadium.name);
-                            }}
-                          />
-                          {/* 이미지 개수 표시 */}
-                          {images.length > 1 && (
-                            <div className="absolute top-4 right-4 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-sm">
-                              📸 {images.length}
+                        <div className="relative h-64 md:h-80 lg:h-96">
+                          {stadium.latitude && stadium.longitude ? (
+                            <Map
+                              center={{
+                                lat: stadium.latitude,
+                                lng: stadium.longitude,
+                              }}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                              }}
+                              level={3}
+                            >
+                              <MapMarker
+                                position={{
+                                  lat: stadium.latitude,
+                                  lng: stadium.longitude,
+                                }}
+                                title={stadium.name}
+                              />
+                            </Map>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                              <div className="text-center">
+                                <div className="text-4xl text-gray-400 mb-2">📍</div>
+                                <p className="text-gray-500">위치 정보 없음</p>
+                              </div>
                             </div>
                           )}
+                          {/* 구장명 오버레이 */}
+                          <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded">
+                            🏟️ {stadium.name}
+                          </div>
                         </div>
                       </div>
                       
