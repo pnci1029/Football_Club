@@ -4,6 +4,7 @@ import CreateTeamModal from '../../components/admin/CreateTeamModal';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import QRCodeModal from '../../components/admin/QRCodeModal';
 import { adminTeamService } from '../../services/adminTeamService';
+import { getProductionDomain, getTeamUrl } from '../../utils/config';
 
 const TenantManagement: React.FC = () => {
   const [tenants, setTenants] = useState<TeamStats[]>([]);
@@ -37,7 +38,7 @@ const TenantManagement: React.FC = () => {
   };
 
   const getTenantUrl = (code: string) => {
-    return `${code}.football-club.kr`;
+    return `${code}.${getProductionDomain()}`;
   };
 
   const handleCreateTeam = async (teamData: CreateTeamData) => {
@@ -199,7 +200,7 @@ const TenantManagement: React.FC = () => {
                           QR
                         </button>
                         <a 
-                          href={`https://${getTenantUrl(tenant.code)}`}
+                          href={getTeamUrl(tenant.code)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-green-600 hover:text-green-900"

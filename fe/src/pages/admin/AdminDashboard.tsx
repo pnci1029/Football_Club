@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { adminService, DashboardStats } from '../../services/adminService';
+import { getProductionDomain, getTeamUrl } from '../../utils/config';
 
 
 const AdminDashboard: React.FC = () => {
@@ -109,10 +110,10 @@ const AdminDashboard: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="font-semibold text-gray-900">{team.name}</h3>
-                    <p className="text-sm text-gray-500">{team.code}.football-club.kr</p>
+                    <p className="text-sm text-gray-500">{team.code}.{getProductionDomain()}</p>
                   </div>
                   <a 
-                    href={`https://${team.code}.football-club.kr`}
+                    href={getTeamUrl(team.code)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-gray-600"

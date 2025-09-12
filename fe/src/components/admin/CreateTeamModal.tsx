@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../common';
 import { CreateTeamData } from '../../services/adminService';
+import { getProductionDomain } from '../../utils/config';
 
 interface CreateTeamModalProps {
   isOpen: boolean;
@@ -141,7 +142,7 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
                 maxLength={20}
               />
               <div className="absolute right-3 top-2 text-sm text-gray-400">
-                .football-club.kr
+                .{getProductionDomain()}
               </div>
             </div>
             {errors.code && (

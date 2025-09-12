@@ -6,6 +6,7 @@ import { adminService, TeamStats, StadiumDto } from '../../services/adminService
 import StadiumCreateModal from '../../components/admin/StadiumCreateModal';
 import StadiumEditModal from '../../components/admin/StadiumEditModal';
 import StadiumMapModal from '../../components/admin/StadiumMapModal';
+import { getApiBaseUrl } from '../../utils/config';
 
 const AdminStadiums: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -68,13 +69,8 @@ const AdminStadiums: React.FC = () => {
 
     try {
       console.log('=== DIRECT DELETE EXECUTION ===');
-      // 환경변수 또는 동적 URL 생성
-      const currentHost = window.location.host;
-      const baseUrl = currentHost.includes('localhost') 
-        ? process.env.REACT_APP_API_URL || 'http://localhost:8082'
-        : process.env.REACT_APP_PRODUCTION_DOMAIN || `http://${currentHost.split('.').slice(-2).join('.')}`;
       
-      const response = await fetch(`${baseUrl}/api/v1/admin/stadiums/${stadium.id}`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/stadiums/${stadium.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

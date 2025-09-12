@@ -23,17 +23,15 @@ import NotFound from './pages/NotFound';
 import Landing from './pages/Landing';
 import './App.css';
 
+import { isMainDomain } from './utils/config';
+
 const AppContent: React.FC = () => {
   const hostname = window.location.hostname;
-
-  const isMainDomain = hostname === 'localhost' ||
-                      hostname === 'football-club.local' ||
-                      hostname === 'football-club.kr';
 
   const isAdminDomain = hostname === 'admin.localhost' ||
                        hostname.startsWith('admin.');
 
-  if (isMainDomain) {
+  if (isMainDomain(hostname)) {
     // 메인 도메인: 랜딩 페이지만 표시
     return <Landing />;
   }

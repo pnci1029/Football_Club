@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import QRCode from 'qrcode';
 import Modal from '../common/Modal';
 import { Button } from '../common';
+import { getTeamUrl } from '../../utils/config';
 
 interface QRCodeModalProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
-  const url = `https://${teamCode}.football-club.kr`;
+  const url = getTeamUrl(teamCode);
 
   const generateQRCode = useCallback(async () => {
     try {

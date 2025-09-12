@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Card } from '../components/common';
 import { inquiryService, CreateInquiryRequest } from '../services/inquiryService';
+import { getProductionDomain } from '../utils/config';
 
 const Landing: React.FC = () => {
   const [contactForm, setContactForm] = useState({
@@ -78,8 +79,8 @@ const Landing: React.FC = () => {
   ];
 
   const sampleTeams = [
-    { name: '김철수 FC', domain: 'kim.football-club.kr', description: '서울 지역 축구 동호회' },
-    { name: '박영희 유나이티드', domain: 'park.football-club.kr', description: '부산 지역 축구 동호회' }
+    { name: '김철수 FC', domain: `kim.${getProductionDomain()}`, description: '서울 지역 축구 동호회' },
+    { name: '박영희 유나이티드', domain: `park.${getProductionDomain()}`, description: '부산 지역 축구 동호회' }
   ];
 
   return (

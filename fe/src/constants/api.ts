@@ -5,27 +5,9 @@
 /**
  * API Base URL 결정 함수
  */
-export const getApiBaseUrl = (): string => {
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
-  }
+import { getApiBaseUrl } from '../utils/config';
 
-  // 배포 환경 - 모든 서브도메인에서 메인 도메인으로 리다이렉트
-  const hostname = window.location.hostname;
-  console.log('hostname : ',hostname)
-
-  // 로컬 개발 환경
-  if (window.location.hostname.includes('localhost')) {
-    return process.env.REACT_APP_API_URL || 'http://localhost:8082';
-  }
-
-  if (hostname.includes('.football-club.kr')) {
-    return process.env.REACT_APP_PRODUCTION_DOMAIN || 'https://football-club.kr';
-  }
-
-  // 기본 배포 환경 - nginx 프록시를 통해 같은 호스트로 요청 (HTTPS)
-  return `https://${hostname}`;
-};
+export { getApiBaseUrl };
 
 /**
  * API 엔드포인트 경로 상수
