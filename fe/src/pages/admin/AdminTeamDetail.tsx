@@ -80,9 +80,38 @@ const AdminTeamDetail: React.FC = () => {
     loadTeamStadiums();
   };
 
-  const handleDeleteStadium = (stadium: StadiumDto) => {
-    setDeletingStadium(stadium);
-    setShowDeleteStadiumModal(true);
+  const handleDeleteStadium = async (stadium: StadiumDto) => {
+    console.log('=== TEAM DETAIL DELETE STADIUM ===', stadium.name);
+    const confirmed = window.confirm(`"${stadium.name}" 구장을 정말 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`);
+
+    if (!confirmed) {
+      console.log('User cancelled deletion');
+      return;
+    }
+
+    try {
+      console.log('=== DIRECT DELETE EXECUTION FROM TEAM DETAIL ===');
+      const response = await fetch(`http://localhost:8082/api/v1/admin/stadiums/${stadium.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Forwarded-Host': window.location.host
+        }
+      });
+
+      const result = await response.json();
+      console.log('DELETE result:', result);
+
+      if (result.success) {
+        alert('삭제 성공!');
+        await loadTeamStadiums();
+      } else {
+        alert('삭제 실패: ' + (result.message || '알 수 없는 오류'));
+      }
+    } catch (error) {
+      console.error('DELETE error:', error);
+      alert('삭제 중 오류가 발생했습니다.');
+    }
   };
 
   const confirmDeleteStadium = async () => {

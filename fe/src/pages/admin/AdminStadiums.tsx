@@ -58,9 +58,13 @@ const AdminStadiums: React.FC = () => {
   };
 
   const handleDeleteStadium = async (stadium: StadiumDto) => {
+    console.log('=== NEW HANDLE DELETE STADIUM CALLED ===', stadium.name);
     const confirmed = window.confirm(`"${stadium.name}" 구장을 정말 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`);
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      console.log('User cancelled deletion');
+      return;
+    }
 
     try {
       console.log('=== DIRECT DELETE EXECUTION ===');
