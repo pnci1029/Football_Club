@@ -93,13 +93,18 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
               // stadiumId가 있으면 직접 삭제, 없으면 onConfirm 호출
               if (stadiumId) {
                 try {
-                  // 현재 도메인에서 서브도메인 제거
+                  // 환경변수 또는 동적 URL 생성
+                  let baseUrl = '';
                   const currentHost = window.location.host;
-                  const mainDomain = currentHost.includes('localhost') 
-                    ? 'localhost:8082' 
-                    : currentHost.split('.').slice(-2).join('.');
-                  const apiUrl = `http://${mainDomain}/api/v1/admin/stadiums/${stadiumId}`;
-                  
+
+                  if (currentHost.includes('localhost')) {
+                    baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8082';
+                  } else {
+                    baseUrl = process.env.REACT_APP_PRODUCTION_DOMAIN || `https://${currentHost.split('.').slice(-2).join('.')}`;
+                  }
+
+                  const apiUrl = `${baseUrl}/api/v1/admin/stadiums/${stadiumId}`;
+
                   const response = await fetch(apiUrl, {
                     method: 'DELETE',
                     headers: {

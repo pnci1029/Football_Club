@@ -68,7 +68,13 @@ const AdminStadiums: React.FC = () => {
 
     try {
       console.log('=== DIRECT DELETE EXECUTION ===');
-      const response = await fetch(`http://localhost:8082/api/v1/admin/stadiums/${stadium.id}`, {
+      // 환경변수 또는 동적 URL 생성
+      const currentHost = window.location.host;
+      const baseUrl = currentHost.includes('localhost') 
+        ? process.env.REACT_APP_API_URL || 'http://localhost:8082'
+        : process.env.REACT_APP_PRODUCTION_DOMAIN || `http://${currentHost.split('.').slice(-2).join('.')}`;
+      
+      const response = await fetch(`${baseUrl}/api/v1/admin/stadiums/${stadium.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

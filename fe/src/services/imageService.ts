@@ -12,6 +12,15 @@ export interface ImageUploadError {
 
 export class ImageService {
   private static getBaseUrl(): string {
+    // 환경변수 우선 사용
+    if (process.env.REACT_APP_API_URL && process.env.NODE_ENV === 'development') {
+      return process.env.REACT_APP_API_URL;
+    }
+    
+    if (process.env.REACT_APP_PRODUCTION_DOMAIN && process.env.NODE_ENV === 'production') {
+      return process.env.REACT_APP_PRODUCTION_DOMAIN;
+    }
+    
     if (process.env.NODE_ENV === 'development') {
       return 'http://localhost:8082';
     }

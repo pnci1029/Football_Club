@@ -16,11 +16,11 @@ export const getApiBaseUrl = (): string => {
 
   // 로컬 개발 환경
   if (window.location.hostname.includes('localhost')) {
-    return 'http://localhost:8082';
+    return process.env.REACT_APP_API_URL || 'http://localhost:8082';
   }
 
   if (hostname.includes('.football-club.kr')) {
-    return 'https://football-club.kr';
+    return process.env.REACT_APP_PRODUCTION_DOMAIN || 'https://football-club.kr';
   }
 
   // 기본 배포 환경 - nginx 프록시를 통해 같은 호스트로 요청 (HTTPS)
