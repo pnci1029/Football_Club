@@ -5,7 +5,7 @@ import { Button } from '../common';
 interface ConfirmDeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
   title: string;
   itemName: string;
   itemType: string; // "선수", "팀", "구장" 등
@@ -82,11 +82,12 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
           </Button>
           <Button
             type="button"
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            variant="primary"
             onClick={onConfirm}
+            className="flex-1 bg-red-600 hover:bg-red-700 focus:ring-red-500"
             disabled={loading}
           >
-            {loading ? '삭제 중...' : '삭제하기'}
+            {loading ? '삭제 중...' : '삭제'}
           </Button>
         </div>
       </div>

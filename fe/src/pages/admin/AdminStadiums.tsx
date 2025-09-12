@@ -30,7 +30,7 @@ const AdminStadiums: React.FC = () => {
     if (teamId) {
       setSelectedTeamId(parseInt(teamId));
     }
-    
+
     const fetchTeams = async () => {
       try {
         const dashboardStats = await adminService.getDashboardStats();
@@ -39,7 +39,7 @@ const AdminStadiums: React.FC = () => {
         console.error('팀 목록 로딩 실패:', error);
       }
     };
-    
+
     fetchTeams();
   }, [searchParams]);
 
@@ -66,26 +66,6 @@ const AdminStadiums: React.FC = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmDeleteStadium = async () => {
-    if (!deletingStadium) return;
-    
-    setDeleteLoading(true);
-    try {
-      const response = await adminStadiumService.deleteStadium(deletingStadium.id);
-      if (response.success) {
-        loadStadiums();
-        setShowDeleteModal(false);
-        setDeletingStadium(null);
-      } else {
-        alert('삭제에 실패했습니다. 다시 시도해 주세요.');
-      }
-    } catch (error) {
-      console.error('Failed to delete stadium:', error);
-      alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -140,7 +120,7 @@ const AdminStadiums: React.FC = () => {
   const handleTeamChange = (teamId: number | null) => {
     setSelectedTeamId(teamId);
     setPage(0);
-    
+
     if (teamId) {
       setSearchParams({ teamId: teamId.toString() });
     } else {
@@ -180,7 +160,7 @@ const AdminStadiums: React.FC = () => {
             </p>
           </div>
         </div>
-        <Button 
+        <Button
           className="bg-purple-600 hover:bg-purple-700"
           onClick={handleCreateStadium}
         >
@@ -241,7 +221,7 @@ const AdminStadiums: React.FC = () => {
             <div className="mb-4">
               <div className="w-full h-32 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg mb-4 flex items-center justify-center">
                 {stadium.imageUrls && stadium.imageUrls.length > 0 ? (
-                  <img 
+                  <img
                     src={stadium.imageUrls[0]}
                     alt={`${stadium.name}`}
                     className="w-full h-full object-cover rounded-lg"
@@ -250,7 +230,7 @@ const AdminStadiums: React.FC = () => {
                   <span className="text-white text-4xl">🏟️</span>
                 )}
               </div>
-              
+
               <h3 className="text-lg font-bold text-gray-900 mb-2">{stadium.name}</h3>
               <p className="text-gray-600 text-sm mb-3">{stadium.address}</p>
             </div>
@@ -278,7 +258,7 @@ const AdminStadiums: React.FC = () => {
               <span className="text-sm text-gray-600 block mb-2">시설:</span>
               <div className="flex flex-wrap gap-1">
                 {stadium.facilities && stadium.facilities.map((facility, index) => (
-                  <span 
+                  <span
                     key={index}
                     className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"
                   >
@@ -290,27 +270,27 @@ const AdminStadiums: React.FC = () => {
 
             {/* 액션 버튼 */}
             <div className="flex gap-2">
-              <Button 
-                size="sm" 
-                variant="outline" 
+              <Button
+                size="sm"
+                variant="outline"
                 className="flex-1 text-purple-600 border-purple-200 hover:bg-purple-50"
                 onClick={() => handleViewMap(stadium)}
               >
                 <span className="mr-1">📍</span>
                 지도 보기
               </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
+              <Button
+                size="sm"
+                variant="outline"
                 className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
                 onClick={() => handleEditStadium(stadium)}
               >
                 <span className="mr-1">✏️</span>
                 수정
               </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
+              <Button
+                size="sm"
+                variant="outline"
                 className="text-red-600 border-red-200 hover:bg-red-50"
                 onClick={() => handleDeleteStadium(stadium)}
               >
@@ -329,7 +309,7 @@ const AdminStadiums: React.FC = () => {
             <p className="text-gray-600 mb-4">
               {searchTerm ? '검색 조건에 맞는 구장이 없습니다.' : '등록된 구장이 없습니다.'}
             </p>
-            <Button 
+            <Button
               className="bg-purple-600 hover:bg-purple-700"
               onClick={handleCreateStadium}
             >
@@ -375,18 +355,44 @@ const AdminStadiums: React.FC = () => {
       </div>
 
       {/* 삭제 확인 모달 */}
-      <ConfirmDeleteModal
-        isOpen={showDeleteModal}
-        onClose={() => {
-          setShowDeleteModal(false);
-          setDeletingStadium(null);
-        }}
-        onConfirm={confirmDeleteStadium}
-        title="구장 삭제"
-        itemName={deletingStadium?.name || ''}
-        itemType="구장"
-        loading={deleteLoading}
-      />
+      {showDeleteModal && deletingStadium && (
+        <ConfirmDeleteModal
+          key={deletingStadium.id}
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setDeletingStadium(null);
+          }}
+          onConfirm={async () => {
+            console.log('INLINE DELETE FUNCTION CALLED');
+            if (!deletingStadium) return;
+
+            setDeleteLoading(true);
+            try {
+              console.log('Sending delete request for stadium ID:', deletingStadium.id);
+              const response = await adminStadiumService.deleteStadium(deletingStadium.id);
+              console.log('Delete response:', response);
+
+              if (response.success) {
+                await loadStadiums();
+                setShowDeleteModal(false);
+                setDeletingStadium(null);
+              } else {
+                alert('삭제에 실패했습니다. 다시 시도해 주세요.');
+              }
+            } catch (error) {
+              console.error('Failed to delete stadium:', error);
+              alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+            } finally {
+              setDeleteLoading(false);
+            }
+          }}
+          title="구장 삭제"
+          itemName={deletingStadium.name}
+          itemType="구장"
+          loading={deleteLoading}
+        />
+      )}
 
       {/* 구장 생성 모달 */}
       <StadiumCreateModal
