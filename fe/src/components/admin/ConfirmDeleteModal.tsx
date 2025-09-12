@@ -8,7 +8,7 @@ interface ConfirmDeleteModalProps {
   onConfirm: () => void | Promise<void>;
   title: string;
   itemName: string;
-  itemType: string; // "선수", "팀", "구장" 등
+  itemType: string;
   loading?: boolean;
 }
 
@@ -83,7 +83,15 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
           <Button
             type="button"
             variant="primary"
-            onClick={onConfirm}
+            onClick={async () => {
+              console.log('=== DELETE BUTTON CLICKED ===');
+              try {
+                await onConfirm();
+                console.log('=== onConfirm completed ===');
+              } catch (error) {
+                console.error('Error calling onConfirm:', error);
+              }
+            }}
             className="flex-1 bg-red-600 hover:bg-red-700 focus:ring-red-500"
             disabled={loading}
           >

@@ -73,7 +73,18 @@ export class AdminStadiumService {
   }
 
   async deleteStadium(id: number): Promise<ApiResponse<string>> {
-    return apiClient.delete(`/api/v1/admin/stadiums/${id}`);
+    console.log('=== AdminStadiumService.deleteStadium ===');
+    console.log('Deleting stadium with ID:', id);
+    console.log('API URL:', `/api/v1/admin/stadiums/${id}`);
+    
+    try {
+      const response = await apiClient.delete<ApiResponse<string>>(`/api/v1/admin/stadiums/${id}`);
+      console.log('API response:', response);
+      return response;
+    } catch (error) {
+      console.error('API delete error:', error);
+      throw error;
+    }
   }
 
   async searchStadiumsByName(name: string): Promise<ApiResponse<AdminStadium[]>> {

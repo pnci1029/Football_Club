@@ -3,7 +3,6 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button, Card } from '../../components/common';
 import { adminStadiumService } from '../../services/adminStadiumService';
 import { adminService, TeamStats, StadiumDto } from '../../services/adminService';
-import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import StadiumCreateModal from '../../components/admin/StadiumCreateModal';
 import StadiumEditModal from '../../components/admin/StadiumEditModal';
 import StadiumMapModal from '../../components/admin/StadiumMapModal';
@@ -16,9 +15,6 @@ const AdminStadiums: React.FC = () => {
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [page, setPage] = useState(0);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deletingStadium, setDeletingStadium] = useState<StadiumDto | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingStadium, setEditingStadium] = useState<StadiumDto | null>(null);
@@ -61,10 +57,36 @@ const AdminStadiums: React.FC = () => {
     }
   };
 
-  const handleDeleteStadium = (stadium: StadiumDto) => {
-    setDeletingStadium(stadium);
-    setShowDeleteModal(true);
+  const handleDeleteStadium = async (stadium: StadiumDto) => {
+    const confirmed = window.confirm(`"${stadium.name}" 구장을 정말 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`);
+
+    if (!confirmed) return;
+
+    try {
+      console.log('=== DIRECT DELETE EXECUTION ===');
+      const response = await fetch(`http://localhost:8082/api/v1/admin/stadiums/${stadium.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Forwarded-Host': window.location.host
+        }
+      });
+
+      const result = await response.json();
+      console.log('DELETE result:', result);
+
+      if (result.success) {
+        alert('삭제 성공!');
+        await loadStadiums();
+      } else {
+        alert('삭제 실패: ' + (result.message || '알 수 없는 오류'));
+      }
+    } catch (error) {
+      console.error('DELETE error:', error);
+      alert('삭제 중 오류가 발생했습니다.');
+    }
   };
+
 
 
   const handleSearch = async () => {
@@ -354,45 +376,7 @@ const AdminStadiums: React.FC = () => {
         </Card>
       </div>
 
-      {/* 삭제 확인 모달 */}
-      {showDeleteModal && deletingStadium && (
-        <ConfirmDeleteModal
-          key={deletingStadium.id}
-          isOpen={showDeleteModal}
-          onClose={() => {
-            setShowDeleteModal(false);
-            setDeletingStadium(null);
-          }}
-          onConfirm={async () => {
-            console.log('INLINE DELETE FUNCTION CALLED');
-            if (!deletingStadium) return;
 
-            setDeleteLoading(true);
-            try {
-              console.log('Sending delete request for stadium ID:', deletingStadium.id);
-              const response = await adminStadiumService.deleteStadium(deletingStadium.id);
-              console.log('Delete response:', response);
-
-              if (response.success) {
-                await loadStadiums();
-                setShowDeleteModal(false);
-                setDeletingStadium(null);
-              } else {
-                alert('삭제에 실패했습니다. 다시 시도해 주세요.');
-              }
-            } catch (error) {
-              console.error('Failed to delete stadium:', error);
-              alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
-            } finally {
-              setDeleteLoading(false);
-            }
-          }}
-          title="구장 삭제"
-          itemName={deletingStadium.name}
-          itemType="구장"
-          loading={deleteLoading}
-        />
-      )}
 
       {/* 구장 생성 모달 */}
       <StadiumCreateModal
