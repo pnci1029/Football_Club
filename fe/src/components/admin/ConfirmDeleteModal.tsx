@@ -89,8 +89,6 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
             type="button"
             variant="primary"
             onClick={async () => {
-              console.log('=== DELETE BUTTON CLICKED ===');
-
               // stadiumId가 있으면 직접 삭제, 없으면 onConfirm 호출
               if (stadiumId) {
                 try {
@@ -105,7 +103,6 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
                   });
 
                   const result = await response.json();
-                  console.log('DELETE result:', result);
 
                   if (result.success) {
                     alert('삭제 성공!');
@@ -123,7 +120,6 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
               } else if (onConfirm) {
                 try {
                   await onConfirm();
-                  console.log('=== onConfirm completed ===');
                 } catch (error) {
                   console.error('Error calling onConfirm:', error);
                 }

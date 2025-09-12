@@ -59,16 +59,13 @@ const AdminStadiums: React.FC = () => {
   };
 
   const handleDeleteStadium = async (stadium: StadiumDto) => {
-    console.log('=== NEW HANDLE DELETE STADIUM CALLED ===', stadium.name);
     const confirmed = window.confirm(`"${stadium.name}" 구장을 정말 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`);
 
     if (!confirmed) {
-      console.log('User cancelled deletion');
       return;
     }
 
     try {
-      console.log('=== DIRECT DELETE EXECUTION ===');
       
       const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/stadiums/${stadium.id}`, {
         method: 'DELETE',
@@ -79,7 +76,6 @@ const AdminStadiums: React.FC = () => {
       });
 
       const result = await response.json();
-      console.log('DELETE result:', result);
 
       if (result.success) {
         alert('삭제 성공!');

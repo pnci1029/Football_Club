@@ -87,13 +87,6 @@ const MatchCreateModal: React.FC<MatchCreateModalProps> = ({
       // TODO: Replace with real API call
       const matchDateTime = `${formData.matchDate}T${formData.matchTime}:00`;
       
-      console.log('Creating match:', {
-        homeTeamId: parseInt(formData.homeTeamId),
-        awayTeamId: parseInt(formData.awayTeamId),
-        stadiumId: parseInt(formData.stadiumId),
-        matchDate: matchDateTime,
-        status: formData.status
-      });
 
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));

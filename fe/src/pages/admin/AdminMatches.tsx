@@ -327,8 +327,7 @@ const AdminMatches: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      console.log('Edit match:', match.id);
-                      console.log('경기 수정:', match.id);
+                      // TODO: 경기 수정 기능 구현
                     }}
                   >
                     수정
@@ -338,8 +337,7 @@ const AdminMatches: React.FC = () => {
                       variant="primary"
                       size="sm"
                       onClick={() => {
-                        console.log('Update score:', match.id);
-                        console.log('스코어 업데이트:', match.id);
+                        // TODO: 스코어 업데이트 기능 구현
                       }}
                     >
                       스코어

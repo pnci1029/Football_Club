@@ -163,7 +163,6 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
             longitude: lng
           }));
           
-          console.log(`좌표 검색 성공: ${address} -> (${lat}, ${lng})`);
         } else {
           console.error('주소 검색 실패:', address, status);
           // 검색 실패시 기본 좌표 설정 (서울시청)

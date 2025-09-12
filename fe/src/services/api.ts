@@ -63,15 +63,8 @@ class ApiClient {
   }
 
   async delete<T>(url: string): Promise<T> {
-    console.log('=== ApiClient.delete ===');
-    console.log('DELETE URL:', url);
-    console.log('Base URL:', this.client.defaults.baseURL);
-    console.log('Full URL:', `${this.client.defaults.baseURL}${url}`);
-    
     try {
       const response = await this.client.delete<T>(url);
-      console.log('DELETE response status:', response.status);
-      console.log('DELETE response data:', response.data);
       return response.data as T;
     } catch (error: any) {
       console.error('DELETE request failed:', error);

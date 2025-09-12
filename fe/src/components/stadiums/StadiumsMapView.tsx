@@ -22,11 +22,6 @@ const StadiumsMapView: React.FC<StadiumsMapViewProps> = ({
     // 카카오맵 로딩 상태 체크
     const checkKakaoMap = () => {
       if (typeof window !== 'undefined') {
-        console.log('카카오맵 로딩 상태 체크:', {
-          kakao: !!window.kakao,
-          maps: !!(window.kakao && window.kakao.maps),
-          readyState: window.kakao && window.kakao.maps && (window.kakao.maps as any).readyState
-        });
         
         if (!window.kakao) {
           console.error('window.kakao가 로드되지 않았습니다');
@@ -38,7 +33,6 @@ const StadiumsMapView: React.FC<StadiumsMapViewProps> = ({
           setMapError('카카오맵 API가 초기화되지 않았습니다.');
           return false;
         }
-        console.log('카카오맵 API 로드 완료:', window.kakao.maps);
         setMapError(null);
         return true;
       }
@@ -55,7 +49,6 @@ const StadiumsMapView: React.FC<StadiumsMapViewProps> = ({
     const maxRetries = 10;
     const retryInterval = setInterval(() => {
       retryCount++;
-      console.log(`카카오맵 로딩 재시도 ${retryCount}/${maxRetries}`);
       
       if (checkKakaoMap() || retryCount >= maxRetries) {
         clearInterval(retryInterval);
