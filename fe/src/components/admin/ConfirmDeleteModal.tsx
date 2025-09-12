@@ -5,11 +5,13 @@ import { Button } from '../common';
 interface ConfirmDeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void | Promise<void>;
+  onConfirm?: () => void | Promise<void>;
   title: string;
   itemName: string;
   itemType: string;
   loading?: boolean;
+  stadiumId?: number;
+  onSuccess?: () => void;
 }
 
 const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
@@ -19,7 +21,9 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
   title,
   itemName,
   itemType,
-  loading = false
+  loading = false,
+  stadiumId,
+  onSuccess
 }) => {
   return (
     <Modal
@@ -53,7 +57,7 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
           <div className="text-sm text-red-800">
             <p className="font-medium mb-2">다음 {itemType}을(를) 삭제하시겠습니까?</p>
             <p className="font-bold text-red-900">"{itemName}"</p>
-            
+
             <div className="mt-3 space-y-1">
               <p>• 모든 관련 데이터가 삭제됩니다</p>
               <p>• 이 작업은 복구할 수 없습니다</p>
@@ -85,11 +89,48 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
             variant="primary"
             onClick={async () => {
               console.log('=== DELETE BUTTON CLICKED ===');
-              try {
-                await onConfirm();
-                console.log('=== onConfirm completed ===');
-              } catch (error) {
-                console.error('Error calling onConfirm:', error);
+
+              // stadiumId가 있으면 직접 삭제, 없으면 onConfirm 호출
+              if (stadiumId) {
+                try {
+                  // 현재 도메인에서 서브도메인 제거
+                  const currentHost = window.location.host;
+                  const mainDomain = currentHost.includes('localhost') 
+                    ? 'localhost:8082' 
+                    : currentHost.split('.').slice(-2).join('.');
+                  const apiUrl = `http://${mainDomain}/api/v1/admin/stadiums/${stadiumId}`;
+                  
+                  const response = await fetch(apiUrl, {
+                    method: 'DELETE',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'X-Forwarded-Host': window.location.host
+                    }
+                  });
+
+                  const result = await response.json();
+                  console.log('DELETE result:', result);
+
+                  if (result.success) {
+                    alert('삭제 성공!');
+                    if (onSuccess) {
+                      onSuccess();
+                    }
+                    onClose();
+                  } else {
+                    alert('삭제 실패: ' + (result.message || '알 수 없는 오류'));
+                  }
+                } catch (error) {
+                  console.error('DELETE error:', error);
+                  alert('삭제 중 오류가 발생했습니다.');
+                }
+              } else if (onConfirm) {
+                try {
+                  await onConfirm();
+                  console.log('=== onConfirm completed ===');
+                } catch (error) {
+                  console.error('Error calling onConfirm:', error);
+                }
               }
             }}
             className="flex-1 bg-red-600 hover:bg-red-700 focus:ring-red-500"
