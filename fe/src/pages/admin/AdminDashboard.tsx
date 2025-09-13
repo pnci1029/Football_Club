@@ -188,13 +188,6 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-xs text-gray-500">관리</div>
               </div>
             </Link>
-            <Link to="/admin/stadiums" className="group p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-              <div className="text-center">
-                <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">🏟️</div>
-                <div className="text-sm font-medium text-gray-900">구장</div>
-                <div className="text-xs text-gray-500">관리</div>
-              </div>
-            </Link>
           </div>
         </div>
       </div>

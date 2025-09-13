@@ -14,7 +14,6 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPlayers from './pages/admin/AdminPlayers';
 import AdminTeams from './pages/admin/AdminTeams';
 import AdminTeamDetail from './pages/admin/AdminTeamDetail';
-import AdminStadiums from './pages/admin/AdminStadiums';
 import AdminMatches from './pages/admin/AdminMatches';
 import AdminInquiries from './pages/admin/AdminInquiries';
 import AdminHeroSlides from './pages/admin/AdminHeroSlides';
@@ -24,6 +23,13 @@ import Landing from './pages/Landing';
 import './App.css';
 
 import { isMainDomain } from './utils/config';
+
+// 개발 환경에서만 API 테스터 로드
+if (process.env.NODE_ENV === 'development') {
+  import('./utils/api-tester').then(() => {
+    console.log('🧪 API 테스터가 로드되었습니다. 개발자 콘솔에서 testAllApis() 를 실행해보세요.');
+  });
+}
 
 const AppContent: React.FC = () => {
   const hostname = window.location.hostname;
@@ -51,7 +57,6 @@ const AppContent: React.FC = () => {
                 <Route path="/players" element={<AdminPlayers />} />
                 <Route path="/teams" element={<AdminTeams />} />
                 <Route path="/teams/:teamId" element={<AdminTeamDetail />} />
-                <Route path="/teams/stadiums" element={<AdminStadiums />} />
                 <Route path="/matches" element={<AdminMatches />} />
                 <Route path="/inquiries" element={<AdminInquiries />} />
                 <Route path="*" element={<NotFound />} />
@@ -92,13 +97,6 @@ const AppContent: React.FC = () => {
           <ProtectedRoute>
             <AdminLayout>
               <AdminTeamDetail />
-            </AdminLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/teams/stadiums" element={
-          <ProtectedRoute>
-            <AdminLayout>
-              <AdminStadiums />
             </AdminLayout>
           </ProtectedRoute>
         } />

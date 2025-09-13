@@ -20,7 +20,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
     { path: '/tenants', label: '서브도메인 관리', icon: '🏢' },
     { path: '/teams', label: '팀 관리', icon: '👥' },
     { path: '/players', label: '선수 관리', icon: '👤' },
-    { path: '/stadiums', label: '구장 관리', icon: '🏟️' },
     { path: '/matches', label: '경기 관리', icon: '⚽' },
     { path: '/inquiries', label: '문의 관리', icon: '📝' },
   ];
