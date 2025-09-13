@@ -1,9 +1,7 @@
 import { LoginResponse, AdminInfo, TokenValidationResponse } from '../types/auth';
-import { buildApiUrl, handleApiError, createApiHeaders } from '../utils/api';
-import { TokenStorage } from '../utils/storage';
 import { Logger } from '../utils/logger';
-import { API_ENDPOINTS, CONTENT_TYPES } from '../constants/api';
 import { ERROR_MESSAGES } from '../constants/messages';
+import { Auth } from '../api';
 
 class AuthService {
 
@@ -11,50 +9,29 @@ class AuthService {
    * 관리자 로그인
    */
   async login(username: string, password: string): Promise<LoginResponse> {
-    const response = await fetch(buildApiUrl(API_ENDPOINTS.ADMIN_LOGIN), {
-      method: 'POST',
-      headers: createApiHeaders(CONTENT_TYPES.JSON),
-      body: JSON.stringify({ username, password }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(handleApiError(errorData, ERROR_MESSAGES.LOGIN_FAILED));
+    try {
+      const loginData = await Auth.loginUser({ username, password } as any);
+      
+      return {
+        accessToken: loginData.accessToken,
+        refreshToken: loginData.refreshToken || '',
+        admin: loginData.admin
+      };
+    } catch (error) {
+      console.error('로그인 실패:', error);
+      console.error('에러 상세:', error);
+      throw new Error(ERROR_MESSAGES.LOGIN_FAILED);
     }
-
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(handleApiError(data, ERROR_MESSAGES.LOGIN_FAILED));
-    }
-
-    const loginResponse = data.data;
-
-    // 토큰 저장
-    TokenStorage.setAccessToken(loginResponse.accessToken);
-    TokenStorage.setRefreshToken(loginResponse.refreshToken);
-
-    return loginResponse;
   }
 
   /**
    * 로그아웃
    */
   async logout(): Promise<void> {
-    const admin = await this.getCurrentAdmin().catch(() => null);
-
     try {
-      if (admin) {
-        await fetch(buildApiUrl(API_ENDPOINTS.ADMIN_LOGOUT), {
-          method: 'POST',
-          headers: createApiHeaders(CONTENT_TYPES.JSON, TokenStorage.getAccessToken() || undefined),
-          body: JSON.stringify({ username: admin.username }),
-        });
-      }
+      await Auth.logoutUser();
     } catch (error) {
       Logger.warn('Logout API call failed:', error);
-    } finally {
-      // 로컬 토큰 삭제
-      TokenStorage.clearTokens();
     }
   }
 
@@ -62,112 +39,68 @@ class AuthService {
    * 토큰 갱신
    */
   async refreshToken(): Promise<string> {
-    const refreshToken = TokenStorage.getRefreshToken();
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    const response = await fetch(buildApiUrl(API_ENDPOINTS.ADMIN_REFRESH), {
-      method: 'POST',
-      headers: createApiHeaders(CONTENT_TYPES.JSON),
-      body: JSON.stringify({ refreshToken }),
-    });
-
-    if (!response.ok) {
-      TokenStorage.clearTokens();
+    try {
+      const newToken = await Auth.refreshToken();
+      if (!newToken) {
+        throw new Error('Token refresh failed');
+      }
+      return newToken;
+    } catch (error) {
+      Auth.clearTokens();
       throw new Error(ERROR_MESSAGES.TOKEN_EXPIRED);
     }
-
-    const data = await response.json();
-    if (!data.success) {
-      TokenStorage.clearTokens();
-      throw new Error(handleApiError(data, ERROR_MESSAGES.TOKEN_EXPIRED));
-    }
-
-    const newAccessToken = data.data.accessToken;
-    TokenStorage.setAccessToken(newAccessToken);
-
-    return newAccessToken;
   }
 
   /**
    * 현재 관리자 정보 조회
    */
   async getCurrentAdmin(): Promise<AdminInfo> {
-    const accessToken = TokenStorage.getAccessToken();
-    if (!accessToken) {
-      throw new Error('No access token');
-    }
-
-    const response = await fetch(buildApiUrl(API_ENDPOINTS.ADMIN_ME), {
-      method: 'GET',
-      headers: createApiHeaders(CONTENT_TYPES.JSON, accessToken),
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        // 토큰이 만료된 경우 갱신 시도
-        try {
-          const newToken = await this.refreshToken();
-          // 새 토큰으로 다시 시도
-          const retryResponse = await fetch(buildApiUrl(API_ENDPOINTS.ADMIN_ME), {
-            method: 'GET',
-            headers: createApiHeaders(CONTENT_TYPES.JSON, newToken),
-          });
-
-          if (!retryResponse.ok) {
-            throw new Error('Failed to get admin info');
-          }
-
-          const retryData = await retryResponse.json();
-          if (!retryData.success) {
-            throw new Error(handleApiError(retryData, ERROR_MESSAGES.LOAD_FAILED));
-          }
-
-          return retryData.data;
-        } catch (refreshError) {
-          TokenStorage.clearTokens();
-          throw new Error('Authentication failed');
-        }
+    try {
+      const user = await Auth.getCurrentUser();
+      if (!user) {
+        throw new Error('No user found');
       }
 
-      throw new Error('Failed to get admin info');
-    }
+      const admin: AdminInfo = {
+        id: user.id,
+        username: user.email, // email을 username으로 사용
+        role: user.role || 'admin',
+        email: user.email,
+        name: user.name,
+        createdAt: user.createdAt,
+        lastLoginAt: user.updatedAt
+      };
 
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(handleApiError(data, ERROR_MESSAGES.LOAD_FAILED));
+      return admin;
+    } catch (error) {
+      console.error('현재 관리자 정보 조회 실패:', error);
+      throw new Error('Authentication failed');
     }
-
-    return data.data;
   }
 
   /**
    * 토큰 검증
    */
   async validateToken(token?: string): Promise<TokenValidationResponse> {
-    const tokenToValidate = token || TokenStorage.getAccessToken();
-    if (!tokenToValidate) {
-      return { valid: false, admin: null };
-    }
-
     try {
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.ADMIN_VALIDATE), {
-        method: 'POST',
-        headers: createApiHeaders(CONTENT_TYPES.JSON),
-        body: JSON.stringify({ token: tokenToValidate }),
-      });
-
-      if (!response.ok) {
-        return { valid: false, admin: null };
+      // 토큰 유효성 자동 확인
+      const validToken = await Auth.ensureValidToken();
+      if (validToken) {
+        const user = await Auth.getCurrentUser();
+        if (user) {
+          const admin: AdminInfo = {
+            id: user.id,
+            username: user.email,
+            role: user.role || 'admin',
+            email: user.email,
+            name: user.name,
+            createdAt: user.createdAt,
+            lastLoginAt: user.updatedAt
+          };
+          return { valid: true, admin };
+        }
       }
-
-      const data = await response.json();
-      if (!data.success) {
-        return { valid: false, admin: null };
-      }
-
-      return data.data;
+      return { valid: false, admin: null };
     } catch (error) {
       Logger.warn('Token validation failed:', error);
       return { valid: false, admin: null };
@@ -178,7 +111,7 @@ class AuthService {
    * 인증된 API 요청을 위한 헤더 반환
    */
   getAuthHeaders(): HeadersInit {
-    const token = TokenStorage.getAccessToken();
+    const token = Auth.getAccessToken();
     return token ? { 'Authorization': `Bearer ${token}` } : {};
   }
 
@@ -186,7 +119,22 @@ class AuthService {
    * 로그인 상태 확인
    */
   isAuthenticated(): boolean {
-    return TokenStorage.hasValidToken();
+    return Auth.isAuthenticated();
+  }
+
+  /**
+   * 토큰 관리 (새로운 편의 메서드들)
+   */
+  getAccessToken(): string | null {
+    return Auth.getAccessToken();
+  }
+
+  getRefreshToken(): string | null {
+    return Auth.getRefreshToken();
+  }
+
+  clearTokens(): void {
+    Auth.clearTokens();
   }
 
 }

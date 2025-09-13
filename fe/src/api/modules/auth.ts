@@ -40,24 +40,24 @@ export const Auth = {
 
   // 편의 메서드들
   async loginUser(credentials: LoginRequest): Promise<{
-    user: User;
-    token: string;
+    accessToken: string;
     refreshToken?: string;
+    admin: any;
   }> {
-    const response = await authApi.login(credentials);
+    const response = await authApi.login(credentials) as any;
     
     // 토큰을 localStorage에 저장
-    if (response.accessToken) {
-      localStorage.setItem('accessToken', response.accessToken);
+    if (response.data.accessToken) {
+      localStorage.setItem('accessToken', response.data.accessToken);
     }
-    if (response.refreshToken) {
-      localStorage.setItem('refreshToken', response.refreshToken);
+    if (response.data.refreshToken) {
+      localStorage.setItem('refreshToken', response.data.refreshToken);
     }
 
     return {
-      user: response.user,
-      token: response.accessToken,
-      refreshToken: response.refreshToken,
+      accessToken: response.data.accessToken,
+      refreshToken: response.data.refreshToken,
+      admin: response.data.admin,
     };
   },
 

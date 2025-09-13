@@ -31,6 +31,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "test:api": "react-scripts test --testPathPattern=api-integration --watchAll=false --verbose",
+    "test:comprehensive": "react-scripts test --testPathPattern=api-comprehensive --watchAll=false --verbose",
+    "test:coverage": "react-scripts test --testPathPattern=api-coverage-report --watchAll=false --verbose",
     "test:ci": "react-scripts test --watchAll=false --coverage --testPathPattern=api-integration",
     "eject": "react-scripts eject"
   },

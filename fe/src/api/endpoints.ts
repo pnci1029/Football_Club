@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
   // Auth
   AUTH: {
     LOGIN: { method: 'POST', path: '/api/admin/auth/login', requiresAuth: false } as ApiEndpoint,
+    REGISTER: { method: 'POST', path: '/api/admin/auth/register', requiresAuth: false } as ApiEndpoint,
     LOGOUT: { method: 'POST', path: '/api/admin/auth/logout', requiresAuth: true } as ApiEndpoint,
     REFRESH: { method: 'POST', path: '/api/admin/auth/refresh', requiresAuth: true } as ApiEndpoint,
     ME: { method: 'GET', path: '/api/admin/auth/me', requiresAuth: true, isAdmin: true } as ApiEndpoint,
@@ -100,23 +101,31 @@ export const API_ENDPOINTS = {
   // Public - Inquiries
   INQUIRIES: {
     CREATE: { method: 'POST', path: '/api/v1/inquiries', requiresAuth: false } as ApiEndpoint,
+    MY_LIST: { method: 'GET', path: '/api/v1/inquiries/my', requiresAuth: true } as ApiEndpoint,
+    GET: { method: 'GET', path: '/api/v1/inquiries/{id}', requiresAuth: true } as ApiEndpoint,
     BY_EMAIL: { method: 'GET', path: '/api/v1/inquiries/email/{email}', requiresAuth: false } as ApiEndpoint,
   },
 
   // Hero Slides
   HERO_SLIDES: {
-    ACTIVE: { method: 'GET', path: '/api/v1/hero-slides/team/{teamId}/active', requiresAuth: false } as ApiEndpoint,
-    LIST: { method: 'GET', path: '/api/v1/hero-slides/team/{teamId}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
-    GET: { method: 'GET', path: '/api/v1/hero-slides/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
-    CREATE: { method: 'POST', path: '/api/v1/hero-slides/team/{teamId}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
-    UPDATE: { method: 'PUT', path: '/api/v1/hero-slides/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
-    DELETE: { method: 'DELETE', path: '/api/v1/hero-slides/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
-    UPDATE_SORT: { method: 'PUT', path: '/api/v1/hero-slides/sort', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    ACTIVE: { method: 'GET', path: '/api/v1/hero-slides/active', requiresAuth: false } as ApiEndpoint,
+  },
+
+  // Admin - Hero Slides
+  ADMIN_HERO_SLIDES: {
+    LIST: { method: 'GET', path: '/api/v1/admin/hero-slides', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    GET: { method: 'GET', path: '/api/v1/admin/hero-slides/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    CREATE: { method: 'POST', path: '/api/v1/admin/hero-slides', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    UPDATE: { method: 'PUT', path: '/api/v1/admin/hero-slides/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    DELETE: { method: 'DELETE', path: '/api/v1/admin/hero-slides/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    UPDATE_ORDER: { method: 'PUT', path: '/api/v1/admin/hero-slides/{id}/order', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    UPDATE_ACTIVE: { method: 'PUT', path: '/api/v1/admin/hero-slides/{id}/active', requiresAuth: true, isAdmin: true } as ApiEndpoint,
   },
 
   // Images
   IMAGES: {
     UPLOAD: { method: 'POST', path: '/api/v1/images/upload', requiresAuth: true } as ApiEndpoint,
+    GENERATE_URL: { method: 'GET', path: '/api/v1/images/generate-url/{key}', requiresAuth: false } as ApiEndpoint,
     DELETE: { method: 'DELETE', path: '/api/v1/images/{filename}', requiresAuth: true } as ApiEndpoint,
   },
 

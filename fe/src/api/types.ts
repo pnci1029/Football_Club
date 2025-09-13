@@ -101,12 +101,16 @@ export interface Match {
 
 export interface Inquiry {
   id: number;
-  name: string;
+  title: string;
+  content: string;
+  category: 'GENERAL' | 'TECHNICAL' | 'FEEDBACK' | 'OTHER';
+  name?: string;
   email: string;
   phone?: string;
   teamName?: string;
-  message: string;
+  message?: string;
   status: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+  responseMessage?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -116,9 +120,12 @@ export interface HeroSlide {
   teamId: number;
   title: string;
   subtitle?: string;
+  content?: string;
   imageUrl: string;
   linkUrl?: string;
+  order: number;
   sortOrder: number;
+  active: boolean;
   isActive: boolean;
   createdAt: string;
 }
@@ -138,6 +145,68 @@ export interface TeamStats {
   code: string;
   playerCount: number;
   stadiumCount: number;
+}
+
+// Auth 관련 타입들
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken?: string;
+  user: User;
+}
+
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+// 문의 관련 타입들
+export interface CreateInquiryRequest {
+  title: string;
+  content: string;
+  category: 'GENERAL' | 'TECHNICAL' | 'FEEDBACK' | 'OTHER';
+  authorName?: string;
+  authorEmail?: string;
+  phone?: string;
+}
+
+export interface UpdateInquiryStatusRequest {
+  status: Inquiry['status'];
+  responseMessage?: string;
+}
+
+// Hero Slides 관련 타입들
+export interface CreateHeroSlideRequest {
+  title: string;
+  content?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  order?: number;
+  active?: boolean;
+}
+
+export interface UpdateHeroSlideRequest {
+  title?: string;
+  content?: string;
+  imageUrl?: string;
+  linkUrl?: string;
+  order?: number;
+  active?: boolean;
 }
 
 // 요청 타입들
