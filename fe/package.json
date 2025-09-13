@@ -30,6 +30,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:api": "react-scripts test --testPathPattern=api-integration --watchAll=false --verbose",
+    "test:ci": "react-scripts test --watchAll=false --coverage --testPathPattern=api-integration",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -37,6 +39,14 @@
       "react-app",
       "react-app/jest"
     ]
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!(axios)/)"
+    ],
+    "moduleNameMapper": {
+      "^axios$": "axios/dist/node/axios.cjs"
+    }
   },
   "browserslist": {
     "production": [

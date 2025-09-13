@@ -91,6 +91,15 @@ class AdminService {
     return response.data;
   }
 
+  // 편의 메소드들 - 테스트에서 사용
+  async getTeams(): Promise<{ content: TeamStats[], totalElements: number }> {
+    return this.getAllTeams();
+  }
+
+  async getPlayers(): Promise<{ content: PlayerDto[], totalElements: number }> {
+    return this.getAllPlayers();
+  }
+
   // 테넌트 관리 API
   async getAllTenants(): Promise<any[]> {
     const response = await apiClient.get<{ success: boolean; data: any[] }>('/api/v1/admin/tenants');
