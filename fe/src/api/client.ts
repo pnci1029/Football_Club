@@ -38,7 +38,7 @@ class UnifiedApiClient {
         config.headers['X-Forwarded-Host'] = window.location.host;
         
         // 인증 토큰 추가 (필요시)
-        const token = localStorage.getItem('admin_token');
+        const token = localStorage.getItem('accessToken');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -61,7 +61,8 @@ class UnifiedApiClient {
 
         // 401 인증 오류시 로그아웃 처리
         if (error.response?.status === 401) {
-          localStorage.removeItem('admin_token');
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
           window.location.href = '/admin/login';
         }
 

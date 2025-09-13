@@ -79,25 +79,40 @@ export const Auth = {
   async getCurrentUser(): Promise<User | null> {
     try {
       return await authApi.getMe();
-    } catch (error) {
-      // 인증 실패 시 토큰 제거
-      this.clearTokens();
+    } catch (error: any) {
+      // 401 인증 실패 시에만 토큰 제거 (네트워크 오류 등은 제외)
+      if (error.response?.status === 401) {
+        console.warn('Authentication failed, clearing tokens');
+        this.clearTokens();
+      } else {
+        console.error('Failed to get current user:', error);
+      }
       return null;
     }
   },
 
   async refreshToken(): Promise<string | null> {
     try {
+      const refreshToken = this.getRefreshToken();
+      if (!refreshToken) {
+        console.warn('No refresh token available');
+        this.clearTokens();
+        return null;
+      }
+
       const response = await authApi.refresh();
       if (response.accessToken) {
         localStorage.setItem('accessToken', response.accessToken);
         if (response.refreshToken) {
           localStorage.setItem('refreshToken', response.refreshToken);
         }
+        console.log('Token refreshed successfully');
         return response.accessToken;
       }
       return null;
     } catch (error) {
+      console.error('Token refresh failed:', error);
+      // 리프레시 실패 시에만 토큰 클리어
       this.clearTokens();
       return null;
     }
@@ -131,17 +146,26 @@ export const Auth = {
 
     // JWT 토큰 만료 시간 체크 (간단한 구현)
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        // 잘못된 JWT 형식이면 새로고침 시도
+        console.warn('Invalid JWT format, refreshing token');
+        return await this.refreshToken();
+      }
+      
+      const payload = JSON.parse(atob(parts[1]));
       const currentTime = Date.now() / 1000;
       
       // 토큰이 5분 이내에 만료되면 새로고침
       if (payload.exp && payload.exp - currentTime < 300) {
+        console.log('Token expiring soon, refreshing');
         return await this.refreshToken();
       }
       
       return token;
     } catch (error) {
       // 토큰 파싱 실패 시 새로고침 시도
+      console.warn('Token parsing failed, refreshing token:', error);
       return await this.refreshToken();
     }
   },
