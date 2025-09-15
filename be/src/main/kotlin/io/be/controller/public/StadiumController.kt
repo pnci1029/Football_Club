@@ -17,7 +17,8 @@ class StadiumController(
     private val stadiumService: StadiumService,
     private val subdomainService: SubdomainService
 ) {
-    
+
+
     @GetMapping
     fun getAllStadiums(
         @RequestParam(defaultValue = "0") page: Int,
@@ -26,7 +27,7 @@ class StadiumController(
     ): ResponseEntity<ApiResponse<Page<StadiumDto>>> {
         // 서브도메인에서 팀 코드 추출
         val teamCode = subdomainService.extractTeamCodeFromRequest(httpRequest)
-        
+
         val stadiums = if (teamCode != null) {
             // 특정 팀의 구장만 반환
             val team = subdomainService.getTeamByCode(teamCode)
@@ -39,17 +40,17 @@ class StadiumController(
             // 모든 구장 반환 (메인 도메인 등)
             stadiumService.findAllStadiums(PageRequest.of(page, size))
         }
-        
+
         return ResponseEntity.ok(ApiResponse.success(stadiums))
     }
-    
+
     @GetMapping("/{id}")
     fun getStadium(@PathVariable id: Long): ResponseEntity<ApiResponse<StadiumDto>> {
         val stadium = stadiumService.findStadiumById(id)
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(ApiResponse.success(stadium))
     }
-    
+
     @GetMapping("/search")
     fun searchStadiums(
         @RequestParam(required = false) name: String?,
@@ -60,7 +61,7 @@ class StadiumController(
             !address.isNullOrBlank() -> stadiumService.searchStadiumsByAddress(address)
             else -> emptyList()
         }
-        
+
         return ResponseEntity.ok(ApiResponse.success(stadiums))
     }
 }
