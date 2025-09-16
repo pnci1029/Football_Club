@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import { Button } from '../common';
 import { UpdateStadiumRequest, adminStadiumService } from '../../services/adminStadiumService';
-import { StadiumDto } from '../../services/adminService';
+import { StadiumDto } from '../../types/interfaces/admin/index';
+import { KakaoGeocoderResult } from '../../types/interfaces/stadium';
 
 interface StadiumEditModalProps {
   isOpen: boolean;
@@ -139,7 +140,7 @@ const StadiumEditModal: React.FC<StadiumEditModalProps> = ({
 
       const geocoder = new window.kakao.maps.services.Geocoder();
       
-      geocoder.addressSearch(formData.address, (result: any, status: any) => {
+      geocoder.addressSearch(formData.address, (result: KakaoGeocoderResult[], status: string) => {
         if (status === window.kakao.maps.services.Status.OK) {
           const coords = result[0];
           const lat = parseFloat(coords.y);

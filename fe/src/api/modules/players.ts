@@ -13,12 +13,13 @@ import {
   PageParams,
   SearchParams,
 } from '../types';
+import { QueryParams, RequestData } from '../../types/interfaces/api';
 
 // Public Players API
 export const playersApi = {
   // 선수 목록 조회 (페이징)
   getAll: (params?: PageParams): Promise<PageResponse<Player>> =>
-    api.callEndpoint<PageResponse<Player>>(API_ENDPOINTS.PLAYERS.LIST, undefined, undefined, params),
+    api.callEndpoint<PageResponse<Player>>(API_ENDPOINTS.PLAYERS.LIST, undefined, undefined, params as QueryParams),
 
   // ID로 선수 조회
   getById: (id: number): Promise<Player> =>
@@ -37,7 +38,7 @@ export const adminPlayersApi = {
       API_ENDPOINTS.ADMIN_PLAYERS.LIST,
       undefined,
       undefined,
-      { teamId, ...params }
+      { teamId, ...params } as QueryParams
     ),
 
   // ID로 선수 조회
@@ -49,12 +50,12 @@ export const adminPlayersApi = {
     api.callEndpoint<ApiResponse<Player>>(
       API_ENDPOINTS.ADMIN_PLAYERS.CREATE, 
       undefined, 
-      { ...data, teamId }
+      { ...data, teamId } as unknown as RequestData
     ),
 
   // 선수 수정
   update: (id: number, data: UpdatePlayerRequest): Promise<ApiResponse<Player>> =>
-    api.callEndpoint<ApiResponse<Player>>(API_ENDPOINTS.ADMIN_PLAYERS.UPDATE, { id }, data),
+    api.callEndpoint<ApiResponse<Player>>(API_ENDPOINTS.ADMIN_PLAYERS.UPDATE, { id }, data as unknown as RequestData),
 
   // 선수 삭제
   delete: (id: number): Promise<ApiResponse<string>> =>

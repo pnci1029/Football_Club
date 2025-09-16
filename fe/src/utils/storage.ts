@@ -11,7 +11,7 @@ export class LocalStorageUtil {
   /**
    * 값 저장
    */
-  static setItem(key: string, value: any): void {
+  static setItem(key: string, value: unknown): void {
     try {
       const serializedValue = typeof value === 'string' ? value : JSON.stringify(value);
       localStorage.setItem(key, serializedValue);
@@ -85,7 +85,7 @@ export class SessionStorageUtil {
   /**
    * 값 저장
    */
-  static setItem(key: string, value: any): void {
+  static setItem(key: string, value: unknown): void {
     try {
       const serializedValue = typeof value === 'string' ? value : JSON.stringify(value);
       sessionStorage.setItem(key, serializedValue);

@@ -13,6 +13,7 @@ import {
   PageResponse,
   PageParams,
 } from '../types';
+import { QueryParams, RequestData } from '../../types/interfaces/api';
 
 // Public Teams API
 export const teamsApi = {
@@ -37,7 +38,7 @@ export const adminTeamsApi = {
       API_ENDPOINTS.ADMIN_TEAMS.LIST, 
       undefined, 
       undefined, 
-      params
+      params as QueryParams
     ),
 
   // ID로 팀 조회
@@ -50,11 +51,11 @@ export const adminTeamsApi = {
 
   // 팀 생성
   create: (data: CreateTeamRequest): Promise<ApiResponse<Team>> =>
-    api.callEndpoint<ApiResponse<Team>>(API_ENDPOINTS.ADMIN_TEAMS.CREATE, undefined, data),
+    api.callEndpoint<ApiResponse<Team>>(API_ENDPOINTS.ADMIN_TEAMS.CREATE, undefined, data as unknown as RequestData),
 
   // 팀 수정
   update: (id: number, data: UpdateTeamRequest): Promise<ApiResponse<Team>> =>
-    api.callEndpoint<ApiResponse<Team>>(API_ENDPOINTS.ADMIN_TEAMS.UPDATE, { id }, data),
+    api.callEndpoint<ApiResponse<Team>>(API_ENDPOINTS.ADMIN_TEAMS.UPDATE, { id }, data as unknown as RequestData),
 
   // 팀 삭제
   delete: (id: number): Promise<ApiResponse<string>> =>

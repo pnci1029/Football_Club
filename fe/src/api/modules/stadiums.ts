@@ -12,12 +12,13 @@ import {
   PageResponse,
   PageParams,
 } from '../types';
+import { QueryParams, RequestData } from '../../types/interfaces/api';
 
 // Public Stadiums API
 export const stadiumsApi = {
   // 구장 목록 조회 (페이징)
   getAll: (params?: PageParams): Promise<PageResponse<Stadium>> =>
-    api.callEndpoint<PageResponse<Stadium>>(API_ENDPOINTS.STADIUMS.LIST, undefined, undefined, params),
+    api.callEndpoint<PageResponse<Stadium>>(API_ENDPOINTS.STADIUMS.LIST, undefined, undefined, params as QueryParams),
 
   // ID로 구장 조회
   getById: (id: number): Promise<Stadium> =>
@@ -32,7 +33,7 @@ export const adminStadiumsApi = {
       API_ENDPOINTS.ADMIN_STADIUMS.LIST, 
       undefined, 
       undefined, 
-      params
+      params as QueryParams
     ),
 
   // ID로 구장 조회
@@ -44,12 +45,12 @@ export const adminStadiumsApi = {
     api.callEndpoint<ApiResponse<Stadium>>(
       API_ENDPOINTS.ADMIN_STADIUMS.CREATE, 
       undefined, 
-      { ...data, teamId }
+      { ...data, teamId } as unknown as RequestData
     ),
 
   // 구장 수정
   update: (id: number, data: UpdateStadiumRequest): Promise<ApiResponse<Stadium>> =>
-    api.callEndpoint<ApiResponse<Stadium>>(API_ENDPOINTS.ADMIN_STADIUMS.UPDATE, { id }, data),
+    api.callEndpoint<ApiResponse<Stadium>>(API_ENDPOINTS.ADMIN_STADIUMS.UPDATE, { id }, data as unknown as RequestData),
 
   // 구장 삭제
   delete: (id: number): Promise<ApiResponse<string>> =>

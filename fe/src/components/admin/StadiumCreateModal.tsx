@@ -3,6 +3,7 @@ import DaumPostcode from 'react-daum-postcode';
 import Modal from '../common/Modal';
 import { Button } from '../common';
 import { CreateStadiumRequest, adminStadiumService } from '../../services/adminStadiumService';
+import { PostcodeData, KakaoGeocoderResult, KakaoGeocoderStatus } from '../../types/interfaces/stadium';
 
 interface StadiumCreateModalProps {
   isOpen: boolean;
@@ -116,7 +117,7 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
   };
 
   // 다음 우편번호 서비스 완료 핸들러
-  const handlePostcodeComplete = (data: any) => {
+  const handlePostcodeComplete = (data: PostcodeData) => {
     let fullAddress = data.address;
     let extraAddress = '';
 
@@ -151,7 +152,7 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
 
       const geocoder = new window.kakao.maps.services.Geocoder();
       
-      geocoder.addressSearch(address, (result: any, status: any) => {
+      geocoder.addressSearch(address, (result: KakaoGeocoderResult[], status: string) => {
         if (status === window.kakao.maps.services.Status.OK) {
           const coords = result[0];
           const lat = parseFloat(coords.y);

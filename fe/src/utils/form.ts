@@ -10,7 +10,7 @@ import { useState, useCallback } from 'react';
 export const createFormChangeHandler = <T>(
   setFormData: React.Dispatch<React.SetStateAction<T>>
 ) => {
-  return (field: keyof T, value: any) => {
+  return (field: keyof T, value: T[keyof T]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 };
@@ -71,7 +71,7 @@ export class FormValidator {
   /**
    * 필수 필드 검증
    */
-  static required(value: any, fieldName: string): string | null {
+  static required(value: unknown, fieldName: string): string | null {
     if (value === null || value === undefined || value === '') {
       return `${fieldName}은(는) 필수입니다.`;
     }

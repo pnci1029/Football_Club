@@ -104,10 +104,32 @@ export const useSubdomain = () => {
         // API 에러 시 기본 팀 정보로 설정
         if (!isCancelled) {
           // console.log('🔄 기본 팀 정보 설정');
+          // 현재 서브도메인에서 팀 코드 추출
+          const host = window.location.hostname;
+          let teamCode = 'default';
+          
+          // 서브도메인에서 팀 코드 추출
+          const subdomainMatch = host.match(/^([a-zA-Z0-9-]+)\./);
+          if (subdomainMatch && subdomainMatch[1] !== 'admin' && subdomainMatch[1] !== 'www') {
+            teamCode = subdomainMatch[1];
+          }
+          
+          // 팀 코드를 해시하여 일관된 ID 생성 (간단한 방법)
+          let teamId = '1'; // 기본값
+          if (teamCode === 'kim') teamId = '2';
+          else if (teamCode === 'park') teamId = '3';
+          else {
+            // 다른 팀 코드들은 해시값으로 ID 생성
+            teamId = Math.abs(teamCode.split('').reduce((a, b) => {
+              a = ((a << 5) - a) + b.charCodeAt(0);
+              return a & a;
+            }, 0)).toString();
+          }
+          
           setCurrentTeam({
-            id: '1',
-            name: 'Football Club',
-            code: 'default',
+            id: teamId,
+            name: `${teamCode.charAt(0).toUpperCase() + teamCode.slice(1)} FC`,
+            code: teamCode,
             description: '기본 축구 클럽',
             logoUrl: '',
             createdAt: new Date().toISOString()

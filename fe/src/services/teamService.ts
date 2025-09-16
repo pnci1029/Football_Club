@@ -1,12 +1,13 @@
 import { Team } from '../types/team';
 import { Teams } from '../api';
+import { TeamPageResponse, TeamApiResponse } from '../types/interfaces/team';
 
 class TeamService {
   async getAllTeams(): Promise<Team[]> {
     try {
       const teamsResponse = await Teams.public.getAll();
       // 배열인지 PageResponse인지 확인
-      const teamsArray = Array.isArray(teamsResponse) ? teamsResponse : (teamsResponse as any).content || [];
+      const teamsArray = Array.isArray(teamsResponse) ? teamsResponse : (teamsResponse as TeamPageResponse).content || [];
       return teamsArray.map((team: any) => ({
         ...team,
         id: team.id.toString()
@@ -19,7 +20,7 @@ class TeamService {
 
   async getTeamByCode(code: string): Promise<Team | null> {
     try {
-      const team = await Teams.public.getByCode(code);
+      const team: Omit<Team, 'id'> & { id: number } = await Teams.public.getByCode(code);
       return {
         ...team,
         id: team.id.toString()
@@ -32,7 +33,7 @@ class TeamService {
 
   async getTeamById(id: string): Promise<Team | null> {
     try {
-      const team = await Teams.public.getById(parseInt(id));
+      const team: Omit<Team, 'id'> & { id: number } = await Teams.public.getById(parseInt(id));
       return {
         ...team,
         id: team.id.toString()
@@ -46,8 +47,8 @@ class TeamService {
   // 새로운 편의 메서드들 (기존 API에서는 제공되지 않았음)
   async searchTeams(query: string): Promise<Team[]> {
     try {
-      const teams = await Teams.search(query);
-      return teams.map((team: any) => ({
+      const teams: (Omit<Team, 'id'> & { id: number })[] = await Teams.search(query);
+      return teams.map((team: Omit<Team, 'id'> & { id: number }) => ({
         ...team,
         id: team.id.toString()
       }));

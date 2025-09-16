@@ -12,12 +12,13 @@ import {
   PageResponse,
   PageParams,
 } from '../types';
+import { QueryParams, RequestData } from '../../types/interfaces/api';
 
 // Public Matches API
 export const matchesApi = {
   // 경기 목록 조회 (페이징, 상태 필터)
   getAll: (params?: PageParams & { status?: Match['status'] }): Promise<PageResponse<Match>> =>
-    api.callEndpoint<PageResponse<Match>>(API_ENDPOINTS.MATCHES.LIST, undefined, undefined, params),
+    api.callEndpoint<PageResponse<Match>>(API_ENDPOINTS.MATCHES.LIST, undefined, undefined, params as QueryParams),
 
   // ID로 경기 조회
   getById: (id: number): Promise<Match> =>
@@ -29,7 +30,7 @@ export const matchesApi = {
       API_ENDPOINTS.MATCHES.BY_TEAM, 
       { teamId }, 
       undefined, 
-      params
+      params as QueryParams
     ),
 
   // 다가오는 경기들
@@ -45,7 +46,7 @@ export const adminMatchesApi = {
       API_ENDPOINTS.ADMIN_MATCHES.LIST, 
       undefined, 
       undefined, 
-      params
+      params as QueryParams
     ),
 
   // ID로 경기 조회
@@ -58,16 +59,16 @@ export const adminMatchesApi = {
       API_ENDPOINTS.ADMIN_MATCHES.BY_TEAM, 
       { teamId }, 
       undefined, 
-      params
+      params as QueryParams
     ),
 
   // 경기 생성
   create: (data: CreateMatchRequest): Promise<ApiResponse<Match>> =>
-    api.callEndpoint<ApiResponse<Match>>(API_ENDPOINTS.ADMIN_MATCHES.CREATE, undefined, data),
+    api.callEndpoint<ApiResponse<Match>>(API_ENDPOINTS.ADMIN_MATCHES.CREATE, undefined, data as unknown as RequestData),
 
   // 경기 수정
   update: (id: number, data: UpdateMatchRequest): Promise<ApiResponse<Match>> =>
-    api.callEndpoint<ApiResponse<Match>>(API_ENDPOINTS.ADMIN_MATCHES.UPDATE, { id }, data),
+    api.callEndpoint<ApiResponse<Match>>(API_ENDPOINTS.ADMIN_MATCHES.UPDATE, { id }, data as unknown as RequestData),
 
   // 경기 삭제
   delete: (id: number): Promise<ApiResponse<string>> =>

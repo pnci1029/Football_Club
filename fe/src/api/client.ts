@@ -13,6 +13,7 @@ import {
   ApiEndpoint 
 } from './types';
 import { buildUrl } from './endpoints';
+import { QueryParams, RequestData, FileUploadData, PathParams } from '../types/interfaces/api';
 
 class UnifiedApiClient {
   private client: AxiosInstance;
@@ -55,7 +56,7 @@ class UnifiedApiClient {
         const apiError: ApiError = {
           code: error.code || 'UNKNOWN_ERROR',
           message: error.message || '알 수 없는 오류가 발생했습니다',
-          details: error.response?.data,
+          details: error.response?.data as Record<string, unknown> | undefined,
           timestamp: new Date().toISOString(),
         };
 
@@ -72,17 +73,17 @@ class UnifiedApiClient {
   }
 
   // Generic HTTP 메서드들
-  async get<T>(url: string, params?: any, config?: AxiosRequestConfig): Promise<T> {
+  async get<T>(url: string, params?: QueryParams, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.get<T>(url, { params, ...config });
     return response.data;
   }
 
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T>(url: string, data?: RequestData, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.post<T>(url, data, config);
     return response.data;
   }
 
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async put<T>(url: string, data?: RequestData, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.put<T>(url, data, config);
     return response.data;
   }
@@ -92,7 +93,7 @@ class UnifiedApiClient {
     return response.data;
   }
 
-  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async patch<T>(url: string, data?: RequestData, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.patch<T>(url, data, config);
     return response.data;
   }
@@ -100,7 +101,7 @@ class UnifiedApiClient {
   // 페이징 지원 GET
   async getPage<T>(
     url: string, 
-    params?: PageParams & Record<string, any>,
+    params?: PageParams & Record<string, unknown>,
     config?: AxiosRequestConfig
   ): Promise<PageResponse<T>> {
     const pageParams = {
@@ -114,7 +115,7 @@ class UnifiedApiClient {
   // 검색 지원 GET  
   async search<T>(
     url: string,
-    params?: SearchParams & Record<string, any>,
+    params?: SearchParams & Record<string, unknown>,
     config?: AxiosRequestConfig
   ): Promise<PageResponse<T>> {
     const searchParams = {
@@ -131,9 +132,9 @@ class UnifiedApiClient {
   // API 엔드포인트 기반 호출
   async callEndpoint<T>(
     endpoint: ApiEndpoint,
-    pathParams?: Record<string, string | number>,
-    data?: any,
-    queryParams?: any
+    pathParams?: PathParams,
+    data?: RequestData,
+    queryParams?: QueryParams
   ): Promise<T> {
     const url = pathParams ? buildUrl(endpoint.path, pathParams) : endpoint.path;
     
@@ -155,18 +156,18 @@ class UnifiedApiClient {
 
   // CRUD 헬퍼 메서드들
   async getList<T>(baseUrl: string, params?: PageParams): Promise<PageResponse<T>> {
-    return this.getPage<T>(baseUrl, params);
+    return this.getPage<T>(baseUrl, params as PageParams & Record<string, unknown>);
   }
 
   async getById<T>(baseUrl: string, id: string | number): Promise<T> {
     return this.get<T>(`${baseUrl}/${id}`);
   }
 
-  async create<T>(baseUrl: string, data: any): Promise<T> {
+  async create<T>(baseUrl: string, data: RequestData): Promise<T> {
     return this.post<T>(baseUrl, data);
   }
 
-  async update<T>(baseUrl: string, id: string | number, data: any): Promise<T> {
+  async update<T>(baseUrl: string, id: string | number, data: RequestData): Promise<T> {
     return this.put<T>(`${baseUrl}/${id}`, data);
   }
 
@@ -175,7 +176,7 @@ class UnifiedApiClient {
   }
 
   // 파일 업로드 지원
-  async uploadFile<T>(url: string, file: File, additionalData?: any): Promise<T> {
+  async uploadFile<T>(url: string, file: File, additionalData?: FileUploadData): Promise<T> {
     const formData = new FormData();
     formData.append('file', file);
     
@@ -224,25 +225,25 @@ export const apiClient = new UnifiedApiClient();
 // 편의 함수들
 export const api = {
   // 기본 HTTP 메서드
-  get: <T>(url: string, params?: any) => apiClient.get<T>(url, params),
-  post: <T>(url: string, data?: any) => apiClient.post<T>(url, data),
-  put: <T>(url: string, data?: any) => apiClient.put<T>(url, data),
+  get: <T>(url: string, params?: QueryParams) => apiClient.get<T>(url, params),
+  post: <T>(url: string, data?: RequestData) => apiClient.post<T>(url, data),
+  put: <T>(url: string, data?: RequestData) => apiClient.put<T>(url, data),
   delete: <T>(url: string) => apiClient.delete<T>(url),
-  patch: <T>(url: string, data?: any) => apiClient.patch<T>(url, data),
+  patch: <T>(url: string, data?: RequestData) => apiClient.patch<T>(url, data),
 
   // 페이징/검색
-  getPage: <T>(url: string, params?: PageParams) => apiClient.getPage<T>(url, params),
-  search: <T>(url: string, params?: SearchParams) => apiClient.search<T>(url, params),
+  getPage: <T>(url: string, params?: PageParams & Record<string, unknown>) => apiClient.getPage<T>(url, params),
+  search: <T>(url: string, params?: SearchParams & Record<string, unknown>) => apiClient.search<T>(url, params),
 
   // CRUD 헬퍼
   getList: <T>(baseUrl: string, params?: PageParams) => apiClient.getList<T>(baseUrl, params),
   getById: <T>(baseUrl: string, id: string | number) => apiClient.getById<T>(baseUrl, id),
-  create: <T>(baseUrl: string, data: any) => apiClient.create<T>(baseUrl, data),
-  update: <T>(baseUrl: string, id: string | number, data: any) => apiClient.update<T>(baseUrl, id, data),
+  create: <T>(baseUrl: string, data: RequestData) => apiClient.create<T>(baseUrl, data),
+  update: <T>(baseUrl: string, id: string | number, data: RequestData) => apiClient.update<T>(baseUrl, id, data),
   remove: <T>(baseUrl: string, id: string | number) => apiClient.remove<T>(baseUrl, id),
 
   // 파일 업로드
-  uploadFile: <T>(url: string, file: File, data?: any) => apiClient.uploadFile<T>(url, file, data),
+  uploadFile: <T>(url: string, file: File, data?: FileUploadData) => apiClient.uploadFile<T>(url, file, data),
 
   // 헬스 체크
   healthCheck: () => apiClient.healthCheck(),
@@ -250,9 +251,9 @@ export const api = {
   // 엔드포인트 기반 호출
   callEndpoint: <T>(
     endpoint: ApiEndpoint,
-    pathParams?: Record<string, string | number>,
-    data?: any,
-    queryParams?: any
+    pathParams?: PathParams,
+    data?: RequestData,
+    queryParams?: QueryParams
   ) => apiClient.callEndpoint<T>(endpoint, pathParams, data, queryParams),
 };
 

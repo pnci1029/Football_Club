@@ -52,12 +52,12 @@ class ApiClient {
     return response.data;
   }
 
-  async post<T>(url: string, data: any): Promise<T> {
+  async post<T>(url: string, data: unknown): Promise<T> {
     const response = await this.client.post<T>(url, data);
     return response.data;
   }
 
-  async put<T>(url: string, data: any): Promise<T> {
+  async put<T>(url: string, data: unknown): Promise<T> {
     const response = await this.client.put<T>(url, data);
     return response.data;
   }
@@ -66,11 +66,12 @@ class ApiClient {
     try {
       const response = await this.client.delete<T>(url);
       return response.data as T;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('DELETE request failed:', error);
-      if (error.response) {
-        console.error('Error response status:', error.response.status);
-        console.error('Error response data:', error.response.data);
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        const err = error as { response: { status: unknown; data: unknown } };
+        console.error('Error response status:', err.response.status);
+        console.error('Error response data:', err.response.data);
       }
       throw error;
     }

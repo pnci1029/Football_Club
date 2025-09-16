@@ -11,15 +11,16 @@ import {
   User,
   ApiResponse,
 } from '../types';
+import { AdminInfo, LoginUserResponse, AuthError } from '../../types/interfaces/auth';
 
 export const authApi = {
   // 로그인
   login: (data: LoginRequest): Promise<LoginResponse> =>
-    api.callEndpoint<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, undefined, data),
+    api.callEndpoint<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, undefined, data as LoginRequest & Record<string, unknown>),
 
   // 회원가입
   register: (data: RegisterRequest): Promise<ApiResponse<User>> =>
-    api.callEndpoint<ApiResponse<User>>(API_ENDPOINTS.AUTH.REGISTER, undefined, data),
+    api.callEndpoint<ApiResponse<User>>(API_ENDPOINTS.AUTH.REGISTER, undefined, data as RegisterRequest & Record<string, unknown>),
 
   // 로그아웃
   logout: (): Promise<ApiResponse<string>> =>
@@ -39,25 +40,21 @@ export const Auth = {
   api: authApi,
 
   // 편의 메서드들
-  async loginUser(credentials: LoginRequest): Promise<{
-    accessToken: string;
-    refreshToken?: string;
-    admin: any;
-  }> {
-    const response = await authApi.login(credentials) as any;
+  async loginUser(credentials: LoginRequest): Promise<LoginUserResponse> {
+    const response = await authApi.login(credentials) as LoginResponse;
     
     // 토큰을 localStorage에 저장
-    if (response.data.accessToken) {
-      localStorage.setItem('accessToken', response.data.accessToken);
+    if (response.accessToken) {
+      localStorage.setItem('accessToken', response.accessToken);
     }
-    if (response.data.refreshToken) {
-      localStorage.setItem('refreshToken', response.data.refreshToken);
+    if (response.refreshToken) {
+      localStorage.setItem('refreshToken', response.refreshToken);
     }
 
     return {
-      accessToken: response.data.accessToken,
-      refreshToken: response.data.refreshToken,
-      admin: response.data.admin,
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+      admin: response.user as unknown as AdminInfo,
     };
   },
 
@@ -79,9 +76,9 @@ export const Auth = {
   async getCurrentUser(): Promise<User | null> {
     try {
       return await authApi.getMe();
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 401 인증 실패 시에만 토큰 제거 (네트워크 오류 등은 제외)
-      if (error.response?.status === 401) {
+      if ((error as AuthError).response?.status === 401) {
         console.warn('Authentication failed, clearing tokens');
         this.clearTokens();
       } else {

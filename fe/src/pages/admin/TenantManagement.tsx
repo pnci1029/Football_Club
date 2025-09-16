@@ -58,9 +58,9 @@ const TenantManagement: React.FC = () => {
       // 성공 메시지 표시 (toast나 alert 추가 가능)
       alert(`새 서브도메인 "${teamData.code}"이 성공적으로 생성되었습니다!`);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('팀 생성 실패:', error);
-      alert(`팀 생성에 실패했습니다: ${error.message || '알 수 없는 오류'}`);
+      alert(`팀 생성에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       throw error; // 모달에서 에러 처리
     } finally {
       setIsCreating(false);

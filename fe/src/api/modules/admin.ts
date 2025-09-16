@@ -12,6 +12,17 @@ import {
   PageResponse,
   PageParams,
 } from '../types';
+import { QueryParams } from '../../types/interfaces/api';
+import {
+  TeamStats,
+  TenantInfo,
+  TenantDashboard,
+  TenantSettings,
+  CreateTenantData,
+  PlayerDto,
+  StadiumDto,
+  InquiryStats
+} from '../../types/interfaces/admin/index';
 
 // Admin Dashboard API
 export const adminDashboardApi = {
@@ -20,8 +31,8 @@ export const adminDashboardApi = {
     api.callEndpoint<DashboardStats>(API_ENDPOINTS.ADMIN.DASHBOARD),
 
   // 팀 통계
-  getTeamStats: (teamId: number): Promise<ApiResponse<any>> =>
-    api.callEndpoint<ApiResponse<any>>(API_ENDPOINTS.ADMIN.TEAM_STATS, { teamId }),
+  getTeamStats: (teamId: number): Promise<ApiResponse<TeamStats>> =>
+    api.callEndpoint<ApiResponse<TeamStats>>(API_ENDPOINTS.ADMIN.TEAM_STATS, { teamId }),
 };
 
 // Admin Inquiries API
@@ -32,7 +43,7 @@ export const adminInquiriesApi = {
       API_ENDPOINTS.ADMIN_INQUIRIES.LIST,
       undefined,
       undefined,
-      params
+      params as QueryParams
     ),
 
   // ID로 문의 조회
@@ -45,18 +56,12 @@ export const adminInquiriesApi = {
       API_ENDPOINTS.ADMIN_INQUIRIES.BY_STATUS,
       { status },
       undefined,
-      params
+      params as QueryParams
     ),
 
   // 문의 통계
-  getStats: (): Promise<ApiResponse<{
-    total: number;
-    pending: number;
-    inProgress: number;
-    resolved: number;
-    closed: number;
-  }>> =>
-    api.callEndpoint<ApiResponse<any>>(API_ENDPOINTS.ADMIN_INQUIRIES.STATS),
+  getStats: (): Promise<ApiResponse<InquiryStats>> =>
+    api.callEndpoint<ApiResponse<InquiryStats>>(API_ENDPOINTS.ADMIN_INQUIRIES.STATS),
 
   // 최근 문의들
   getRecent: (limit: number = 5): Promise<ApiResponse<Inquiry[]>> =>
@@ -72,53 +77,53 @@ export const adminInquiriesApi = {
     api.callEndpoint<ApiResponse<Inquiry>>(
       API_ENDPOINTS.ADMIN_INQUIRIES.UPDATE_STATUS,
       { id },
-      data
+      data as UpdateInquiryStatusRequest & Record<string, unknown>
     ),
 };
 
 // Admin Tenants API (Multi-tenant)
 export const adminTenantsApi = {
   // 모든 테넌트 조회
-  getAll: (): Promise<ApiResponse<any[]>> =>
-    api.callEndpoint<ApiResponse<any[]>>(API_ENDPOINTS.TENANTS.LIST),
+  getAll: (): Promise<ApiResponse<TenantInfo[]>> =>
+    api.callEndpoint<ApiResponse<TenantInfo[]>>(API_ENDPOINTS.TENANTS.LIST),
 
   // 코드로 테넌트 조회
-  getByCode: (code: string): Promise<ApiResponse<any>> =>
-    api.callEndpoint<ApiResponse<any>>(API_ENDPOINTS.TENANTS.GET, { code }),
+  getByCode: (code: string): Promise<ApiResponse<TenantInfo>> =>
+    api.callEndpoint<ApiResponse<TenantInfo>>(API_ENDPOINTS.TENANTS.GET, { code }),
 
   // 테넌트 대시보드
-  getDashboard: (code: string): Promise<ApiResponse<any>> =>
-    api.callEndpoint<ApiResponse<any>>(API_ENDPOINTS.TENANTS.DASHBOARD, { code }),
+  getDashboard: (code: string): Promise<ApiResponse<TenantDashboard>> =>
+    api.callEndpoint<ApiResponse<TenantDashboard>>(API_ENDPOINTS.TENANTS.DASHBOARD, { code }),
 
   // 테넌트 선수들
-  getPlayers: (code: string, params?: PageParams): Promise<ApiResponse<any>> =>
-    api.callEndpoint<ApiResponse<any>>(
+  getPlayers: (code: string, params?: PageParams): Promise<ApiResponse<PageResponse<PlayerDto>>> =>
+    api.callEndpoint<ApiResponse<PageResponse<PlayerDto>>>(
       API_ENDPOINTS.TENANTS.PLAYERS,
       { code },
       undefined,
-      params
+      params as QueryParams
     ),
 
   // 테넌트 구장들
-  getStadiums: (code: string, params?: PageParams): Promise<ApiResponse<any>> =>
-    api.callEndpoint<ApiResponse<any>>(
+  getStadiums: (code: string, params?: PageParams): Promise<ApiResponse<PageResponse<StadiumDto>>> =>
+    api.callEndpoint<ApiResponse<PageResponse<StadiumDto>>>(
       API_ENDPOINTS.TENANTS.STADIUMS,
       { code },
       undefined,
-      params
+      params as QueryParams
     ),
 
   // 테넌트 설정 업데이트
-  updateSettings: (code: string, settings: any): Promise<ApiResponse<string>> =>
+  updateSettings: (code: string, settings: TenantSettings): Promise<ApiResponse<string>> =>
     api.callEndpoint<ApiResponse<string>>(
       API_ENDPOINTS.TENANTS.UPDATE_SETTINGS,
       { code },
-      settings
+      settings as TenantSettings & Record<string, unknown>
     ),
 
   // 테넌트 생성
-  create: (data: any): Promise<ApiResponse<string>> =>
-    api.callEndpoint<ApiResponse<string>>(API_ENDPOINTS.TENANTS.CREATE, undefined, data),
+  create: (data: CreateTenantData): Promise<ApiResponse<string>> =>
+    api.callEndpoint<ApiResponse<string>>(API_ENDPOINTS.TENANTS.CREATE, undefined, data as CreateTenantData & Record<string, unknown>),
 };
 
 // 통합 Admin API
@@ -135,7 +140,7 @@ export const Admin = {
   // 편의 메서드들
   async getSystemOverview(): Promise<{
     dashboard: DashboardStats;
-    inquiryStats: any;
+    inquiryStats: InquiryStats;
     recentInquiries: Inquiry[];
   }> {
     const [dashboard, inquiryStats, recentInquiries] = await Promise.all([
@@ -158,25 +163,22 @@ export const Admin = {
 
   async getPendingInquiriesCount(): Promise<number> {
     const response = await adminInquiriesApi.getStats();
-    return response.data.pending;
+    return response.data.pendingInquiries;
   },
 
   // 테넌트 관리
-  async createTenant(data: {
-    code: string;
-    name: string;
-    description: string;
-    settings?: any;
+  async createTenant(data: CreateTenantData & {
+    settings?: TenantSettings;
   }): Promise<string> {
     const response = await adminTenantsApi.create(data);
     return response.data;
   },
 
   async getTenantOverview(code: string): Promise<{
-    info: any;
-    dashboard: any;
-    players: any[];
-    stadiums: any[];
+    info: TenantInfo;
+    dashboard: TenantDashboard;
+    players: PageResponse<PlayerDto>;
+    stadiums: PageResponse<StadiumDto>;
   }> {
     const [info, dashboard, players, stadiums] = await Promise.all([
       adminTenantsApi.getByCode(code),

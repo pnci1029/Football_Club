@@ -2,6 +2,7 @@ import { LoginResponse, AdminInfo, TokenValidationResponse } from '../types/auth
 import { Logger } from '../utils/logger';
 import { ERROR_MESSAGES } from '../constants/messages';
 import { Auth } from '../api';
+import { LoginUserResponse } from '../types/interfaces/auth';
 
 class AuthService {
 
@@ -10,12 +11,20 @@ class AuthService {
    */
   async login(username: string, password: string): Promise<LoginResponse> {
     try {
-      const loginData = await Auth.loginUser({ username, password } as any);
+      const loginData: LoginUserResponse = await Auth.loginUser({ username, password });
       
       return {
         accessToken: loginData.accessToken,
         refreshToken: loginData.refreshToken || '',
-        admin: loginData.admin
+        admin: {
+          id: parseInt(loginData.admin.id), // Convert string id to number
+          username: loginData.admin.email, // Use email as username
+          role: loginData.admin.role,
+          email: loginData.admin.email,
+          name: loginData.admin.name,
+          createdAt: loginData.admin.createdAt,
+          lastLoginAt: loginData.admin.updatedAt
+        }
       };
     } catch (error) {
       console.error('로그인 실패:', error);

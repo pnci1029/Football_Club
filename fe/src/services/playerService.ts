@@ -1,24 +1,25 @@
 import { PlayerDto } from '../types/player';
 import { PageResponse } from '../types/api';
 import { Players } from '../api';
+import { PlayerApiResponse, PlayerTransformData } from '../types/interfaces/player';
 
 export class PlayerService {
   async getPlayers(page: number = 0, size: number = 10): Promise<PageResponse<PlayerDto>> {
     try {
       console.log('플레이어 조회 시작:', { page, size });
-      const response = await Players.public.getAll({ page, size }) as any;
+      const response = await Players.public.getAll({ page, size }) as unknown as PlayerApiResponse;
       console.log('플레이어 API 응답:', response);
       
       // 서버 응답 구조: { success, data: { content: [...], page: {...} } }
       const actualData = response.success ? response.data : response;
-      const content = actualData.content || [];
-      const pageInfo = actualData.page || {};
+      const content = (actualData as any).content || [];
+      const pageInfo = (actualData as any).page || {};
       
       console.log('처리된 데이터:', { content, pageInfo });
       
       // 새로운 API 응답을 기존 타입으로 변환
       const legacyResponse: PageResponse<PlayerDto> = {
-        content: content.map((player: any) => ({
+        content: content.map((player: PlayerTransformData) => ({
           ...player,
           // 서버에서 이미 teamName과 isActive를 제공하므로 그대로 사용
           teamName: player.teamName || (player.teamId ? `Team ${player.teamId}` : 'Unknown Team'),

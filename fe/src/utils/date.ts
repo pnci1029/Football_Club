@@ -247,8 +247,12 @@ export class DateUtil {
   /**
    * 날짜 유효성 검증
    */
-  static isValidDate(date: any): boolean {
-    const d = new Date(date);
-    return d instanceof Date && !isNaN(d.getTime());
+  static isValidDate(date: unknown): boolean {
+    try {
+      const d = new Date(date as string | number | Date);
+      return d instanceof Date && !isNaN(d.getTime());
+    } catch {
+      return false;
+    }
   }
 }

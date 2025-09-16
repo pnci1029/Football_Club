@@ -1,18 +1,22 @@
 import { apiClient } from './api';
+import { HeroSlides } from '../api';
 import { HeroSlide, CreateHeroSlideRequest, UpdateHeroSlideRequest } from '../types/hero';
 
 export class HeroService {
   static async getActiveSlides(teamId: number): Promise<HeroSlide[]> {
-    return apiClient.get<HeroSlide[]>(`/api/v1/admin/hero-slides/active?teamId=${teamId}`);
+    // teamId를 쿼리 파라미터로 포함하여 호출
+    return apiClient.get<HeroSlide[]>(`/api/v1/hero-slides/active?teamId=${teamId}`);
   }
 
   static async getAllSlides(teamId: number): Promise<HeroSlide[]> {
+    // teamId를 쿼리 파라미터로 포함하여 호출  
     return apiClient.get<HeroSlide[]>(`/api/v1/admin/hero-slides?teamId=${teamId}`);
   }
 
   static async createSlide(teamId: number, data: CreateHeroSlideRequest): Promise<HeroSlide> {
     const payload = {
       ...data,
+      teamId, // teamId를 payload에 포함
       gradientColor: data.gradientColor.toUpperCase()
     };
     return apiClient.post<HeroSlide>(`/api/v1/admin/hero-slides?teamId=${teamId}`, payload);

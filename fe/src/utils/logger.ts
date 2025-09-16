@@ -49,7 +49,7 @@ export class Logger {
   /**
    * 콘솔 로그 출력
    */
-  private static logToConsole(level: LogLevel, message: string, data?: any): void {
+  private static logToConsole(level: LogLevel, message: string, data?: unknown): void {
     if (!Logger.config.enableConsole) return;
 
     const timestamp = new Date().toISOString();
@@ -74,7 +74,7 @@ export class Logger {
   /**
    * 원격 로그 전송 (필요시 구현)
    */
-  private static async logToRemote(level: LogLevel, message: string, data?: any): Promise<void> {
+  private static async logToRemote(level: LogLevel, message: string, data?: unknown): Promise<void> {
     if (!Logger.config.enableRemote || !Logger.config.remoteEndpoint) return;
 
     try {
@@ -100,7 +100,7 @@ export class Logger {
   /**
    * 디버그 로그
    */
-  static debug(message: string, data?: any): void {
+  static debug(message: string, data?: unknown): void {
     if (Logger.shouldLog(LogLevel.DEBUG)) {
       Logger.logToConsole(LogLevel.DEBUG, message, data);
       Logger.logToRemote(LogLevel.DEBUG, message, data);
@@ -110,7 +110,7 @@ export class Logger {
   /**
    * 정보 로그
    */
-  static info(message: string, data?: any): void {
+  static info(message: string, data?: unknown): void {
     if (Logger.shouldLog(LogLevel.INFO)) {
       Logger.logToConsole(LogLevel.INFO, message, data);
       Logger.logToRemote(LogLevel.INFO, message, data);
@@ -120,7 +120,7 @@ export class Logger {
   /**
    * 경고 로그
    */
-  static warn(message: string, data?: any): void {
+  static warn(message: string, data?: unknown): void {
     if (Logger.shouldLog(LogLevel.WARN)) {
       Logger.logToConsole(LogLevel.WARN, message, data);
       Logger.logToRemote(LogLevel.WARN, message, data);
@@ -130,7 +130,7 @@ export class Logger {
   /**
    * 에러 로그
    */
-  static error(message: string, error?: any): void {
+  static error(message: string, error?: unknown): void {
     if (Logger.shouldLog(LogLevel.ERROR)) {
       Logger.logToConsole(LogLevel.ERROR, message, error);
       Logger.logToRemote(LogLevel.ERROR, message, error);
@@ -140,14 +140,14 @@ export class Logger {
   /**
    * API 요청 로그
    */
-  static apiRequest(method: string, url: string, data?: any): void {
+  static apiRequest(method: string, url: string, data?: unknown): void {
     Logger.debug(`API Request: ${method} ${url}`, data);
   }
 
   /**
    * API 응답 로그
    */
-  static apiResponse(method: string, url: string, status: number, data?: any): void {
+  static apiResponse(method: string, url: string, status: number, data?: unknown): void {
     const message = `API Response: ${method} ${url} - ${status}`;
     
     if (status >= 400) {
@@ -160,14 +160,14 @@ export class Logger {
   /**
    * 사용자 액션 로그
    */
-  static userAction(action: string, data?: any): void {
+  static userAction(action: string, data?: unknown): void {
     Logger.info(`User Action: ${action}`, data);
   }
 
   /**
    * 성능 로그
    */
-  static performance(operation: string, duration: number, data?: any): void {
+  static performance(operation: string, duration: number, data?: unknown): void {
     Logger.info(`Performance: ${operation} took ${duration}ms`, data);
   }
 }
@@ -188,7 +188,7 @@ export class PerformanceTracker {
   /**
    * 성능 측정 종료 및 로그
    */
-  static end(key: string, data?: any): number {
+  static end(key: string, data?: unknown): number {
     const startTime = PerformanceTracker.timers.get(key);
     if (startTime === undefined) {
       Logger.warn(`Performance timer '${key}' not found`);
@@ -208,7 +208,7 @@ export class PerformanceTracker {
   static async measure<T>(
     key: string,
     fn: () => Promise<T> | T,
-    data?: any
+    data?: unknown
   ): Promise<T> {
     PerformanceTracker.start(key);
     try {
@@ -216,7 +216,10 @@ export class PerformanceTracker {
       PerformanceTracker.end(key, data);
       return result;
     } catch (error) {
-      PerformanceTracker.end(key, { ...data, error: error instanceof Error ? error.message : String(error) });
+      PerformanceTracker.end(key, { 
+        ...(data && typeof data === 'object' ? data : {}), 
+        error: error instanceof Error ? error.message : String(error) 
+      });
       throw error;
     }
   }

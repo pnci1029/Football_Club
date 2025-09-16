@@ -35,9 +35,9 @@ const AdminLogin: React.FC = () => {
     try {
       await login(formData.username, formData.password);
       // 로그인 성공 시 navigate는 useEffect에서 처리됨
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Login failed:', err);
-      setError(err.message || '로그인에 실패했습니다. 사용자명과 비밀번호를 확인해주세요.');
+      setError(err instanceof Error ? err.message : '로그인에 실패했습니다. 사용자명과 비밀번호를 확인해주세요.');
     } finally {
       setIsSubmitting(false);
     }

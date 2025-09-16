@@ -39,13 +39,26 @@ export const createApiHeaders = (contentType: string = CONTENT_TYPES.JSON, token
 /**
  * API 응답 에러 처리
  */
-export const handleApiError = (error: any, defaultMessage: string = '요청 처리 중 오류가 발생했습니다.'): string => {
-  if (error?.response?.data?.error?.message) {
-    return error.response.data.error.message;
-  }
-  
-  if (error?.message) {
-    return error.message;
+export const handleApiError = (error: unknown, defaultMessage: string = '요청 처리 중 오류가 발생했습니다.'): string => {
+  if (typeof error === 'object' && error !== null) {
+    const err = error as Record<string, unknown>;
+    
+    if (typeof err.response === 'object' && err.response !== null) {
+      const response = err.response as Record<string, unknown>;
+      if (typeof response.data === 'object' && response.data !== null) {
+        const data = response.data as Record<string, unknown>;
+        if (typeof data.error === 'object' && data.error !== null) {
+          const errorObj = data.error as Record<string, unknown>;
+          if (typeof errorObj.message === 'string') {
+            return errorObj.message;
+          }
+        }
+      }
+    }
+    
+    if (typeof err.message === 'string') {
+      return err.message;
+    }
   }
   
   return defaultMessage;
@@ -77,13 +90,18 @@ export const buildSearchParams = (params: Record<string, string | number>): stri
 /**
  * API 응답 성공 여부 확인
  */
-export const isApiSuccess = (response: any): boolean => {
-  return response && response.success === true;
+export const isApiSuccess = (response: unknown): boolean => {
+  return (
+    typeof response === 'object' && 
+    response !== null && 
+    'success' in response && 
+    (response as Record<string, unknown>).success === true
+  );
 };
 
 /**
  * API 응답에서 데이터 추출
  */
-export const extractApiData = <T>(response: any): T => {
+export const extractApiData = <T>(response: { data: T }): T => {
   return response.data;
 };

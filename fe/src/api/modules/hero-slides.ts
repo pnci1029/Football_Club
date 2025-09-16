@@ -12,6 +12,7 @@ import {
   PageResponse,
   PageParams,
 } from '../types';
+import { QueryParams, RequestData } from '../../types/interfaces/api';
 
 // Public Hero Slides API
 export const heroSlidesApi = {
@@ -28,7 +29,7 @@ export const adminHeroSlidesApi = {
       API_ENDPOINTS.ADMIN_HERO_SLIDES.LIST,
       undefined,
       undefined,
-      params
+      params as QueryParams
     ),
 
   // ID로 슬라이드 조회
@@ -37,11 +38,11 @@ export const adminHeroSlidesApi = {
 
   // 슬라이드 생성
   create: (data: CreateHeroSlideRequest): Promise<ApiResponse<HeroSlide>> =>
-    api.callEndpoint<ApiResponse<HeroSlide>>(API_ENDPOINTS.ADMIN_HERO_SLIDES.CREATE, undefined, data),
+    api.callEndpoint<ApiResponse<HeroSlide>>(API_ENDPOINTS.ADMIN_HERO_SLIDES.CREATE, undefined, data as unknown as RequestData),
 
   // 슬라이드 수정
   update: (id: number, data: UpdateHeroSlideRequest): Promise<ApiResponse<HeroSlide>> =>
-    api.callEndpoint<ApiResponse<HeroSlide>>(API_ENDPOINTS.ADMIN_HERO_SLIDES.UPDATE, { id }, data),
+    api.callEndpoint<ApiResponse<HeroSlide>>(API_ENDPOINTS.ADMIN_HERO_SLIDES.UPDATE, { id }, data as unknown as RequestData),
 
   // 슬라이드 삭제
   delete: (id: number): Promise<ApiResponse<string>> =>
@@ -52,7 +53,7 @@ export const adminHeroSlidesApi = {
     api.callEndpoint<ApiResponse<HeroSlide>>(
       API_ENDPOINTS.ADMIN_HERO_SLIDES.UPDATE_ORDER,
       { id },
-      { order }
+      { order } as RequestData
     ),
 
   // 슬라이드 활성화/비활성화
@@ -60,7 +61,7 @@ export const adminHeroSlidesApi = {
     api.callEndpoint<ApiResponse<HeroSlide>>(
       API_ENDPOINTS.ADMIN_HERO_SLIDES.UPDATE_ACTIVE,
       { id },
-      { active }
+      { active } as RequestData
     ),
 };
 

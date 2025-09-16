@@ -154,13 +154,13 @@ export function buildUrl(template: string, params: Record<string, string | numbe
 export function getAllEndpoints(): Array<{ name: string; endpoint: ApiEndpoint }> {
   const result: Array<{ name: string; endpoint: ApiEndpoint }> = [];
   
-  function flatten(obj: any, prefix = '') {
+  function flatten(obj: Record<string, unknown>, prefix = '') {
     for (const [key, value] of Object.entries(obj)) {
       const name = prefix ? `${prefix}.${key}` : key;
       if (value && typeof value === 'object' && 'method' in value) {
         result.push({ name, endpoint: value as ApiEndpoint });
-      } else if (typeof value === 'object') {
-        flatten(value, name);
+      } else if (typeof value === 'object' && value !== null) {
+        flatten(value as Record<string, unknown>, name);
       }
     }
   }

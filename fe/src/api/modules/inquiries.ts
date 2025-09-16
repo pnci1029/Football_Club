@@ -11,11 +11,12 @@ import {
   PageResponse,
   PageParams,
 } from '../types';
+import { QueryParams, RequestData } from '../../types/interfaces/api';
 
 export const inquiriesApi = {
   // 문의 생성
   create: (data: CreateInquiryRequest): Promise<ApiResponse<Inquiry>> =>
-    api.callEndpoint<ApiResponse<Inquiry>>(API_ENDPOINTS.INQUIRIES.CREATE, undefined, data),
+    api.callEndpoint<ApiResponse<Inquiry>>(API_ENDPOINTS.INQUIRIES.CREATE, undefined, data as unknown as RequestData),
 
   // 내 문의 목록 조회
   getMy: (params?: PageParams): Promise<ApiResponse<PageResponse<Inquiry>>> =>
@@ -23,7 +24,7 @@ export const inquiriesApi = {
       API_ENDPOINTS.INQUIRIES.MY_LIST,
       undefined,
       undefined,
-      params
+      params as QueryParams
     ),
 
   // ID로 문의 조회

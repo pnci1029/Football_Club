@@ -7,7 +7,7 @@ export interface ApiResponse<T> {
   success: boolean;
   data: T;
   message: string | null;
-  error: any | null;
+  error: ApiError | null;
   timestamp: string;
 }
 
@@ -51,7 +51,7 @@ export interface ApiEndpoint {
 export interface ApiError {
   code: string;
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
   timestamp: string;
 }
 
