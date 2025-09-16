@@ -41,20 +41,49 @@ export const Auth = {
 
   // 편의 메서드들
   async loginUser(credentials: LoginRequest): Promise<LoginUserResponse> {
-    const response = await authApi.login(credentials) as LoginResponse;
-    
-    // 토큰을 localStorage에 저장
-    if (response.accessToken) {
-      localStorage.setItem('accessToken', response.accessToken);
+    const response = await authApi.login(credentials);
+
+
+    // API 응답이 ApiResponse<data> 형태인 경우 처리
+    interface ApiResponseWrapper {
+      success: boolean;
+      data: {
+        accessToken: string;
+        refreshToken?: string;
+        admin: AdminInfo;
+      };
+      message: string | null;
+      error: unknown;
+      timestamp: string;
     }
-    if (response.refreshToken) {
-      localStorage.setItem('refreshToken', response.refreshToken);
+
+    let loginData: { accessToken: string; refreshToken?: string; admin: AdminInfo };
+    if (response && typeof response === 'object' && 'data' in response) {
+      const wrappedResponse = response as unknown as ApiResponseWrapper;
+      loginData = wrappedResponse.data;
+      console.log('Login data from response.data:', loginData);
+    } else {
+      loginData = response as unknown as { accessToken: string; refreshToken?: string; admin: AdminInfo };
+      console.log('Login data (direct):', loginData);
+    }
+
+    // 토큰을 localStorage에 저장
+    if (loginData.accessToken) {
+      localStorage.setItem('accessToken', loginData.accessToken);
+    }
+    if (loginData.refreshToken) {
+      localStorage.setItem('refreshToken', loginData.refreshToken);
+    }
+
+    // admin 정보 확인
+    if (!loginData.admin) {
+      throw new Error('Admin information not found in login response');
     }
 
     return {
-      accessToken: response.accessToken,
-      refreshToken: response.refreshToken,
-      admin: response.user as unknown as AdminInfo,
+      accessToken: loginData.accessToken,
+      refreshToken: loginData.refreshToken,
+      admin: loginData.admin,
     };
   },
 
@@ -136,7 +165,7 @@ export const Auth = {
   // 자동 토큰 새로고침
   async ensureValidToken(): Promise<string | null> {
     const token = this.getAccessToken();
-    
+
     if (!token) {
       return null;
     }
@@ -149,16 +178,16 @@ export const Auth = {
         console.warn('Invalid JWT format, refreshing token');
         return await this.refreshToken();
       }
-      
+
       const payload = JSON.parse(atob(parts[1]));
       const currentTime = Date.now() / 1000;
-      
+
       // 토큰이 5분 이내에 만료되면 새로고침
       if (payload.exp && payload.exp - currentTime < 300) {
         console.log('Token expiring soon, refreshing');
         return await this.refreshToken();
       }
-      
+
       return token;
     } catch (error) {
       // 토큰 파싱 실패 시 새로고침 시도

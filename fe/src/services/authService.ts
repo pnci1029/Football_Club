@@ -3,6 +3,7 @@ import { Logger } from '../utils/logger';
 import { ERROR_MESSAGES } from '../constants/messages';
 import { Auth } from '../api';
 import { LoginUserResponse } from '../types/interfaces/auth';
+import { LoginRequest } from '../api/types';
 
 class AuthService {
 
@@ -11,20 +12,30 @@ class AuthService {
    */
   async login(username: string, password: string): Promise<LoginResponse> {
     try {
-      const loginData: LoginUserResponse = await Auth.loginUser({ username, password });
-      
+      const credentials: LoginRequest = { username, password };
+      const loginData: LoginUserResponse = await Auth.loginUser(credentials);
+
+
+      // loginData.admin이 undefined인 경우 처리
+      if (!loginData.admin) {
+        console.error('Admin data is missing from login response');
+        throw new Error('Admin information not found in login response');
+      }
+
+      const admin: AdminInfo = {
+        id: typeof loginData.admin.id === 'string' ? parseInt(loginData.admin.id) || 0 : loginData.admin.id,
+        username: loginData.admin.email,
+        role: loginData.admin.role,
+        email: loginData.admin.email,
+        name: loginData.admin.name,
+        createdAt: loginData.admin.createdAt,
+        lastLoginAt: loginData.admin.updatedAt
+      };
+
       return {
         accessToken: loginData.accessToken,
         refreshToken: loginData.refreshToken || '',
-        admin: {
-          id: parseInt(loginData.admin.id), // Convert string id to number
-          username: loginData.admin.email, // Use email as username
-          role: loginData.admin.role,
-          email: loginData.admin.email,
-          name: loginData.admin.name,
-          createdAt: loginData.admin.createdAt,
-          lastLoginAt: loginData.admin.updatedAt
-        }
+        admin
       };
     } catch (error) {
       console.error('로그인 실패:', error);
@@ -71,7 +82,7 @@ class AuthService {
       }
 
       const admin: AdminInfo = {
-        id: user.id,
+        id: typeof user.id === 'string' ? parseInt(user.id) || 0 : user.id,
         username: user.email, // email을 username으로 사용
         role: user.role || 'admin',
         email: user.email,
@@ -98,7 +109,7 @@ class AuthService {
         const user = await Auth.getCurrentUser();
         if (user) {
           const admin: AdminInfo = {
-            id: user.id,
+            id: typeof user.id === 'string' ? parseInt(user.id) || 0 : user.id,
             username: user.email,
             role: user.role || 'admin',
             email: user.email,

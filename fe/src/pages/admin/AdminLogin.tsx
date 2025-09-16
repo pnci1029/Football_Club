@@ -10,7 +10,7 @@ const AdminLogin: React.FC = () => {
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const { login, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -23,7 +23,7 @@ const AdminLogin: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.username.trim() || !formData.password.trim()) {
       setError('사용자명과 비밀번호를 입력해주세요.');
       return;
@@ -34,6 +34,8 @@ const AdminLogin: React.FC = () => {
 
     try {
       await login(formData.username, formData.password);
+
+      console.log(123123)
       // 로그인 성공 시 navigate는 useEffect에서 처리됨
     } catch (err: unknown) {
       console.error('Login failed:', err);
