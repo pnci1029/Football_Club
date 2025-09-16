@@ -6,16 +6,13 @@ import { PlayerApiResponse, PlayerTransformData } from '../types/interfaces/play
 export class PlayerService {
   async getPlayers(page: number = 0, size: number = 10): Promise<PageResponse<PlayerDto>> {
     try {
-      console.log('플레이어 조회 시작:', { page, size });
       const response = await Players.public.getAll({ page, size }) as unknown as PlayerApiResponse;
-      console.log('플레이어 API 응답:', response);
       
       // 서버 응답 구조: { success, data: { content: [...], page: {...} } }
       const actualData = response.success ? response.data : response;
       const content = (actualData as any).content || [];
       const pageInfo = (actualData as any).page || {};
       
-      console.log('처리된 데이터:', { content, pageInfo });
       
       // 새로운 API 응답을 기존 타입으로 변환
       const legacyResponse: PageResponse<PlayerDto> = {

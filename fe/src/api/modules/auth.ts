@@ -119,7 +119,6 @@ export const Auth = {
     try {
       const refreshToken = this.getRefreshToken();
       if (!refreshToken) {
-        console.warn('No refresh token available');
         this.clearTokens();
         return null;
       }
@@ -130,7 +129,6 @@ export const Auth = {
         if (response.refreshToken) {
           localStorage.setItem('refreshToken', response.refreshToken);
         }
-        console.log('Token refreshed successfully');
         return response.accessToken;
       }
       return null;
@@ -173,7 +171,6 @@ export const Auth = {
       const parts = token.split('.');
       if (parts.length !== 3) {
         // 잘못된 JWT 형식이면 새로고침 시도
-        console.warn('Invalid JWT format, refreshing token');
         return await this.refreshToken();
       }
 
@@ -182,14 +179,12 @@ export const Auth = {
 
       // 토큰이 5분 이내에 만료되면 새로고침
       if (payload.exp && payload.exp - currentTime < 300) {
-        console.log('Token expiring soon, refreshing');
         return await this.refreshToken();
       }
 
       return token;
     } catch (error) {
       // 토큰 파싱 실패 시 새로고침 시도
-      console.warn('Token parsing failed, refreshing token:', error);
       return await this.refreshToken();
     }
   },

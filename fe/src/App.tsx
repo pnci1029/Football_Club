@@ -26,9 +26,7 @@ import { isMainDomain } from './utils/config';
 
 // 개발 환경에서만 API 테스터 로드
 if (process.env.NODE_ENV === 'development') {
-  import('./utils/api-tester').then(() => {
-    console.log('🧪 API 테스터가 로드되었습니다. 개발자 콘솔에서 testAllApis() 를 실행해보세요.');
-  });
+  import('./utils/api-tester');
 }
 
 const AppContent: React.FC = () => {

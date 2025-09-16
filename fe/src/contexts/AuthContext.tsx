@@ -36,12 +36,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const hasToken = localStorage.getItem('accessToken');
 
       if (hasToken && authService.isAuthenticated()) {
-        console.log('AuthContext: Token exists, getting admin info');
         const adminInfo = await authService.getCurrentAdmin();
         setAdmin(adminInfo);
-        console.log('AuthContext: Admin info loaded:', adminInfo);
       } else {
-        console.log('AuthContext: No token found or authentication failed');
         authService.clearTokens();
         setAdmin(null);
       }
@@ -54,7 +51,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // useEffect에서 리다이렉트를 처리하므로 여기서는 제거
     } finally {
       setIsLoading(false);
-      console.log('AuthContext: Loading finished, admin:', admin !== null);
     }
   };
 
@@ -73,22 +69,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async (): Promise<void> => {
-    console.log('AuthContext: logout() called');
-
     // 먼저 상태를 즉시 초기화
     setAdmin(null);
     setIsLoading(false);
 
     try {
       await authService.logout();
-      console.log('AuthContext: authService.logout() completed');
     } catch (error) {
       console.warn('Logout error:', error);
     }
 
     // 강제로 토큰 정리 (혹시 남아있을 수 있는 경우)
     authService.clearTokens();
-    console.log('AuthContext: tokens cleared, admin set to null');
 
     // useEffect에서 리다이렉트를 처리하므로 여기서는 제거
   };
@@ -118,7 +110,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // 토큰이 없는데 admin이 있다면 상태 불일치 → 수정
     if (!hasToken && admin) {
-      console.log('AuthContext: Token missing but admin exists, clearing admin state');
       setAdmin(null);
       return; // 상태 업데이트 후 리렌더링을 위해 early return
     }

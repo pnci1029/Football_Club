@@ -18,7 +18,6 @@ const AdminLogin: React.FC = () => {
   useEffect(() => {
     const hasToken = localStorage.getItem('accessToken');
     if (isAuthenticated && hasToken && !isLoading) {
-      console.log('AdminLogin: Redirecting to dashboard - authenticated with token');
       navigate('/admin/dashboard', { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
