@@ -41,7 +41,15 @@ deploy_backend() {
     
     local BACKEND_BUILD_DIR="/tmp/football-club-backend-$(date +%s)"
     rm -rf "$BACKEND_BUILD_DIR"
-    git clone --depth 1 "$REPO_URL" "$BACKEND_BUILD_DIR"
+    
+    # SSH keep-alive 설정으로 연결 유지
+    export GIT_SSH_COMMAND="ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=10 -o ConnectTimeout=30"
+    
+    echo "⏳ Cloning repository (this may take a few minutes)..."
+    timeout 300 git clone --depth 1 "$REPO_URL" "$BACKEND_BUILD_DIR" || {
+        echo "❌ Git clone failed or timed out after 5 minutes"
+        exit 1
+    }
     cd "$BACKEND_BUILD_DIR"
     
     echo "🔨 Building backend Docker image..."
@@ -53,7 +61,24 @@ deploy_backend() {
         echo "$APPLICATION_PROD_YML" > src/main/resources/application-prod.yml
     fi
     
-    docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t football-club-backend:latest .
+    echo "⏳ Building Docker image (this may take 5-10 minutes)..."
+    docker build --build-arg BUILDKIT_INLINE_CACHE=1 \
+      --progress=plain \
+      --network=host \
+      -t football-club-backend:latest . &
+    
+    BUILD_PID=$!
+    while kill -0 $BUILD_PID 2>/dev/null; do
+        echo "📦 Still building... $(date +'%H:%M:%S')"
+        sleep 30
+    done
+    wait $BUILD_PID
+    
+    if [ $? -ne 0 ]; then
+        echo "❌ Docker build failed!"
+        exit 1
+    fi
+    echo "✅ Docker image built successfully!"
     
     cd "$APP_DIR"
     cp "$BACKEND_BUILD_DIR/docker-compose.yml" "$APP_DIR/"
@@ -86,15 +111,41 @@ deploy_backend() {
 deploy_frontend() {
     echo "🔄 Fetching latest code for frontend..."
     
+    # SSH keep-alive 설정으로 연결 유지
+    export GIT_SSH_COMMAND="ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=10 -o ConnectTimeout=30"
+    
     local FRONTEND_BUILD_DIR="/tmp/football-club-frontend-$(date +%s)"
     rm -rf "$FRONTEND_BUILD_DIR"
-    git clone --depth 1 "$REPO_URL" "$FRONTEND_BUILD_DIR"
+    
+    echo "⏳ Cloning repository (this may take a few minutes)..."
+    timeout 300 git clone --depth 1 "$REPO_URL" "$FRONTEND_BUILD_DIR" || {
+        echo "❌ Git clone failed or timed out after 5 minutes"
+        exit 1
+    }
     cd "$FRONTEND_BUILD_DIR"
     
     if [ -d "$FRONTEND_BUILD_DIR/fe" ]; then
         echo "🔨 Building frontend Docker image..."
         cd "$FRONTEND_BUILD_DIR/fe"
-        docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t football-club-frontend:latest .
+        
+        echo "⏳ Building Docker image (this may take a few minutes)..."
+        docker build --build-arg BUILDKIT_INLINE_CACHE=1 \
+          --progress=plain \
+          --network=host \
+          -t football-club-frontend:latest . &
+        
+        BUILD_PID=$!
+        while kill -0 $BUILD_PID 2>/dev/null; do
+            echo "📦 Still building... $(date +'%H:%M:%S')"
+            sleep 30
+        done
+        wait $BUILD_PID
+        
+        if [ $? -ne 0 ]; then
+            echo "❌ Docker build failed!"
+            exit 1
+        fi
+        echo "✅ Docker image built successfully!"
     else
         echo "❌ Frontend directory not found!"
         exit 1
@@ -122,8 +173,15 @@ deploy_frontend() {
 deploy_all() {
     echo "🔄 Fetching latest code from GitHub..."
     
+    # SSH keep-alive 설정으로 연결 유지
+    export GIT_SSH_COMMAND="ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=10 -o ConnectTimeout=30"
+    
     rm -rf "$BUILD_DIR"
-    git clone "$REPO_URL" "$BUILD_DIR"
+    echo "⏳ Cloning repository (this may take a few minutes)..."
+    timeout 300 git clone "$REPO_URL" "$BUILD_DIR" || {
+        echo "❌ Git clone failed or timed out after 5 minutes"
+        exit 1
+    }
     cd "$BUILD_DIR"
     git checkout main
     
@@ -138,15 +196,32 @@ deploy_all() {
         echo "$APPLICATION_PROD_YML" > src/main/resources/application-prod.yml
     fi
     
-    docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t football-club-backend:latest . &
+    echo "⏳ Building backend image (this may take 5-10 minutes)..."
+    docker build --build-arg BUILDKIT_INLINE_CACHE=1 \
+      --progress=plain \
+      --network=host \
+      -t football-club-backend:latest . &
+    BACKEND_PID=$!
     
     # 프론트엔드 이미지 빌드
     if [ -d "$BUILD_DIR/fe" ]; then
         cd "$BUILD_DIR/fe"
-        docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t football-club-frontend:latest . &
+        echo "⏳ Building frontend image..."
+        docker build --build-arg BUILDKIT_INLINE_CACHE=1 \
+          --progress=plain \
+          --network=host \
+          -t football-club-frontend:latest . &
+        FRONTEND_PID=$!
     fi
     
+    # 빌드 진행 상황 모니터링
+    while kill -0 $BACKEND_PID 2>/dev/null || ([ -n "$FRONTEND_PID" ] && kill -0 $FRONTEND_PID 2>/dev/null); do
+        echo "📦 Building images... $(date +'%H:%M:%S')"
+        sleep 30
+    done
+    
     wait
+    echo "✅ All Docker images built successfully!"
     
     cd "$APP_DIR"
     
