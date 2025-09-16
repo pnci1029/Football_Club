@@ -61,10 +61,8 @@ export const Auth = {
     if (response && typeof response === 'object' && 'data' in response) {
       const wrappedResponse = response as unknown as ApiResponseWrapper;
       loginData = wrappedResponse.data;
-      console.log('Login data from response.data:', loginData);
     } else {
       loginData = response as unknown as { accessToken: string; refreshToken?: string; admin: AdminInfo };
-      console.log('Login data (direct):', loginData);
     }
 
     // 토큰을 localStorage에 저장

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface ProtectedRouteProps {
@@ -7,17 +8,10 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  useEffect(() => {
-    // 인증되지 않은 경우 로그인 페이지로 리다이렉트
-    if (!isLoading && !isAuthenticated) {
-      // 현재 URL을 저장해서 로그인 후 돌아올 수 있도록 함
-      const currentPath = window.location.pathname;
-      const redirectUrl = currentPath !== '/admin/login' ? `?redirect=${encodeURIComponent(currentPath)}` : '';
-      
-      window.location.href = `/admin/login${redirectUrl}`;
-    }
-  }, [isAuthenticated, isLoading]);
+  // 리다이렉트는 AuthContext에서만 처리하도록 제거
 
   // 로딩 중
   if (isLoading) {
@@ -31,7 +25,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // 인증되지 않은 경우 (리다이렉트 처리 중)
+  // 인증되지 않은 경우 (리다이렉트는 AuthContext에서 처리)
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">

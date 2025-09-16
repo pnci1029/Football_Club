@@ -14,9 +14,11 @@ const AdminLogin: React.FC = () => {
   const { login, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  // 이미 로그인한 경우 관리자 대시보드로 리다이렉트
+  // 이미 로그인한 경우 관리자 대시보드로 리다이렉트 (토큰도 확인)
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
+    const hasToken = localStorage.getItem('accessToken');
+    if (isAuthenticated && hasToken && !isLoading) {
+      console.log('AdminLogin: Redirecting to dashboard - authenticated with token');
       navigate('/admin/dashboard', { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
@@ -35,7 +37,6 @@ const AdminLogin: React.FC = () => {
     try {
       await login(formData.username, formData.password);
 
-      console.log(123123)
       // 로그인 성공 시 navigate는 useEffect에서 처리됨
     } catch (err: unknown) {
       console.error('Login failed:', err);
