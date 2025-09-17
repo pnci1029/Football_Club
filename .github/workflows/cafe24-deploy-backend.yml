@@ -31,7 +31,9 @@ jobs:
       with:
         context: ./be
         push: true
-        tags: ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }},${{ secrets.DOCKER_USERNAME }}/football-club-backend:latest
+        tags: |
+          ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }}
+          ${{ secrets.DOCKER_USERNAME }}/football-club-backend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
