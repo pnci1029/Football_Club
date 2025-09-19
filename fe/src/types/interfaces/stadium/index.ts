@@ -71,16 +71,6 @@ export interface PostcodeData {
   addressType: string;
   bname: string;
   buildingName: string;
-}
-
-export interface KakaoGeocoderResult {
-  x: string;
-  y: string;
-  address_name: string;
-}
-
-export interface KakaoGeocoderStatus {
-  OK: string;
-  ZERO_RESULT: string;
-  ERROR: string;
+  x?: string; // 경도 (Daum Postcode에서 제공)
+  y?: string; // 위도 (Daum Postcode에서 제공)
 }
