@@ -4,10 +4,9 @@
 name: "[DEPRECATED] Deploy to Cafe24 Server"
 
 on:
-  # Disabled - use separate backend/frontend workflows instead
-  # push:
-  #   branches: [ asdasd ]
-  # workflow_dispatch:
+   push:
+     branches: [ asdasd ]
+   workflow_dispatch:
 
 jobs:
   build:
