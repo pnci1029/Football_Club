@@ -22,6 +22,7 @@ class AuthService {
         throw new Error('Admin information not found in login response');
       }
 
+
       const admin: AdminInfo = {
         id: typeof loginData.admin.id === 'string' ? parseInt(loginData.admin.id) || 0 : loginData.admin.id,
         username: loginData.admin.email,

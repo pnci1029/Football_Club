@@ -11,22 +11,40 @@ const formatPrice = (price?: number) => {
   return price ? `${price.toLocaleString()}원/시간` : '문의';
 };
 
-const parseImageUrls = (imageUrls?: string): string[] => {
+const parseImageUrls = (imageUrls?: string | string[]): string[] => {
   if (!imageUrls) return [];
-  try {
-    return JSON.parse(imageUrls);
-  } catch {
-    return imageUrls.split(',').map(url => url.trim());
+  
+  // 이미 배열인 경우
+  if (Array.isArray(imageUrls)) return imageUrls;
+  
+  // 문자열인 경우에만 처리
+  if (typeof imageUrls === 'string') {
+    try {
+      return JSON.parse(imageUrls);
+    } catch {
+      return imageUrls.split(',').map(url => url.trim());
+    }
   }
+  
+  return [];
 };
 
-const parseFacilities = (facilities?: string): string[] => {
+const parseFacilities = (facilities?: string | string[]): string[] => {
   if (!facilities) return [];
-  try {
-    return JSON.parse(facilities);
-  } catch {
-    return facilities.split(',').map(facility => facility.trim());
+  
+  // 이미 배열인 경우
+  if (Array.isArray(facilities)) return facilities;
+  
+  // 문자열인 경우에만 처리
+  if (typeof facilities === 'string') {
+    try {
+      return JSON.parse(facilities);
+    } catch {
+      return facilities.split(',').map(facility => facility.trim());
+    }
   }
+  
+  return [];
 };
 
 const Stadiums: React.FC = () => {
@@ -124,10 +142,10 @@ const Stadiums: React.FC = () => {
                     onClick={() => setSelectedStadium(stadium)}
                     className="overflow-hidden"
                   >
-                    <div className="md:flex">
-                      {/* 구장 지도 - 큰 사이즈 */}
-                      <div className="md:w-1/2 lg:w-2/3">
-                        <div className="relative h-64 md:h-80 lg:h-96">
+                    <div className="flex flex-col">
+                      {/* 구장 지도 - 위쪽 전체 너비 */}
+                      <div className="w-full">
+                        <div className="relative h-64 sm:h-80 lg:h-96">
                           {stadium.latitude && stadium.longitude ? (
                             <Map
                               center={{
@@ -163,74 +181,92 @@ const Stadiums: React.FC = () => {
                         </div>
                       </div>
                       
-                      {/* 구장 정보 */}
-                      <div className="md:w-1/2 lg:w-1/3 p-6 flex flex-col justify-between">
-                        <div>
-                          <div className="mb-4">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">{stadium.name}</h3>
-                            <div className="flex items-start">
-                              <span className="text-gray-400 mr-2 mt-1">📍</span>
-                              <p className="text-gray-600 text-sm leading-relaxed">{stadium.address}</p>
+                      {/* 구장 정보 - 아래쪽 전체 너비 */}
+                      <div className="w-full p-6 bg-white border-t border-gray-100">
+                        {/* 헤더 정보 */}
+                        <div className="mb-6">
+                          <h3 className="text-2xl font-bold text-gray-900 mb-3">{stadium.name}</h3>
+                          <div className="flex items-start">
+                            <span className="text-gray-400 mr-2 mt-1 text-lg">📍</span>
+                            <p className="text-gray-600 leading-relaxed">{stadium.address}</p>
+                          </div>
+                        </div>
+
+                        {/* 정보 그리드 - 3컬럼 */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                          {/* 이용요금 */}
+                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl">
+                            <div className="flex items-center mb-2">
+                              <span className="text-blue-600 mr-2 text-lg">💰</span>
+                              <span className="text-blue-900 font-medium">이용요금</span>
                             </div>
+                            <p className="text-xl font-bold text-blue-800">{formatPrice(stadium.hourlyRate)}</p>
                           </div>
 
-                          <div className="space-y-3 mb-4">
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-600">이용요금</span>
-                              <span className="font-semibold text-lg text-primary-600">{formatPrice(stadium.hourlyRate)}</span>
+                          {/* 이용시간 */}
+                          {stadium.availableHours && (
+                            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl">
+                              <div className="flex items-center mb-2">
+                                <span className="text-green-600 mr-2 text-lg">🕐</span>
+                                <span className="text-green-900 font-medium">이용시간</span>
+                              </div>
+                              <p className="text-lg font-semibold text-green-800">{stadium.availableHours}</p>
                             </div>
-                            {stadium.availableHours && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-gray-600">이용시간</span>
-                                <span className="font-medium">{stadium.availableHours}</span>
-                              </div>
-                            )}
-                            {stadium.contactNumber && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-gray-600">연락처</span>
-                                <span className="font-medium">{stadium.contactNumber}</span>
-                              </div>
-                            )}
-                          </div>
+                          )}
 
-                          {/* 시설 */}
-                          {facilities.length > 0 && (
-                            <div className="mb-4">
-                              <h4 className="text-sm font-medium text-gray-900 mb-2">이용 가능한 시설</h4>
-                              <div className="flex flex-wrap gap-1">
-                                {facilities.slice(0, 4).map((facility, index) => (
-                                  <span
-                                    key={index}
-                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                                  >
-                                    {facility}
-                                  </span>
-                                ))}
-                                {facilities.length > 4 && (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
-                                    +{facilities.length - 4}
-                                  </span>
-                                )}
+                          {/* 연락처 */}
+                          {stadium.contactNumber && (
+                            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
+                              <div className="flex items-center mb-2">
+                                <span className="text-purple-600 mr-2 text-lg">📞</span>
+                                <span className="text-purple-900 font-medium">연락처</span>
                               </div>
+                              <p className="text-lg font-semibold text-purple-800">{stadium.contactNumber}</p>
                             </div>
                           )}
                         </div>
 
-                        <div className="flex gap-2">
+                        {/* 시설 */}
+                        {facilities.length > 0 && (
+                          <div className="mb-6">
+                            <div className="flex items-center mb-3">
+                              <span className="text-gray-600 mr-2 text-lg">🏢</span>
+                              <h4 className="text-lg font-semibold text-gray-900">이용 가능한 시설</h4>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {facilities.slice(0, 6).map((facility, index) => (
+                                <span
+                                  key={index}
+                                  className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-indigo-100 text-indigo-800 font-medium"
+                                >
+                                  {facility}
+                                </span>
+                              ))}
+                              {facilities.length > 6 && (
+                                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-gray-100 text-gray-600 font-medium">
+                                  +{facilities.length - 6}개 더
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 액션 버튼들 */}
+                        <div className="flex gap-3">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleViewMap(stadium);
                             }}
-                            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-200 rounded-lg hover:bg-gray-200 transition-colors"
+                            className="flex-1 px-6 py-3 text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
                           >
-                            📍 지도보기
+                            🗺️ 지도보기
                           </button>
                           <button
                             onClick={() => setSelectedStadium(stadium)}
-                            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 transition-colors"
+                            className="flex-1 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm hover:shadow-md"
                           >
-                            자세히 보기
+                            ✨ 자세히 보기
                           </button>
                         </div>
                       </div>

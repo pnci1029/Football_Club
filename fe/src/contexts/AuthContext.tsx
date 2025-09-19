@@ -58,13 +58,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
 
     try {
+      console.log('AuthContext: Starting login');
       const loginResponse = await authService.login(username, password);
+      console.log('AuthContext: Login response received:', loginResponse);
       setAdmin(loginResponse.admin);
+      console.log('AuthContext: Admin set, isAuthenticated should now be true');
     } catch (error) {
+      console.error('AuthContext: Login failed:', error);
       setAdmin(null);
       throw error;
     } finally {
       setIsLoading(false);
+      console.log('AuthContext: Login process completed, isLoading set to false');
     }
   };
 

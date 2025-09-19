@@ -11,7 +11,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 리다이렉트는 AuthContext에서만 처리하도록 제거
+  // 인증되지 않은 경우 즉시 리다이렉트
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      console.log('ProtectedRoute: Not authenticated, redirecting to /admin/login');
+      navigate('/admin/login', { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   // 로딩 중
   if (isLoading) {
@@ -25,7 +31,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // 인증되지 않은 경우 (리다이렉트는 AuthContext에서 처리)
+  // 인증되지 않은 경우
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
