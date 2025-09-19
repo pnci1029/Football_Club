@@ -67,6 +67,7 @@ class StadiumService(
             facilities = listToJson(request.facilities),
             hourlyRate = request.hourlyRate,
             availableHours = request.availableHours,
+            availableDays = listToJson(request.availableDays),
             contactNumber = request.contactNumber,
             imageUrls = listToJson(request.imageUrls)
         )
@@ -89,6 +90,7 @@ class StadiumService(
             facilities = if (request.facilities != null) listToJson(request.facilities) else stadium.facilities,
             hourlyRate = request.hourlyRate ?: stadium.hourlyRate,
             availableHours = request.availableHours ?: stadium.availableHours,
+            availableDays = if (request.availableDays != null) listToJson(request.availableDays) else stadium.availableDays,
             contactNumber = request.contactNumber ?: stadium.contactNumber,
             imageUrls = if (request.imageUrls != null) listToJson(request.imageUrls) else stadium.imageUrls
         )

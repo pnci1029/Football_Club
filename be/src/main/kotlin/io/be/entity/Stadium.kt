@@ -32,6 +32,9 @@ data class Stadium(
     @Column(columnDefinition = "TEXT")
     val availableHours: String? = null, // JSON 형태로 이용 가능 시간 저장
     
+    @Column(columnDefinition = "TEXT")
+    val availableDays: String? = null, // JSON 배열 형태로 이용 가능 요일 저장 (MONDAY, TUESDAY, ...)
+    
     val contactNumber: String? = null,
     
     @Column(columnDefinition = "TEXT")

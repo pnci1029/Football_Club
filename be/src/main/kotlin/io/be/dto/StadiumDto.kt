@@ -15,6 +15,7 @@ data class StadiumDto(
     val facilities: List<String>?,
     val hourlyRate: Int?,
     val availableHours: String?,
+    val availableDays: List<String>?,
     val contactNumber: String?,
     val imageUrls: List<String>?
 ) {
@@ -33,6 +34,7 @@ data class StadiumDto(
                 facilities = parseJsonToList(stadium.facilities),
                 hourlyRate = stadium.hourlyRate,
                 availableHours = stadium.availableHours,
+                availableDays = parseJsonToList(stadium.availableDays),
                 contactNumber = stadium.contactNumber,
                 imageUrls = parseJsonToList(stadium.imageUrls)
             )
@@ -61,6 +63,7 @@ data class CreateStadiumRequest(
     val facilities: List<String>?,
     val hourlyRate: Int?,
     val availableHours: String?,
+    val availableDays: List<String>?,
     val contactNumber: String?,
     val imageUrls: List<String>?
 )
@@ -73,6 +76,7 @@ data class UpdateStadiumRequest(
     val facilities: List<String>?,
     val hourlyRate: Int?,
     val availableHours: String?,
+    val availableDays: List<String>?,
     val contactNumber: String?,
     val imageUrls: List<String>?
 )
