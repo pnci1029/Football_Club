@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useTeam } from '../contexts/TeamContext';
 import PlayerCard from '../components/player/PlayerCard';
-import { usePlayers } from '../hooks/usePlayers';
-import { useHeroSlides } from '../hooks/useHeroSlides';
+import { useParallelHomeData } from '../hooks/useParallelHomeData';
 import { GRADIENT_OPTIONS } from '../types/hero';
+import PlayerCardSkeleton from '../components/ui/PlayerCardSkeleton';
+import HeroSectionSkeleton from '../components/ui/HeroSectionSkeleton';
 
-const Home: React.FC = () => {
-  const { currentTeam } = useTeam();
-  const { data: playersPage } = usePlayers(0, 12);
-  const { slides: heroSlides } = useHeroSlides(Number(currentTeam?.id) || 1, true);
+const Home: React.FC = React.memo(() => {
+  const { currentTeam, isLoading: teamLoading } = useTeam();
+
+  // 팀이 로드된 후에만 데이터를 로드
+  const teamId = currentTeam?.id ? Number(currentTeam.id) : null;
+  const { players, heroSlides, isLoading: dataLoading } = useParallelHomeData(teamId);
   const [currentSlide, setCurrentSlide] = useState(0);
-  
-  const players = playersPage?.content || [];
+
   const mainPlayers = players.filter(player => player.isActive).slice(0, 11);
+
+  // 로딩 상태: 데이터가 하나도 없을 때만 스켈레톤 표시
+  const hasData = players.length > 0 || heroSlides.length > 0;
+  const isLoading = (teamLoading && !hasData) || (currentTeam && dataLoading && !hasData);
 
   // 슬라이드가 없을 때 기본 슬라이드
   const defaultSlides = [
@@ -34,7 +40,7 @@ const Home: React.FC = () => {
   // 자동 슬라이드
   useEffect(() => {
     if (currentSlides.length <= 1) return;
-    
+
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % currentSlides.length);
     }, 5000);
@@ -47,11 +53,14 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Hero Section - 모바일 최적화 */}
-      <div className={`relative text-white py-16 sm:py-20 lg:py-24 overflow-hidden transition-all duration-1000`}>
+      {isLoading ? (
+        <HeroSectionSkeleton />
+      ) : (
+        <div className={`relative text-white py-16 sm:py-20 lg:py-24 overflow-hidden transition-all duration-1000`}>
         {/* 배경 이미지 또는 그라데이션 */}
         {currentHero.backgroundImage ? (
           <>
-            <div 
+            <div
               className="absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${currentHero.backgroundImage})` }}
             />
@@ -62,17 +71,17 @@ const Home: React.FC = () => {
             <div className="absolute inset-0 bg-black opacity-20"></div>
           </div>
         )}
-        
+
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4 lg:mb-6 transition-opacity duration-500 leading-tight">
               {currentHero.title}
             </h1>
-            
+
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl opacity-90 mb-6 sm:mb-8 transition-opacity duration-500 leading-relaxed">
               {currentHero.subtitle}
             </p>
-            
+
             {/* 슬라이드 인디케이터 - 모바일 최적화 (2개 이상일 때만 표시) */}
             {currentSlides.length > 1 && (
               <div className="flex justify-center space-x-2 sm:space-x-3">
@@ -89,7 +98,8 @@ const Home: React.FC = () => {
             )}
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* 선수 수 간단 표시 - 모바일 최적화 */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 relative">
@@ -116,19 +126,25 @@ const Home: React.FC = () => {
             우리 팀의 핵심 선수들을 소개합니다. 각자의 특별한 재능으로 팀의 승리를 이끌어갑니다.
           </p>
         </div>
-        
-        {mainPlayers.length > 0 ? (
+
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-12 sm:mb-16 lg:mb-20">
+            {Array.from({ length: 10 }).map((_, index) => (
+              <PlayerCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : mainPlayers.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-12 sm:mb-16 lg:mb-20">
             {mainPlayers.map((player, index) => (
-              <div 
-                key={player.id} 
+              <div
+                key={player.id}
                 className="transform hover:scale-105 transition-all duration-300"
                 style={{
                   animationDelay: `${index * 100}ms`,
                   animation: 'fadeInUp 0.6s ease-out forwards'
                 }}
               >
-                <PlayerCard 
+                <PlayerCard
                   player={player}
                   showStats={false}
                 />
@@ -149,22 +165,22 @@ const Home: React.FC = () => {
           <div className="relative z-10">
             <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">더 알아보기</h3>
             <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-6 sm:mb-8">우리 팀의 다양한 정보를 확인해보세요</p>
-            
+
             <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:justify-center lg:gap-6">
-              <a 
-                href="/players" 
+              <a
+                href="/players"
                 className="bg-blue-600 text-white px-6 sm:px-8 lg:px-10 py-3 sm:py-4 rounded-lg sm:rounded-xl hover:bg-blue-700 transition-colors duration-300 text-sm sm:text-base lg:text-lg font-medium shadow-lg touch-manipulation"
               >
                 전체 선수단
               </a>
-              <a 
-                href="/matches" 
+              <a
+                href="/matches"
                 className="border-2 border-blue-600 text-blue-600 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 rounded-lg sm:rounded-xl hover:bg-blue-50 transition-colors duration-300 text-sm sm:text-base lg:text-lg font-medium shadow-lg touch-manipulation"
               >
                 경기 일정
               </a>
-              <a 
-                href="/stadiums" 
+              <a
+                href="/stadiums"
                 className="bg-green-600 text-white px-6 sm:px-8 lg:px-10 py-3 sm:py-4 rounded-lg sm:rounded-xl hover:bg-green-700 transition-colors duration-300 text-sm sm:text-base lg:text-lg font-medium shadow-lg touch-manipulation"
               >
                 구장 정보
@@ -175,6 +191,8 @@ const Home: React.FC = () => {
       </div>
     </div>
   );
-};
+});
+
+Home.displayName = 'Home';
 
 export default Home;

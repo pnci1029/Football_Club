@@ -1,17 +1,45 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Team } from '../types/team';
 import { teamService } from '../services/teamService';
+
+// 팀 정보 캐시 (메모리 캐시)
+const teamCache = new Map<string, Team>();
+const cacheTimestamp = new Map<string, number>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5분
+
+// 캐시 헬퍼 함수들
+const getCachedTeam = (key: string): Team | null => {
+  const cached = teamCache.get(key);
+  const timestamp = cacheTimestamp.get(key);
+  
+  if (cached && timestamp && Date.now() - timestamp < CACHE_DURATION) {
+    return cached;
+  }
+  
+  // 캐시 만료 시 정리
+  teamCache.delete(key);
+  cacheTimestamp.delete(key);
+  return null;
+};
+
+const setCachedTeam = (key: string, team: Team) => {
+  teamCache.set(key, team);
+  cacheTimestamp.set(key, Date.now());
+};
 
 export const useSubdomain = () => {
   const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
     let isCancelled = false;
     
     const detectSubdomain = async () => {
-      if (isCancelled) return;
+      if (isCancelled || hasInitialized.current) return;
+      hasInitialized.current = true;
+      
       try {
         const host = window.location.hostname;
         
@@ -27,12 +55,21 @@ export const useSubdomain = () => {
         // 로컬 테스트용 .local 도메인 처리
         if (host.endsWith('.football-club.local')) {
           const teamCode = host.replace('.football-club.local', '');
-          // console.log('🏠 로컬 테스트 - 팀 코드:', teamCode);
-          // console.log('📡 API 호출 시작 - getTeamByCode:', teamCode);
+          
+          // 캐시 확인
+          const cachedTeam = getCachedTeam(teamCode);
+          if (cachedTeam) {
+            if (!isCancelled) {
+              setCurrentTeam(cachedTeam);
+              setIsLoading(false);
+            }
+            return;
+          }
+          
           const team = await teamService.getTeamByCode(teamCode);
           if (!isCancelled) {
             if (team) {
-              // console.log('✅ 팀 정보 로드 성공:', team);
+              setCachedTeam(teamCode, team);
               setCurrentTeam(team);
             } else {
               console.error(`❌ 팀 코드 '${teamCode}'를 찾을 수 없습니다.`);
@@ -83,16 +120,25 @@ export const useSubdomain = () => {
           return;
         }
 
-        // 프로덕션 팀 서브도메인 추출
-        const teamMatch = host.match(/^([a-zA-Z0-9-]+)\.footballclub\.com$/);
+        // 프로덕션 팀 서브도메인 추출 (football-club.kr 도메인도 포함)
+        const teamMatch = host.match(/^([a-zA-Z0-9-]+)\.(footballclub\.com|football-club\.kr)$/);
         if (teamMatch) {
           const teamCode = teamMatch[1];
-          // console.log('🌍 프로덕션 팀 코드:', teamCode);
-          // console.log('📡 API 호출 시작 - getTeamByCode:', teamCode);
+          
+          // 캐시 확인
+          const cachedTeam = getCachedTeam(teamCode);
+          if (cachedTeam) {
+            if (!isCancelled) {
+              setCurrentTeam(cachedTeam);
+              setIsLoading(false);
+            }
+            return;
+          }
+          
           const team = await teamService.getTeamByCode(teamCode);
           if (!isCancelled) {
             if (team) {
-              // console.log('✅ 팀 정보 로드 성공:', team);
+              setCachedTeam(teamCode, team);
               setCurrentTeam(team);
             } else {
               console.error(`❌ 팀 코드 '${teamCode}'를 찾을 수 없습니다.`);

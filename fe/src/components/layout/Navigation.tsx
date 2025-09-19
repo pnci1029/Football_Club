@@ -14,19 +14,7 @@ const Navigation: React.FC = () => {
     { name: '경기', href: '/matches' },
   ];
 
-  if (isLoading) {
-    return (
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-14 sm:h-16">
-            <div className="flex items-center">
-              <div className="w-24 h-6 sm:w-32 sm:h-8 bg-gray-200 animate-pulse rounded"></div>
-            </div>
-          </div>
-        </div>
-      </nav>
-    );
-  }
+  // 로딩 중이어도 기본 네비게이션을 표시하되, 팀 정보만 스켈레톤으로 처리
 
   return (
     <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
@@ -35,25 +23,39 @@ const Navigation: React.FC = () => {
           {/* 로고 및 팀명 - 모바일 최적화 */}
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity touch-manipulation">
-              {currentTeam?.logoUrl ? (
-                <img 
-                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover" 
-                  src={currentTeam.logoUrl} 
-                  alt={`${currentTeam.name} 로고`}
-                />
+              {isLoading ? (
+                // 로딩 중 스켈레톤
+                <>
+                  <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gray-200 animate-pulse"></div>
+                  <div className="ml-2 sm:ml-3">
+                    <div className="h-5 w-24 sm:w-32 bg-gray-200 animate-pulse rounded"></div>
+                    <div className="h-3 w-16 sm:w-20 bg-gray-200 animate-pulse rounded mt-1 hidden sm:block"></div>
+                  </div>
+                </>
               ) : (
-                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary-500 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm sm:text-lg">FC</span>
-                </div>
+                // 정상 상태
+                <>
+                  {currentTeam?.logoUrl ? (
+                    <img 
+                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover" 
+                      src={currentTeam.logoUrl} 
+                      alt={`${currentTeam.name} 로고`}
+                    />
+                  ) : (
+                    <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-blue-500 flex items-center justify-center">
+                      <span className="text-white font-bold text-sm sm:text-lg">FC</span>
+                    </div>
+                  )}
+                  <div className="ml-2 sm:ml-3">
+                    <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">
+                      {currentTeam?.name || 'Football Club'}
+                    </h1>
+                    {currentTeam?.description && (
+                      <p className="text-xs text-gray-500 truncate hidden sm:block">{currentTeam.description}</p>
+                    )}
+                  </div>
+                </>
               )}
-              <div className="ml-2 sm:ml-3">
-                <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">
-                  {currentTeam?.name || 'Football Club'}
-                </h1>
-                {currentTeam?.description && (
-                  <p className="text-xs text-gray-500 truncate hidden sm:block">{currentTeam.description}</p>
-                )}
-              </div>
             </Link>
           </div>
 
@@ -65,8 +67,8 @@ const Navigation: React.FC = () => {
                 to={item.href}
                 className={`transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium touch-manipulation ${
                   location.pathname === item.href 
-                    ? 'text-primary-600 bg-primary-50' 
-                    : 'text-gray-700 hover:text-primary-600 hover:bg-primary-50/50'
+                    ? 'text-blue-600 bg-blue-50' 
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                 }`}
               >
                 <span>{item.name}</span>
@@ -78,7 +80,7 @@ const Navigation: React.FC = () => {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center w-11 h-11 rounded-md text-gray-700 hover:text-primary-600 hover:bg-primary-50 active:bg-primary-100 transition-all duration-200 touch-manipulation"
+              className="inline-flex items-center justify-center w-11 h-11 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 active:bg-blue-100 transition-all duration-200 touch-manipulation"
               aria-expanded={isOpen ? "true" : "false"}
               aria-label={isOpen ? "메뉴 닫기" : "메뉴 열기"}
             >
@@ -108,8 +110,8 @@ const Navigation: React.FC = () => {
               to={item.href}
               className={`flex items-center px-4 py-4 rounded-xl text-base font-medium transition-all duration-200 touch-manipulation ${
                 location.pathname === item.href 
-                  ? 'text-primary-700 bg-primary-50 border border-primary-100 shadow-sm' 
-                  : 'text-gray-700 hover:text-primary-600 hover:bg-primary-50/50 active:bg-primary-50'
+                  ? 'text-blue-700 bg-blue-50 border border-blue-100 shadow-sm' 
+                  : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50 active:bg-blue-50'
               }`}
               onClick={() => setIsOpen(false)}
               style={{
@@ -119,7 +121,7 @@ const Navigation: React.FC = () => {
             >
               <span className="flex-1">{item.name}</span>
               {location.pathname === item.href && (
-                <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
               )}
             </Link>
           ))}

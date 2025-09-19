@@ -20,7 +20,16 @@ class TeamService {
 
   async getTeamByCode(code: string): Promise<Team | null> {
     try {
-      const team: Omit<Team, 'id'> & { id: number } = await Teams.public.getByCode(code);
+      const response: any = await Teams.public.getByCode(code);
+      
+      // 응답 구조 확인 (래핑된 응답 처리)
+      const team = response.data || response;
+      
+      if (!team || !team.id) {
+        console.warn(`팀 코드 ${code}에 대한 데이터가 없거나 ID가 없습니다.`);
+        return null;
+      }
+      
       return {
         ...team,
         id: team.id.toString()

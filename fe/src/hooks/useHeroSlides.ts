@@ -19,15 +19,25 @@ export const useHeroSlides = (teamId: number, activeOnly: boolean = true): HeroS
     setError('');
     
     try {
-      const response: HeroSlide[] = activeOnly 
+      const response: any = activeOnly 
         ? await HeroService.getActiveSlides(teamId)
         : await HeroService.getAllSlides(teamId);
       
-      setSlides(response.sort((a: HeroSlide, b: HeroSlide) => a.sortOrder - b.sortOrder));
+      // 응답 구조 확인 (래핑된 응답 처리)
+      const slidesData = response.data || response;
+      
+      // 배열인지 확인하고 정렬
+      if (Array.isArray(slidesData)) {
+        setSlides(slidesData.sort((a: HeroSlide, b: HeroSlide) => a.sortOrder - b.sortOrder));
+      } else {
+        console.warn('Hero slides response is not an array:', slidesData);
+        setSlides([]);
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '슬라이드를 불러오는데 실패했습니다.';
       setError(errorMessage);
       console.error('Hero slides fetch error:', err);
+      setSlides([]);
     } finally {
       setLoading(false);
     }
