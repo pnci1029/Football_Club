@@ -1,5 +1,4 @@
 import React from 'react';
-import { Map, MapMarker } from 'react-kakao-maps-sdk';
 import Modal from '../common/Modal';
 import { Button } from '../common';
 
@@ -91,16 +90,16 @@ const StadiumMapModal: React.FC<StadiumMapModalProps> = ({
         {/* 지도 */}
         <div className="w-full h-64 rounded-lg overflow-hidden border">
           {hasCoordinates ? (
-            <Map
-              center={{ lat: stadium.latitude!, lng: stadium.longitude! }}
-              style={{ width: '100%', height: '100%' }}
-              level={3}
-            >
-              <MapMarker 
-                position={{ lat: stadium.latitude!, lng: stadium.longitude! }}
-                title={stadium.name}
-              />
-            </Map>
+            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center relative">
+              <div className="text-center text-white">
+                <div className="text-4xl mb-2">🗺️</div>
+                <h3 className="text-lg font-bold mb-1">{stadium.name}</h3>
+                <p className="text-blue-100 text-sm">위치 정보가 설정되어 있습니다</p>
+                <p className="text-blue-100 text-xs mt-1">
+                  위도: {stadium.latitude?.toFixed(6)}, 경도: {stadium.longitude?.toFixed(6)}
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="w-full h-full bg-gray-100 flex items-center justify-center">
               <div className="text-center">
@@ -162,7 +161,7 @@ const StadiumMapModal: React.FC<StadiumMapModalProps> = ({
               onClick={openInKakaoMap}
               className="text-yellow-600 border-yellow-200 hover:bg-yellow-50"
             >
-              카카오맵
+              카카오지도
             </Button>
             <Button
               type="button"

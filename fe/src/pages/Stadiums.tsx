@@ -5,7 +5,6 @@ import { Card, Button, LoadingSpinner } from '../components/common';
 import StadiumMapModal from '../components/admin/StadiumMapModal';
 import StadiumsMapView from '../components/stadiums/StadiumsMapView';
 import { ImageUtil } from '../utils/image';
-import { Map, MapMarker } from 'react-kakao-maps-sdk';
 
 const formatPrice = (price?: number) => {
   return price ? `${price.toLocaleString()}원/시간` : '문의';
@@ -143,40 +142,25 @@ const Stadiums: React.FC = () => {
                     className="overflow-hidden"
                   >
                     <div className="flex flex-col">
-                      {/* 구장 지도 - 위쪽 전체 너비 */}
+                      {/* 구장 대표 이미지 - 위쪽 전체 너비 */}
                       <div className="w-full">
-                        <div className="relative h-64 sm:h-80 lg:h-96">
-                          {stadium.latitude && stadium.longitude ? (
-                            <Map
-                              center={{
-                                lat: stadium.latitude,
-                                lng: stadium.longitude,
-                              }}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                              }}
-                              level={3}
-                            >
-                              <MapMarker
-                                position={{
-                                  lat: stadium.latitude,
-                                  lng: stadium.longitude,
-                                }}
-                                title={stadium.name}
-                              />
-                            </Map>
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                              <div className="text-center">
-                                <div className="text-4xl text-gray-400 mb-2">📍</div>
-                                <p className="text-gray-500">위치 정보 없음</p>
-                              </div>
+                        <div className="relative h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-green-400 via-green-500 to-green-600">
+                          {/* 구장 이미지 (추후 실제 구장 사진으로 교체 가능) */}
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400 via-green-500 to-green-600">
+                            <div className="text-center text-white">
+                              <div className="text-6xl mb-4">🏟️</div>
+                              <h3 className="text-2xl font-bold mb-2">{stadium.name}</h3>
+                              {stadium.latitude && stadium.longitude && (
+                                <p className="text-green-100 text-sm">
+                                  📍 위치: {stadium.latitude.toFixed(4)}, {stadium.longitude.toFixed(4)}
+                                </p>
+                              )}
                             </div>
-                          )}
-                          {/* 구장명 오버레이 */}
-                          <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded">
-                            🏟️ {stadium.name}
+                          </div>
+                          
+                          {/* 구장 정보 오버레이 */}
+                          <div className="absolute top-4 right-4 bg-white bg-opacity-90 text-gray-800 px-3 py-2 rounded-lg">
+                            <div className="text-sm font-semibold">{formatPrice(stadium.hourlyRate)}</div>
                           </div>
                         </div>
                       </div>
@@ -185,10 +169,40 @@ const Stadiums: React.FC = () => {
                       <div className="w-full p-6 bg-white border-t border-gray-100">
                         {/* 헤더 정보 */}
                         <div className="mb-6">
-                          <h3 className="text-2xl font-bold text-gray-900 mb-3">{stadium.name}</h3>
-                          <div className="flex items-start">
-                            <span className="text-gray-400 mr-2 mt-1 text-lg">📍</span>
-                            <p className="text-gray-600 leading-relaxed">{stadium.address}</p>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-4">{stadium.name}</h3>
+                          
+                          {/* 주소 정보 박스 */}
+                          <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start flex-1">
+                                <span className="text-gray-500 mr-3 mt-1 text-lg">📍</span>
+                                <div className="flex-1">
+                                  <p className="text-gray-800 font-medium leading-relaxed mb-1">
+                                    {stadium.address}
+                                  </p>
+                                  {stadium.latitude && stadium.longitude && (
+                                    <p className="text-xs text-gray-500">
+                                      좌표: {stadium.latitude.toFixed(6)}, {stadium.longitude.toFixed(6)}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {/* 주소 복사 버튼 */}
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(stadium.address);
+                                  alert('주소가 복사되었습니다!');
+                                }}
+                                className="ml-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                                title="주소 복사"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                              </button>
+                            </div>
                           </div>
                         </div>
 
@@ -252,19 +266,37 @@ const Stadiums: React.FC = () => {
                         )}
 
                         {/* 액션 버튼들 */}
-                        <div className="flex gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleViewMap(stadium);
                             }}
-                            className="flex-1 px-6 py-3 text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                            className="px-4 py-3 text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
                           >
                             🗺️ 지도보기
                           </button>
+                          
+                          {/* 길찾기 버튼 */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (stadium.latitude && stadium.longitude) {
+                                const kakaoMapUrl = `https://map.kakao.com/link/to/${encodeURIComponent(stadium.name)},${stadium.latitude},${stadium.longitude}`;
+                                window.open(kakaoMapUrl, '_blank');
+                              } else {
+                                const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(stadium.address)}`;
+                                window.open(searchUrl, '_blank');
+                              }
+                            }}
+                            className="px-4 py-3 text-sm font-semibold text-green-700 bg-gradient-to-r from-green-100 to-green-200 border border-green-300 rounded-xl hover:from-green-200 hover:to-green-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                          >
+                            🚗 길찾기
+                          </button>
+                          
                           <button
                             onClick={() => setSelectedStadium(stadium)}
-                            className="flex-1 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm hover:shadow-md"
+                            className="col-span-2 md:col-span-1 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm hover:shadow-md"
                           >
                             ✨ 자세히 보기
                           </button>

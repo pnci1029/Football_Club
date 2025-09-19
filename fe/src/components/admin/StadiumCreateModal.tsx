@@ -3,7 +3,7 @@ import DaumPostcode from 'react-daum-postcode';
 import Modal from '../common/Modal';
 import { Button } from '../common';
 import { CreateStadiumRequest, adminStadiumService } from '../../services/adminStadiumService';
-import { PostcodeData, KakaoGeocoderResult, KakaoGeocoderStatus } from '../../types/interfaces/stadium';
+import { PostcodeData } from '../../types/interfaces/stadium';
 
 interface StadiumCreateModalProps {
   isOpen: boolean;
@@ -131,52 +131,22 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
       fullAddress += (extraAddress !== '' ? ` (${extraAddress})` : '');
     }
 
-    // 주소 설정
+    // 주소와 좌표 설정 (Daum Postcode에서 제공하는 좌표 사용)
     setFormData(prev => ({
       ...prev,
-      address: fullAddress
+      address: fullAddress,
+      // Daum Postcode에서 제공하는 좌표 사용 (x: 경도, y: 위도)
+      latitude: data.y ? parseFloat(data.y) : 37.5666805, // 기본값: 서울시청
+      longitude: data.x ? parseFloat(data.x) : 126.9784147
     }));
 
-    // 좌표 검색
-    searchCoordinatesFromAddress(fullAddress);
     setShowPostcode(false);
   };
 
-  // 주소로 좌표 검색
+  // Daum Postcode 데이터에서 좌표를 직접 받아오므로 별도 좌표 검색 불필요
   const searchCoordinatesFromAddress = async (address: string) => {
-    try {
-      if (!window.kakao || !window.kakao.maps || !window.kakao.maps.services) {
-        console.error('카카오맵 서비스가 로드되지 않았습니다.');
-        return;
-      }
-
-      const geocoder = new window.kakao.maps.services.Geocoder();
-      
-      geocoder.addressSearch(address, (result: KakaoGeocoderResult[], status: string) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          const coords = result[0];
-          const lat = parseFloat(coords.y);
-          const lng = parseFloat(coords.x);
-          
-          setFormData(prev => ({
-            ...prev,
-            latitude: lat,
-            longitude: lng
-          }));
-          
-        } else {
-          console.error('주소 검색 실패:', address, status);
-          // 검색 실패시 기본 좌표 설정 (서울시청)
-          setFormData(prev => ({
-            ...prev,
-            latitude: 37.5666805,
-            longitude: 126.9784147
-          }));
-        }
-      });
-    } catch (error) {
-      console.error('좌표 검색 오류:', error);
-    }
+    console.log('주소가 설정되었습니다:', address);
+    // Daum Postcode API에서 이미 좌표 정보를 제공하므로 추가 검색 불필요
   };
 
   return (

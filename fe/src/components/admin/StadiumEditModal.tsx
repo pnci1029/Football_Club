@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import DaumPostcode from 'react-daum-postcode';
 import Modal from '../common/Modal';
 import { Button } from '../common';
 import { UpdateStadiumRequest, adminStadiumService } from '../../services/adminStadiumService';
 import { StadiumDto } from '../../types/interfaces/admin/index';
-import { KakaoGeocoderResult } from '../../types/interfaces/stadium';
+import { PostcodeData } from '../../types/interfaces/stadium';
 
 interface StadiumEditModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ const StadiumEditModal: React.FC<StadiumEditModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [facilityInput, setFacilityInput] = useState('');
+  const [showPostcode, setShowPostcode] = useState(false);
 
   // 기본 시설 옵션들
   const defaultFacilities = [
@@ -122,45 +124,41 @@ const StadiumEditModal: React.FC<StadiumEditModalProps> = ({
   const handleClose = () => {
     setError('');
     setFacilityInput('');
+    setShowPostcode(false);
     onClose();
   };
 
-  // 주소로 좌표 검색
-  const searchCoordinates = async () => {
-    if (!formData.address) {
-      alert('주소를 먼저 입력해주세요.');
-      return;
-    }
+  // 다음 우편번호 서비스 완료 핸들러
+  const handlePostcodeComplete = (data: PostcodeData) => {
+    let fullAddress = data.address;
+    let extraAddress = '';
 
-    try {
-      if (!window.kakao || !window.kakao.maps || !window.kakao.maps.services) {
-        alert('카카오맵 서비스가 로드되지 않았습니다.');
-        return;
+    if (data.addressType === 'R') {
+      if (data.bname !== '') {
+        extraAddress += data.bname;
       }
-
-      const geocoder = new window.kakao.maps.services.Geocoder();
-      
-      geocoder.addressSearch(formData.address, (result: KakaoGeocoderResult[], status: string) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          const coords = result[0];
-          const lat = parseFloat(coords.y);
-          const lng = parseFloat(coords.x);
-          
-          setFormData(prev => ({
-            ...prev,
-            latitude: lat,
-            longitude: lng
-          }));
-          
-          alert(`좌표 검색 완료!\n위도: ${lat}\n경도: ${lng}`);
-        } else {
-          alert('주소를 찾을 수 없습니다. 정확한 주소를 입력해주세요.');
-        }
-      });
-    } catch (error) {
-      console.error('좌표 검색 오류:', error);
-      alert('좌표 검색 중 오류가 발생했습니다.');
+      if (data.buildingName !== '') {
+        extraAddress += (extraAddress !== '' ? ', ' + data.buildingName : data.buildingName);
+      }
+      fullAddress += (extraAddress !== '' ? ' (' + extraAddress + ')' : '');
     }
+
+    // 주소와 좌표 설정 (Daum Postcode에서 제공하는 좌표 사용)
+    setFormData(prev => ({
+      ...prev,
+      address: fullAddress,
+      // Daum Postcode에서 제공하는 좌표 사용 (x: 경도, y: 위도)
+      latitude: data.y ? parseFloat(data.y) : prev.latitude,
+      longitude: data.x ? parseFloat(data.x) : prev.longitude
+    }));
+
+    setShowPostcode(false);
+  };
+
+
+  // 좌표 안내 (이제 Daum Postcode에서 자동으로 설정됨)
+  const searchCoordinates = async () => {
+    alert('주소 검색을 통해 좌표가 자동으로 설정됩니다.\n수동으로 좌표를 수정하려면 아래 입력 필드를 사용하세요.');
   };
 
   if (!stadium) return null;
@@ -210,6 +208,15 @@ const StadiumEditModal: React.FC<StadiumEditModalProps> = ({
               placeholder="구장 주소를 입력하세요"
               required
             />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPostcode(true)}
+              className="text-purple-600 border-purple-200 hover:bg-purple-50"
+            >
+              주소 검색
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -397,6 +404,32 @@ const StadiumEditModal: React.FC<StadiumEditModalProps> = ({
           </Button>
         </div>
       </form>
+
+      {/* 다음 우편번호 서비스 모달 */}
+      {showPostcode && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
+            <div className="p-4 border-b">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">주소 검색</h3>
+                <button
+                  onClick={() => setShowPostcode(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="p-4">
+              <DaumPostcode
+                onComplete={handlePostcodeComplete}
+                autoClose={false}
+                style={{ height: '400px' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </Modal>
   );
 };
