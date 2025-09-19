@@ -44,6 +44,7 @@ export interface StadiumDto {
   contactNumber?: string;
   facilities: string[];
   availableHours: string;
+  availableDays: string[];
   imageUrls: string[];
   teamId?: number;
   teamName?: string;

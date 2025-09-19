@@ -46,6 +46,23 @@ const parseFacilities = (facilities?: string | string[]): string[] => {
   return [];
 };
 
+const parseDays = (days?: string[]): string[] => {
+  return days || [];
+};
+
+const formatDayName = (day: string): string => {
+  const dayLabels: Record<string, string> = {
+    'MONDAY': '월',
+    'TUESDAY': '화',
+    'WEDNESDAY': '수',
+    'THURSDAY': '목',
+    'FRIDAY': '금',
+    'SATURDAY': '토',
+    'SUNDAY': '일'
+  };
+  return dayLabels[day] || day;
+};
+
 const Stadiums: React.FC = () => {
   const [selectedStadium, setSelectedStadium] = useState<StadiumDto | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
@@ -206,8 +223,8 @@ const Stadiums: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* 정보 그리드 - 3컬럼 */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        {/* 정보 그리드 - 4컬럼 (이용요일 추가) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                           {/* 이용요금 */}
                           <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl">
                             <div className="flex items-center mb-2">
@@ -227,6 +244,29 @@ const Stadiums: React.FC = () => {
                               <p className="text-lg font-semibold text-green-800">{stadium.availableHours}</p>
                             </div>
                           )}
+
+                          {/* 이용요일 */}
+                          {(() => {
+                            const availableDays = parseDays(stadium.availableDays);
+                            return availableDays.length > 0 && (
+                              <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl">
+                                <div className="flex items-center mb-2">
+                                  <span className="text-orange-600 mr-2 text-lg">📅</span>
+                                  <span className="text-orange-900 font-medium">이용요일</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {availableDays.map((day) => (
+                                    <span
+                                      key={day}
+                                      className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-200 text-orange-800 font-medium"
+                                    >
+                                      {formatDayName(day)}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })()}
 
                           {/* 연락처 */}
                           {stadium.contactNumber && (
@@ -388,13 +428,32 @@ const Stadiums: React.FC = () => {
                       <p className="text-lg font-medium text-green-800">{selectedStadium.availableHours}</p>
                     </div>
                   )}
+
+                  {(() => {
+                    const availableDays = parseDays(selectedStadium.availableDays);
+                    return availableDays.length > 0 && (
+                      <div className="bg-orange-50 p-4 rounded-lg">
+                        <h3 className="font-semibold text-orange-900 mb-2">이용요일</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {availableDays.map((day) => (
+                            <span
+                              key={day}
+                              className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-200 text-orange-800 font-medium"
+                            >
+                              {formatDayName(day)}요일
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="space-y-4">
                   {selectedStadium.contactNumber && (
-                    <div className="bg-orange-50 p-4 rounded-lg">
-                      <h3 className="font-semibold text-orange-900 mb-2">연락처</h3>
-                      <p className="text-lg font-medium text-orange-800">{selectedStadium.contactNumber}</p>
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-purple-900 mb-2">연락처</h3>
+                      <p className="text-lg font-medium text-purple-800">{selectedStadium.contactNumber}</p>
                     </div>
                   )}
                   

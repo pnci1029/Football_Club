@@ -27,6 +27,7 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
     contactNumber: '',
     facilities: [],
     availableHours: '09:00-22:00',
+    availableDays: [],
     imageUrls: []
   });
   const [loading, setLoading] = useState(false);
@@ -40,11 +41,22 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
     '음료수 판매', '공 대여', '휴게실', '의료실'
   ];
 
+  // 요일 옵션들
+  const dayOptions = [
+    { value: 'MONDAY', label: '월요일' },
+    { value: 'TUESDAY', label: '화요일' },
+    { value: 'WEDNESDAY', label: '수요일' },
+    { value: 'THURSDAY', label: '목요일' },
+    { value: 'FRIDAY', label: '금요일' },
+    { value: 'SATURDAY', label: '토요일' },
+    { value: 'SUNDAY', label: '일요일' }
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.address || formData.hourlyRate <= 0) {
-      setError('필수 항목을 모두 입력해주세요.');
+    if (!formData.name || !formData.address || formData.hourlyRate <= 0 || formData.availableDays.length === 0) {
+      setError('필수 항목을 모두 입력해주세요. (이용요일을 최소 하나 선택해주세요)');
       return;
     }
 
@@ -78,6 +90,7 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
       contactNumber: '',
       facilities: [],
       availableHours: '09:00-22:00',
+      availableDays: [],
       imageUrls: []
     });
     setFacilityInput('');
@@ -109,6 +122,15 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
       addFacility(facilityInput.trim());
       setFacilityInput('');
     }
+  };
+
+  const toggleDay = (day: string) => {
+    setFormData(prev => ({
+      ...prev,
+      availableDays: prev.availableDays.includes(day)
+        ? prev.availableDays.filter(d => d !== day)
+        : [...prev.availableDays, day]
+    }));
   };
 
   const handleClose = () => {
@@ -252,6 +274,34 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
           <p className="text-xs text-gray-500 mt-1">
             예: 09:00-22:00, 24시간 등
           </p>
+        </div>
+
+        {/* 이용 요일 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            이용 요일 <span className="text-red-500">*</span>
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {dayOptions.map(day => (
+              <button
+                key={day.value}
+                type="button"
+                onClick={() => toggleDay(day.value)}
+                className={`px-3 py-2 text-sm rounded-md border transition-colors ${
+                  formData.availableDays.includes(day.value)
+                    ? 'bg-purple-100 text-purple-800 border-purple-300'
+                    : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+                }`}
+              >
+                {day.label}
+              </button>
+            ))}
+          </div>
+          {formData.availableDays.length === 0 && (
+            <p className="text-xs text-red-500 mt-1">
+              최소 하나의 요일을 선택해주세요.
+            </p>
+          )}
         </div>
 
         {/* 시설 */}

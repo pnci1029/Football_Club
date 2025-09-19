@@ -28,6 +28,7 @@ const StadiumEditModal: React.FC<StadiumEditModalProps> = ({
     contactNumber: '',
     facilities: [],
     availableHours: '09:00-22:00',
+    availableDays: [],
     imageUrls: []
   });
   const [loading, setLoading] = useState(false);
@@ -39,6 +40,17 @@ const StadiumEditModal: React.FC<StadiumEditModalProps> = ({
   const defaultFacilities = [
     '주차장', '샤워실', '조명', '잔디', '인조잔디', '화장실', 
     '음료수 판매', '공 대여', '휴게실', '의료실'
+  ];
+
+  // 요일 옵션들
+  const dayOptions = [
+    { value: 'MONDAY', label: '월요일' },
+    { value: 'TUESDAY', label: '화요일' },
+    { value: 'WEDNESDAY', label: '수요일' },
+    { value: 'THURSDAY', label: '목요일' },
+    { value: 'FRIDAY', label: '금요일' },
+    { value: 'SATURDAY', label: '토요일' },
+    { value: 'SUNDAY', label: '일요일' }
   ];
 
   // 모달이 열릴 때 stadium 데이터로 폼 초기화
@@ -53,6 +65,7 @@ const StadiumEditModal: React.FC<StadiumEditModalProps> = ({
         contactNumber: stadium.contactNumber || '',
         facilities: stadium.facilities || [],
         availableHours: stadium.availableHours,
+        availableDays: stadium.availableDays || [],
         imageUrls: stadium.imageUrls || []
       });
       setError('');
@@ -119,6 +132,16 @@ const StadiumEditModal: React.FC<StadiumEditModalProps> = ({
         setFacilityInput('');
       }
     }
+  };
+
+  const toggleDay = (day: string) => {
+    const currentDays = formData.availableDays || [];
+    setFormData(prev => ({
+      ...prev,
+      availableDays: currentDays.includes(day)
+        ? currentDays.filter(d => d !== day)
+        : [...currentDays, day]
+    }));
   };
 
   const handleClose = () => {
@@ -303,6 +326,32 @@ const StadiumEditModal: React.FC<StadiumEditModalProps> = ({
           <p className="text-xs text-gray-500 mt-1">
             예: 09:00-22:00, 24시간 등
           </p>
+        </div>
+
+        {/* 이용 요일 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            이용 요일
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {dayOptions.map(day => {
+              const currentDays = formData.availableDays || [];
+              return (
+                <button
+                  key={day.value}
+                  type="button"
+                  onClick={() => toggleDay(day.value)}
+                  className={`px-3 py-2 text-sm rounded-md border transition-colors ${
+                    currentDays.includes(day.value)
+                      ? 'bg-purple-100 text-purple-800 border-purple-300'
+                      : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+                  }`}
+                >
+                  {day.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* 시설 */}

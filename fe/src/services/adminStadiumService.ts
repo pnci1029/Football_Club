@@ -10,6 +10,7 @@ export interface AdminStadium {
   contactNumber?: string;
   facilities: string[];
   availableHours: string;
+  availableDays: string[];
   imageUrls: string[];
 }
 
@@ -22,6 +23,7 @@ export interface CreateStadiumRequest {
   contactNumber?: string;
   facilities: string[];
   availableHours: string;
+  availableDays: string[];
   imageUrls: string[];
 }
 
@@ -34,6 +36,7 @@ export interface UpdateStadiumRequest {
   contactNumber?: string;
   facilities?: string[];
   availableHours?: string;
+  availableDays?: string[];
   imageUrls?: string[];
 }
 

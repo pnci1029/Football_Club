@@ -270,6 +270,32 @@ const AdminStadiums: React.FC = () => {
                 <span className="text-gray-600">이용 시간:</span>
                 <span className="font-medium text-gray-900">{stadium.availableHours}</span>
               </div>
+              {stadium.availableDays && stadium.availableDays.length > 0 && (
+                <div className="text-sm">
+                  <span className="text-gray-600">이용 요일:</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {stadium.availableDays.map((day) => {
+                      const dayLabels: Record<string, string> = {
+                        'MONDAY': '월',
+                        'TUESDAY': '화',
+                        'WEDNESDAY': '수',
+                        'THURSDAY': '목',
+                        'FRIDAY': '금',
+                        'SATURDAY': '토',
+                        'SUNDAY': '일'
+                      };
+                      return (
+                        <span
+                          key={day}
+                          className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs"
+                        >
+                          {dayLabels[day] || day}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               {stadium.contactNumber && (
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600">연락처:</span>

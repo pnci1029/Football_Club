@@ -7,6 +7,7 @@ export interface Stadium {
   facilities?: string;
   hourlyRate?: number;
   availableHours?: string;
+  availableDays?: string[];
   contactNumber?: string;
   imageUrls?: string;
 }
@@ -21,6 +22,7 @@ export interface StadiumDto {
   facilities?: string;
   hourlyRate?: number;
   availableHours?: string;
+  availableDays?: string[];
   contactNumber?: string;
   imageUrls?: string;
 }
