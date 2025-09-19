@@ -3,7 +3,7 @@ name: Deploy Frontend to Cafe24
 on:
   push:
     branches: [ main ]
-#    paths: ['fe/**']
+    paths: ['fe/**']
   workflow_dispatch:
 
 jobs:

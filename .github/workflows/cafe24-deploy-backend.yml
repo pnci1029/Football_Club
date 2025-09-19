@@ -70,6 +70,7 @@ jobs:
           docker tag ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} football-club-backend:latest &&
           docker-compose stop backend || true &&
           docker-compose rm -f backend || true &&
+          docker rm -f backend || true &&
           docker-compose up -d backend
         "
 
