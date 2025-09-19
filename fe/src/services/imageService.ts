@@ -16,18 +16,18 @@ export class ImageService {
   private static getBaseUrl(): string {
     return getApiBaseUrl();
   }
-  
+
   // 이미지 업로드는 직접 백엔드 포트로 (Cafe24 웹서버 제한 우회)
-  private static getImageUploadUrl(): string {
-    const hostname = window.location.hostname;
-    if (hostname.includes('localhost')) {
-      return 'http://localhost:8082';
-    }
-    // 프로덕션에서는 직접 백엔드 포트 사용
-    return 'https://football-club.kr:8082';
-  }
-  
-  private static readonly UPLOAD_URL = `${ImageService.getImageUploadUrl()}/api/v1/images/upload`;
+  // private static getImageUploadUrl(): string {
+  //   const hostname = window.location.hostname;
+  //   if (hostname.includes('localhost')) {
+  //     return 'http://localhost:8082';
+  //   }
+  //   // 프로덕션에서는 직접 백엔드 포트 사용
+  //   return 'https://football-club.kr:8082';
+  // }
+
+  private static readonly UPLOAD_URL = `${ImageService.getBaseUrl()}/api/v1/images/upload`;
   private static readonly DELETE_URL = `${ImageService.getBaseUrl()}/api/v1/images`;
 
   /**
