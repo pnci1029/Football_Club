@@ -4,6 +4,7 @@ import { StadiumDto } from '../types/stadium';
 import { Card, Button, LoadingSpinner } from '../components/common';
 import StadiumMapModal from '../components/admin/StadiumMapModal';
 import StadiumsMapView from '../components/stadiums/StadiumsMapView';
+import KakaoMap from '../components/map/KakaoMap';
 import { ImageUtil } from '../utils/image';
 
 const formatPrice = (price?: number) => {
@@ -159,24 +160,34 @@ const Stadiums: React.FC = () => {
                     className="overflow-hidden"
                   >
                     <div className="flex flex-col">
-                      {/* 구장 대표 이미지 - 위쪽 전체 너비 */}
+                      {/* 구장 지도 - 위쪽 전체 너비 */}
                       <div className="w-full">
-                        <div className="relative h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-green-400 via-green-500 to-green-600">
-                          {/* 구장 이미지 (추후 실제 구장 사진으로 교체 가능) */}
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400 via-green-500 to-green-600">
-                            <div className="text-center text-white">
-                              <div className="text-6xl mb-4">🏟️</div>
-                              <h3 className="text-2xl font-bold mb-2">{stadium.name}</h3>
-                              {stadium.latitude && stadium.longitude && (
+                        <div className="relative h-64 sm:h-80 lg:h-96">
+                          {/* 실제 카카오맵 표시 */}
+                          {stadium.latitude && stadium.longitude ? (
+                            <KakaoMap
+                              latitude={stadium.latitude}
+                              longitude={stadium.longitude}
+                              stadiumName={stadium.name}
+                              address={stadium.address}
+                              height="100%"
+                              className="border-0"
+                            />
+                          ) : (
+                            /* 좌표가 없는 경우 기본 이미지 */
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400 via-green-500 to-green-600">
+                              <div className="text-center text-white">
+                                <div className="text-6xl mb-4">🏟️</div>
+                                <h3 className="text-2xl font-bold mb-2">{stadium.name}</h3>
                                 <p className="text-green-100 text-sm">
-                                  📍 위치: {stadium.latitude.toFixed(4)}, {stadium.longitude.toFixed(4)}
+                                  📍 위치 정보가 설정되지 않았습니다
                                 </p>
-                              )}
+                              </div>
                             </div>
-                          </div>
+                          )}
                           
                           {/* 구장 정보 오버레이 */}
-                          <div className="absolute top-4 right-4 bg-white bg-opacity-90 text-gray-800 px-3 py-2 rounded-lg">
+                          <div className="absolute top-4 right-4 bg-white bg-opacity-90 text-gray-800 px-3 py-2 rounded-lg shadow-md">
                             <div className="text-sm font-semibold">{formatPrice(stadium.hourlyRate)}</div>
                           </div>
                         </div>
@@ -194,14 +205,9 @@ const Stadiums: React.FC = () => {
                               <div className="flex items-start flex-1">
                                 <span className="text-gray-500 mr-3 mt-1 text-lg">📍</span>
                                 <div className="flex-1">
-                                  <p className="text-gray-800 font-medium leading-relaxed mb-1">
+                                  <p className="text-gray-800 font-medium leading-relaxed">
                                     {stadium.address}
                                   </p>
-                                  {stadium.latitude && stadium.longitude && (
-                                    <p className="text-xs text-gray-500">
-                                      좌표: {stadium.latitude.toFixed(6)}, {stadium.longitude.toFixed(6)}
-                                    </p>
-                                  )}
                                 </div>
                               </div>
                               
