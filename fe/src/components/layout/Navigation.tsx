@@ -8,7 +8,6 @@ const Navigation: React.FC = () => {
   const location = useLocation();
 
   const menuItems = [
-    { name: '홈', href: '/' },
     { name: '선수', href: '/players' },
     { name: '구장', href: '/stadiums' },
     { name: '경기', href: '/matches' },
