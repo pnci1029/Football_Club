@@ -28,26 +28,40 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    console.log('=== KakaoMap 디버깅 ===');
+    console.log('window.kakao:', window.kakao);
+    console.log('mapContainer.current:', mapContainer.current);
+    console.log('latitude:', latitude, 'longitude:', longitude);
+    
     if (!window.kakao || !mapContainer.current) {
+      console.log('조건 실패: window.kakao 또는 mapContainer 없음');
       return;
     }
 
     // 카카오맵 API가 로드되었는지 확인
     if (window.kakao.maps) {
+      console.log('kakao.maps 존재, 바로 지도 초기화');
       initializeMap();
     } else {
+      console.log('kakao.maps 없음, 로드 대기');
       // API가 아직 로드되지 않았다면 로드될 때까지 기다림
       window.kakao.maps.load(initializeMap);
     }
 
     function initializeMap() {
+      console.log('initializeMap 실행 시작');
+      console.log('mapContainer.current:', mapContainer.current);
+      
       const mapOption = {
         center: new window.kakao.maps.LatLng(latitude, longitude),
         level: 3 // 지도의 확대 레벨
       };
+      console.log('mapOption:', mapOption);
 
       // 지도 생성
+      console.log('지도 생성 시작...');
       const map = new window.kakao.maps.Map(mapContainer.current, mapOption);
+      console.log('지도 생성 완료:', map);
 
       // 마커 생성
       const markerPosition = new window.kakao.maps.LatLng(latitude, longitude);
