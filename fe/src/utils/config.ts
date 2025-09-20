@@ -18,12 +18,12 @@ export const getApiBaseUrl = (): string => {
   }
 
   const hostname = window.location.hostname;
-  
+
   // 로컬 개발 환경
   if (hostname.includes('localhost')) {
     return DEFAULT_CONFIG.API_URL;
   }
-  
+
   // 배포 환경
   return process.env.REACT_APP_PRODUCTION_DOMAIN || `https://${DEFAULT_CONFIG.PRODUCTION_DOMAIN}`;
 };
@@ -48,7 +48,22 @@ export const getTeamUrl = (teamCode: string): string => {
  */
 export const isMainDomain = (hostname: string): boolean => {
   const domain = getProductionDomain();
-  return hostname === 'localhost' || 
-         hostname === 'football-club.local' || 
+  return hostname === 'localhost' ||
+         hostname === 'football-club' ||
          hostname === domain;
+};
+
+/**
+ * 메인 도메인 URL 반환
+ */
+export const getMainDomainUrl = (): string => {
+  const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
+
+  if (hostname.includes('localhost')) {
+    return `${protocol}//localhost:3000`;
+  } else {
+    const domain = getProductionDomain();
+    return `${protocol}//${domain}`;
+  }
 };

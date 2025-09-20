@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Team } from '../types/team';
 import { teamService } from '../services/teamService';
+import { isMainDomain } from '../utils/config';
 
 // 팀 정보 캐시 (메모리 캐시)
 const teamCache = new Map<string, Team>();
@@ -159,18 +160,16 @@ export const useSubdomain = () => {
       } catch (error) {
         console.error('💥 팀 정보를 가져오는데 실패했습니다:', error);
 
-        // 서브도메인이 있는 경우에만 404로 리다이렉트
         const host = window.location.hostname;
-        const hasSubdomain = host.match(/^([a-zA-Z0-9-]+)\.(localhost|football-club\.kr)$/);
-
+        
         if (!isCancelled) {
-          if (hasSubdomain && hasSubdomain[1] !== 'www') {
-            // 서브도메인이 있고 www가 아닌 경우 팀을 찾을 수 없음으로 표시
+          if (!isMainDomain(host)) {
+            // 서브도메인이 있는 경우 팀을 찾을 수 없음으로 표시
             setTeamNotFound(true);
             setIsLoading(false);
             return;
           } else {
-            // localhost 환경에서 서브도메인 없이 접근한 경우에만 기본 팀 정보 설정
+            // 메인 도메인인 경우 기본 팀 정보 설정
             setCurrentTeam({
               id: '1',
               name: 'Football Club',
