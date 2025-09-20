@@ -34,11 +34,11 @@ const StadiumsMapView: React.FC<StadiumsMapViewProps> = ({
       style={{ height }}
     >
       {/* 헤더 */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4">
-        <h3 className="text-lg font-semibold flex items-center">
-          🗺️ 구장 목록 ({stadiums.length}개)
+      <div className="bg-gradient-to-r from-gray-500 to-gray-600 text-white p-4">
+        <h3 className="text-lg font-semibold">
+          구장 목록 ({stadiums.length}개)
         </h3>
-        <p className="text-blue-100 text-sm mt-1">
+        <p className="text-gray-100 text-sm mt-1">
           구장을 클릭하면 외부 지도에서 확인할 수 있습니다
         </p>
       </div>
@@ -48,7 +48,6 @@ const StadiumsMapView: React.FC<StadiumsMapViewProps> = ({
         {stadiums.length === 0 ? (
           <div className="flex items-center justify-center h-32 text-gray-500">
             <div className="text-center">
-              <div className="text-3xl mb-2">📍</div>
               <p>등록된 구장이 없습니다</p>
             </div>
           </div>
@@ -63,15 +62,15 @@ const StadiumsMapView: React.FC<StadiumsMapViewProps> = ({
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900 mb-1">
-                      🏟️ {stadium.name}
+                      {stadium.name}
                     </h4>
                     <p className="text-sm text-gray-600 mb-2">
-                      📍 {stadium.address}
+                      {stadium.address}
                     </p>
                     <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>💰 {stadium.hourlyRate?.toLocaleString()}원/시간</span>
+                      <span>{stadium.hourlyRate?.toLocaleString()}원/시간</span>
                       {stadium.contactNumber && (
-                        <span>📞 {stadium.contactNumber}</span>
+                        <span>{stadium.contactNumber}</span>
                       )}
                     </div>
                   </div>

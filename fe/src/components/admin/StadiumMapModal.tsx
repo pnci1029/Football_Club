@@ -90,20 +90,15 @@ const StadiumMapModal: React.FC<StadiumMapModalProps> = ({
         {/* 지도 */}
         <div className="w-full h-64 rounded-lg overflow-hidden border">
           {hasCoordinates ? (
-            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center relative">
+            <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center relative">
               <div className="text-center text-white">
-                <div className="text-4xl mb-2">🗺️</div>
                 <h3 className="text-lg font-bold mb-1">{stadium.name}</h3>
-                <p className="text-blue-100 text-sm">위치 정보가 설정되어 있습니다</p>
-                <p className="text-blue-100 text-xs mt-1">
-                  위도: {stadium.latitude?.toFixed(6)}, 경도: {stadium.longitude?.toFixed(6)}
-                </p>
+                <p className="text-gray-100 text-sm">지도 정보</p>
               </div>
             </div>
           ) : (
             <div className="w-full h-full bg-gray-100 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-gray-400 text-4xl mb-2">🗺️</div>
                 <p className="text-gray-500">좌표 정보가 없습니다</p>
                 <p className="text-xs text-gray-400">구장의 위치 좌표를 설정해주세요</p>
               </div>
@@ -115,45 +110,27 @@ const StadiumMapModal: React.FC<StadiumMapModalProps> = ({
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="space-y-2">
             <div>
-              <h4 className="font-medium text-gray-900 mb-1">📍 주소</h4>
+              <h4 className="font-medium text-gray-900 mb-1">주소</h4>
               <p className="text-sm text-gray-700 break-all">{stadium.address}</p>
             </div>
-            {hasCoordinates && (
-              <div>
-                <h4 className="font-medium text-gray-900 mb-1">🌍 좌표</h4>
-                <p className="text-sm text-gray-700 font-mono">
-                  위도: {stadium.latitude}, 경도: {stadium.longitude}
-                </p>
-              </div>
-            )}
           </div>
         </div>
 
         {/* 복사 버튼들 */}
-        <div className={`grid gap-3 ${hasCoordinates ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        <div className="grid gap-3 grid-cols-1">
           <Button
             type="button"
             variant="outline"
             onClick={copyAddress}
             className="text-gray-600"
           >
-            📍 주소 복사
+            주소 복사
           </Button>
-          {hasCoordinates && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={copyCoordinates}
-              className="text-gray-600"
-            >
-              🌍 좌표 복사
-            </Button>
-          )}
         </div>
 
         {/* 외부 지도 앱 열기 */}
         <div className="border-t pt-4">
-          <h4 className="font-medium text-gray-900 mb-3">🗺️ 다른 지도에서 보기</h4>
+          <h4 className="font-medium text-gray-900 mb-3">다른 지도에서 보기</h4>
           <div className="grid grid-cols-3 gap-3">
             <Button
               type="button"

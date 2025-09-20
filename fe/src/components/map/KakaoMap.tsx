@@ -62,11 +62,11 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       const infoWindow = new window.kakao.maps.InfoWindow({
         content: `
           <div style="padding: 10px; min-width: 200px;">
-            <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px;">
-              🏟️ ${stadiumName}
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px; color: #333;">
+              ${stadiumName}
             </div>
             <div style="font-size: 12px; color: #666;">
-              📍 ${address}
+              ${address}
             </div>
           </div>
         `,
