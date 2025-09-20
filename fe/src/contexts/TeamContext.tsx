@@ -6,6 +6,7 @@ interface TeamContextType {
   currentTeam: Team | null;
   isLoading: boolean;
   isAdminMode: boolean;
+  teamNotFound: boolean;
 }
 
 const TeamContext = createContext<TeamContextType | null>(null);
@@ -15,10 +16,10 @@ interface TeamProviderProps {
 }
 
 export const TeamProvider: React.FC<TeamProviderProps> = ({ children }) => {
-  const { currentTeam, isLoading, isAdminMode } = useSubdomain();
+  const { currentTeam, isLoading, isAdminMode, teamNotFound } = useSubdomain();
 
   return (
-    <TeamContext.Provider value={{ currentTeam, isLoading, isAdminMode }}>
+    <TeamContext.Provider value={{ currentTeam, isLoading, isAdminMode, teamNotFound }}>
       {children}
     </TeamContext.Provider>
   );

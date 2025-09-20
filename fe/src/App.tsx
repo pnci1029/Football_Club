@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { TeamProvider } from './contexts/TeamContext';
+import { TeamProvider, useTeam } from './contexts/TeamContext';
 import { AuthProvider } from './contexts/AuthContext';
 import Navigation from './components/layout/Navigation';
 import AdminLayout from './components/layout/AdminLayout';
@@ -31,6 +31,7 @@ if (process.env.NODE_ENV === 'development') {
 
 const AppContent: React.FC = () => {
   const hostname = window.location.hostname;
+  const { teamNotFound, isLoading } = useTeam();
 
   const isAdminDomain = hostname === 'admin.localhost' ||
                        hostname.startsWith('admin.');
@@ -122,6 +123,22 @@ const AppContent: React.FC = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
     );
+  }
+
+  // 로딩 중이거나 팀이 존재하지 않는 경우 처리
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">팀 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (teamNotFound) {
+    return <NotFound />;
   }
 
   // 서브도메인: 팀별 사이트

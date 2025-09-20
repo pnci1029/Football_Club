@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../components/common';
+import { getMainDomainUrl } from '../utils/config';
 
 const NotFound: React.FC = () => {
   const location = useLocation();
@@ -65,33 +66,15 @@ const NotFound: React.FC = () => {
                   홈으로 이동
                 </Button>
               </Link>
-              <div className="flex gap-3">
-                <Link to="/players" className="flex-1">
-                  <Button 
-                    variant="outline" 
-                    className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
-                  >
-                    선수단
-                  </Button>
-                </Link>
-                <Link to="/matches" className="flex-1">
-                  <Button 
-                    variant="outline" 
-                    className="w-full text-green-600 border-green-200 hover:bg-green-50"
-                  >
-                    경기 일정
-                  </Button>
-                </Link>
-              </div>
-              <Link to="/stadiums" className="block">
+              <a href={getMainDomainUrl()} className="block">
                 <Button 
                   variant="outline" 
-                  className="w-full text-purple-600 border-purple-200 hover:bg-purple-50"
+                  className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
                 >
-                  <span className="mr-2">🏟️</span>
-                  구장 정보
+                  <span className="mr-2">🌐</span>
+                  메인화면으로 이동
                 </Button>
-              </Link>
+              </a>
             </div>
           )}
         </div>
