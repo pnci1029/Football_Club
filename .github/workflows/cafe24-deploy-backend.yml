@@ -3,7 +3,7 @@ name: Deploy Backend to Cafe24
 on:
   push:
     branches: [ main ]
-    paths: ['be/**']
+#    paths: ['be/**']
   workflow_dispatch:
 
 jobs:
@@ -57,7 +57,7 @@ jobs:
       run: |
         scp -i ~/.ssh/id_rsa docker-compose.yml root@${{ secrets.CAFE24_HOST }}:/opt/football-club/
 
-    - name: Deploy backend on server
+    - name: Deploy backend on server with Blue-Green
       run: |
         ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
           cd /opt/football-club &&
@@ -66,12 +66,67 @@ jobs:
           echo 'MYSQL_USER=${{ secrets.MYSQL_USER }}' >> .env &&
           echo 'MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}' >> .env &&
           echo 'MYSQL_HOST=db' >> .env &&
+          
+          # Pull new image
           docker pull ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} &&
           docker tag ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} football-club-backend:latest &&
-          docker-compose stop backend || true &&
-          docker-compose rm -f backend || true &&
-          docker rm -f backend || true &&
-          docker-compose up -d backend
+          
+          # Determine current running container and new port
+          if docker ps --format \"table {{.Names}}\" | grep -q \"backend-blue\"; then
+            echo \"Blue is running, deploying to Green (port 8081)\"
+            NEW_COLOR=\"green\"
+            NEW_PORT=8081
+            OLD_COLOR=\"blue\"
+            OLD_PORT=8080
+          else
+            echo \"Green is running or first deploy, deploying to Blue (port 8080)\"
+            NEW_COLOR=\"blue\"
+            NEW_PORT=8080
+            OLD_COLOR=\"green\"
+            OLD_PORT=8081
+          fi
+          
+          # Start new container
+          docker run -d --name backend-\$NEW_COLOR \
+            --network football-club_default \
+            -p \$NEW_PORT:8080 \
+            --env-file .env \
+            football-club-backend:latest
+          
+          # Wait for new container to be ready
+          echo \"Waiting for new container to be ready...\"
+          for i in {1..30}; do
+            if curl -f http://localhost:\$NEW_PORT/health 2>/dev/null; then
+              echo \"New container is ready on port \$NEW_PORT\"
+              break
+            fi
+            if [ \$i -eq 30 ]; then
+              echo \"New container failed to start\"
+              docker logs backend-\$NEW_COLOR
+              docker rm -f backend-\$NEW_COLOR
+              exit 1
+            fi
+            sleep 10
+          done
+          
+          # Update nginx configuration
+          if [ -f /etc/nginx/sites-enabled/football-club.conf ]; then
+            echo \"Updating nginx to point to port \$NEW_PORT\"
+            sudo sed -i \"s/localhost:[0-9]*/localhost:\$NEW_PORT/g\" /etc/nginx/sites-enabled/football-club.conf
+            sudo nginx -t && sudo systemctl reload nginx
+          fi
+          
+          # Remove old container
+          if docker ps -q -f name=backend-\$OLD_COLOR; then
+            echo \"Stopping old container backend-\$OLD_COLOR\"
+            docker stop backend-\$OLD_COLOR
+            docker rm backend-\$OLD_COLOR
+          fi
+          
+          # Clean up old images
+          docker image prune -f
+          
+          echo \"Deployment completed. New container running on port \$NEW_PORT\"
         "
 
     - name: Deployment notification
