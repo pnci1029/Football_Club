@@ -67,86 +67,42 @@ jobs:
           echo 'MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}' >> .env &&
           echo 'MYSQL_HOST=db' >> .env &&
           
-          # Pull new image
           docker pull ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} &&
           docker tag ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} football-club-backend:latest &&
           
-          # Get current backend port
-          CURRENT_PORT=\$(docker port backend 2>/dev/null | grep '8082/tcp' | cut -d: -f2 || echo '8082')
-          
-          # Determine current running container and new port
+          # Blue-Green 포트 결정
           if docker ps --format \"table {{.Names}}\" | grep -q \"backend-blue\"; then
-            echo \"Blue is running, deploying to Green (port 8083)\"
-            NEW_COLOR=\"green\"
-            NEW_PORT=8083
-            OLD_COLOR=\"blue\"
-            OLD_PORT=8082
+            NEW_COLOR=\"green\" && NEW_PORT=8083 && OLD_COLOR=\"blue\"
           else
-            echo \"Green is running or first deploy, deploying to Blue (port 8082)\"
-            NEW_COLOR=\"blue\"
-            NEW_PORT=8082
-            OLD_COLOR=\"green\"
-            OLD_PORT=8083
+            NEW_COLOR=\"blue\" && NEW_PORT=8082 && OLD_COLOR=\"green\"
           fi
           
-          # Get network from existing backend container
-          EXISTING_NETWORK=\$(docker inspect backend --format '{{range .NetworkSettings.Networks}}{{.NetworkID}}{{end}}' 2>/dev/null || echo 'bridge')
-          if [ \"\$EXISTING_NETWORK\" = \"bridge\" ] || [ -z \"\$EXISTING_NETWORK\" ]; then
-            NETWORK_FLAG=\"\"
-          else
-            NETWORK_NAME=\$(docker network ls --format '{{.Name}}' | grep -E '(football|default)' | head -1)
-            if [ -n \"\$NETWORK_NAME\" ]; then
-              NETWORK_FLAG=\"--network \$NETWORK_NAME\"
-            else
-              NETWORK_FLAG=\"\"
-            fi
-          fi
+          # 기존 동일한 이름 컨테이너 제거 (실패한 배포 정리)
+          docker stop backend-\$NEW_COLOR 2>/dev/null || true
+          docker rm backend-\$NEW_COLOR 2>/dev/null || true
           
-          # Start new container
-          docker run -d --name backend-\$NEW_COLOR \
-            \$NETWORK_FLAG \
-            -p \$NEW_PORT:8082 \
-            --env-file .env \
-            football-club-backend:latest
+          # 새 컨테이너 시작
+          docker run -d --name backend-\$NEW_COLOR -p \$NEW_PORT:8082 --env-file .env football-club-backend:latest
           
-          # Wait for new container to be ready
-          echo \"Waiting for new container to be ready...\"
-          for i in {1..30}; do
-            # Try multiple health check endpoints
-            if curl -f http://localhost:\$NEW_PORT/actuator/health 2>/dev/null || \
-               curl -f http://localhost:\$NEW_PORT/health 2>/dev/null || \
-               curl -f http://localhost:\$NEW_PORT/ 2>/dev/null; then
-              echo \"New container is ready on port \$NEW_PORT\"
+          # 헬스체크 대기
+          for i in {1..20}; do
+            if curl -f http://localhost:\$NEW_PORT/ 2>/dev/null; then
               break
             fi
-            if [ \$i -eq 30 ]; then
-              echo \"New container failed to start\"
-              docker logs backend-\$NEW_COLOR
-              docker rm -f backend-\$NEW_COLOR
-              exit 1
-            fi
-            echo \"Attempt \$i/30: Container not ready yet, waiting...\"
+            [ \$i -eq 20 ] && echo \"Deploy failed\" && docker rm -f backend-\$NEW_COLOR && exit 1
             sleep 10
           done
           
-          # Update nginx configuration
-          if [ -f /etc/nginx/sites-enabled/football-club.conf ]; then
-            echo \"Updating nginx to point to port \$NEW_PORT\"
-            sudo sed -i \"s/localhost:[0-9]*/localhost:\$NEW_PORT/g\" /etc/nginx/sites-enabled/football-club.conf
-            sudo nginx -t && sudo systemctl reload nginx
-          fi
+          # Nginx 업데이트
+          sudo sed -i \"s/localhost:[0-9]*/localhost:\$NEW_PORT/g\" /etc/nginx/sites-enabled/football-club.conf
+          sudo nginx -t && sudo systemctl reload nginx
           
-          # Remove old container
-          if docker ps -q -f name=backend-\$OLD_COLOR; then
-            echo \"Stopping old container backend-\$OLD_COLOR\"
-            docker stop backend-\$OLD_COLOR
-            docker rm backend-\$OLD_COLOR
-          fi
+          # 기존 컨테이너 제거
+          docker stop backend-\$OLD_COLOR 2>/dev/null || true
+          docker rm backend-\$OLD_COLOR 2>/dev/null || true
+          docker stop backend 2>/dev/null && docker rm backend 2>/dev/null || true
           
-          # Clean up old images
           docker image prune -f
-          
-          echo \"Deployment completed. New container running on port \$NEW_PORT\"
         "
 
     - name: Deployment notification
