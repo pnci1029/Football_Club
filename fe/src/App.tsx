@@ -9,6 +9,8 @@ import Home from './pages/Home';
 import Players from './pages/Players';
 import Matches from './pages/Matches';
 import Stadiums from './pages/Stadiums';
+import Community from './pages/Community';
+import CommunityWrite from './pages/CommunityWrite';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPlayers from './pages/admin/AdminPlayers';
@@ -151,6 +153,8 @@ const AppContent: React.FC = () => {
           <Route path="/players" element={<Players />} />
           <Route path="/matches" element={<Matches />} />
           <Route path="/stadiums" element={<Stadiums />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/community/write" element={<CommunityWrite />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
