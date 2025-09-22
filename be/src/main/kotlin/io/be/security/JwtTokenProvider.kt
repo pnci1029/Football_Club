@@ -17,11 +17,11 @@ class JwtTokenProvider {
     @Value("\${jwt.secret:football-club-secret-key-that-should-be-at-least-32-characters-long}")
     private lateinit var secretKey: String
     
-    @Value("\${jwt.expiration:86400}") // 24 hours in seconds
-    private var jwtExpiration: Long = 86400
+    @Value("\${jwt.expiration:604800}") // 7 days in seconds
+    private var jwtExpiration: Long = 604800
     
-    @Value("\${jwt.refresh-expiration:604800}") // 7 days in seconds  
-    private var refreshExpiration: Long = 604800
+    @Value("\${jwt.refresh-expiration:2592000}") // 30 days in seconds  
+    private var refreshExpiration: Long = 2592000
     
     private fun getSigningKey(): Key {
         val keyBytes = secretKey.toByteArray(StandardCharsets.UTF_8)

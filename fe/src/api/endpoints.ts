@@ -129,6 +129,17 @@ export const API_ENDPOINTS = {
     DELETE: { method: 'DELETE', path: '/api/v1/images/{filename}', requiresAuth: true } as ApiEndpoint,
   },
 
+  // Community
+  COMMUNITY: {
+    GET_POSTS: { method: 'GET', path: '/api/v1/community/posts', requiresAuth: false } as ApiEndpoint,
+    GET_POST: { method: 'GET', path: '/api/v1/community/posts/{postId}', requiresAuth: false } as ApiEndpoint,
+    CREATE_POST: { method: 'POST', path: '/api/v1/community/posts', requiresAuth: false } as ApiEndpoint,
+    UPDATE_POST: { method: 'PUT', path: '/api/v1/community/posts/{postId}', requiresAuth: false } as ApiEndpoint,
+    DELETE_POST: { method: 'DELETE', path: '/api/v1/community/posts/{postId}', requiresAuth: false } as ApiEndpoint,
+    CREATE_COMMENT: { method: 'POST', path: '/api/v1/community/posts/{postId}/comments', requiresAuth: false } as ApiEndpoint,
+    DELETE_COMMENT: { method: 'DELETE', path: '/api/v1/community/comments/{commentId}', requiresAuth: false } as ApiEndpoint,
+  },
+
   // Tenants (Multi-tenant)
   TENANTS: {
     LIST: { method: 'GET', path: '/api/v1/admin/tenants', requiresAuth: true, isAdmin: true } as ApiEndpoint,
