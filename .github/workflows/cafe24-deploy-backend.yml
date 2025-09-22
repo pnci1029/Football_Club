@@ -86,7 +86,7 @@ jobs:
           
           # 헬스체크 대기
           for i in {1..20}; do
-            if curl -f http://localhost:\$NEW_PORT/ 2>/dev/null; then
+            if curl -f http://localhost:\$NEW_PORT/api/test/51 2>/dev/null; then
               break
             fi
             [ \$i -eq 20 ] && echo \"Deploy failed\" && docker rm -f backend-\$NEW_COLOR && exit 1
