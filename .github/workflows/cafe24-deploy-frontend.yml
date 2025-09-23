@@ -63,9 +63,9 @@ jobs:
           cd /opt/football-club &&
           docker pull ${{ secrets.DOCKER_USERNAME }}/football-club-frontend:${{ github.sha }} &&
           docker tag ${{ secrets.DOCKER_USERNAME }}/football-club-frontend:${{ github.sha }} football-club-frontend:latest &&
-          docker-compose stop frontend || true &&
-          docker-compose rm -f frontend || true &&
-          docker-compose up -d frontend
+          docker compose down || true &&
+          docker system prune -f || true &&
+          docker compose up -d
         "
 
     - name: Deployment notification
