@@ -23,14 +23,18 @@ class TenantSecurityInterceptor(
 
     // 허용된 호스트 패턴
     private val allowedHostPatterns = setOf(
-        "localhost:8082",      // 개발용 백엔드
+        "localhost:8082",      // 개발용 백엔드 (blue)
+        "localhost:8083",      // 개발용 백엔드 (green)
         "localhost:3000",      // 개발용 프론트엔드
         "222.122.81.196:8082",
+        "222.122.81.196:8083",
         "222.122.81.196:3000",
         "*.localhost:3000",    // 개발용 서브도메인 (예: team.localhost:3000)
         "*.localhost:8082",    // 개발용 서브도메인 (예: admin.localhost:8082)
+        "*.localhost:8083",    // 개발용 서브도메인 (예: admin.localhost:8083)
         "football-club.kr",    // 메인 도메인
-        "football-club.kr:8082", // 메인 도메인 with port
+        "football-club.kr:8082", // 메인 도메인 with port (blue)
+        "football-club.kr:8083", // 메인 도메인 with port (green)
         "*.football-club.kr",  // 프로덕션 서브도메인
         "admin.football-club.kr"
     )
@@ -191,12 +195,13 @@ class TenantSecurityInterceptor(
     }
 
     private fun isAdminDomain(host: String): Boolean {
-        return host.startsWith("admin.") || host == "admin.localhost:3000" || host == "admin.localhost:8082"
+        return host.startsWith("admin.") || host == "admin.localhost:3000" || host == "admin.localhost:8082" || host == "admin.localhost:8083"
     }
 
     private fun isMainDomain(host: String): Boolean {
         return host == "localhost:3000" ||
                host == "localhost:8082" ||
+               host == "localhost:8083" ||
                host == "football-club.kr" ||
                host == "football-club.kr:8082" ||
                host == "footballclub.com"

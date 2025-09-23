@@ -14,7 +14,7 @@ spring:
 
 # 서버 설정
 server:
-  port: 8082
+  port: ${SERVER_PORT:8082}
   servlet:
     context-path: /api
 

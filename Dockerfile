@@ -55,7 +55,7 @@ COPY --from=frontend-build /app/frontend/build /var/www/html
 COPY --from=backend-build /app/backend/build/libs/*.jar app.jar
 
 # 포트 노출
-EXPOSE 80 8082
+EXPOSE 80 8082 8083
 
 # 실행
 CMD ["/app/start.sh"]
