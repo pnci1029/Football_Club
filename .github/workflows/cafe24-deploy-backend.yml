@@ -115,8 +115,12 @@ jobs:
           done
           
           # Nginx 업데이트
-          sudo sed -i \"s/localhost:[0-9]*/localhost:\$NEW_PORT/g\" /etc/nginx/sites-enabled/football-club.conf
+          echo \"Updating Nginx to use port \$NEW_PORT\"
+          sudo sed -i \"s/proxy_pass http:\/\/localhost:[0-9]*\/api\//proxy_pass http:\/\/localhost:\$NEW_PORT\/api\//g\" /etc/nginx/sites-enabled/football-club.conf
+          echo \"Nginx configuration updated:\"
+          grep \"proxy_pass.*localhost:\" /etc/nginx/sites-enabled/football-club.conf
           sudo nginx -t && sudo systemctl reload nginx
+          echo \"Nginx reloaded successfully\"
           
           # 기존 컨테이너 제거
           docker stop backend-\$OLD_COLOR 2>/dev/null || true
