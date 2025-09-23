@@ -63,9 +63,20 @@ jobs:
           cd /opt/football-club &&
           docker pull ${{ secrets.DOCKER_USERNAME }}/football-club-frontend:${{ github.sha }} &&
           docker tag ${{ secrets.DOCKER_USERNAME }}/football-club-frontend:${{ github.sha }} football-club-frontend:latest &&
-          docker compose stop || true &&
-          docker compose rm -f frontend || true &&
-          docker compose up -d frontend --no-deps
+          
+          # 현재 실행 중인 백엔드 확인
+          if docker ps --format \"table {{.Names}}\" | grep -q \"backend-blue\"; then
+            BACKEND_NETWORK=\$(docker inspect backend-blue --format='{{range \$net, \$conf := .NetworkSettings.Networks}}{{\$net}}{{end}}')
+          elif docker ps --format \"table {{.Names}}\" | grep -q \"backend-green\"; then
+            BACKEND_NETWORK=\$(docker inspect backend-green --format='{{range \$net, \$conf := .NetworkSettings.Networks}}{{\$net}}{{end}}')
+          else
+            BACKEND_NETWORK=\"bridge\"
+          fi
+          
+          # 프론트엔드만 교체
+          docker stop frontend || true &&
+          docker rm frontend || true &&
+          docker run -d --name frontend -p 3000:3000 --network \$BACKEND_NETWORK football-club-frontend:latest
         "
 
     - name: Deployment notification
