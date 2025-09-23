@@ -11,6 +11,7 @@ import Matches from './pages/Matches';
 import Stadiums from './pages/Stadiums';
 import Community from './pages/Community';
 import CommunityWrite from './pages/CommunityWrite';
+import CommunityDetail from './pages/CommunityDetail';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPlayers from './pages/admin/AdminPlayers';
@@ -155,6 +156,7 @@ const AppContent: React.FC = () => {
           <Route path="/stadiums" element={<Stadiums />} />
           <Route path="/community" element={<Community />} />
           <Route path="/community/write" element={<CommunityWrite />} />
+          <Route path="/community/:postId" element={<CommunityDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

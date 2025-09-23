@@ -29,6 +29,7 @@ const Community: React.FC = () => {
       setCurrentPage(response.number);
     } catch (err) {
       setError('게시글을 불러오는데 실패했습니다.');
+      setPosts([]); // 에러 시 빈 배열로 설정
       console.error('Failed to load posts:', err);
     } finally {
       setLoading(false);
@@ -134,7 +135,7 @@ const Community: React.FC = () => {
               다시 시도
             </button>
           </div>
-        ) : posts.length === 0 ? (
+        ) : (!posts || posts.length === 0) ? (
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
             <div className="text-gray-400 mb-4">
               <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +154,7 @@ const Community: React.FC = () => {
         ) : (
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="divide-y divide-gray-200">
-              {posts.map((post) => (
+              {posts?.map((post) => (
                 <Link
                   key={post.id}
                   to={`/community/${post.id}`}

@@ -222,20 +222,29 @@ class UnifiedApiClient {
   ): Promise<T> {
     const url = pathParams ? buildUrl(endpoint.path, pathParams) : endpoint.path;
     
+    let response: any;
     switch (endpoint.method) {
       case 'GET':
-        return this.get<T>(url, queryParams);
+        response = await this.get<any>(url, queryParams);
+        break;
       case 'POST':
-        return this.post<T>(url, data);
+        response = await this.post<any>(url, data);
+        break;
       case 'PUT':
-        return this.put<T>(url, data);
+        response = await this.put<any>(url, data);
+        break;
       case 'DELETE':
-        return this.delete<T>(url);
+        response = await this.delete<any>(url);
+        break;
       case 'PATCH':
-        return this.patch<T>(url, data);
+        response = await this.patch<any>(url, data);
+        break;
       default:
         throw new Error(`Unsupported HTTP method: ${endpoint.method}`);
     }
+    
+    // ApiResponse 래퍼 처리 - data 필드가 있으면 unwrap
+    return response.data || response;
   }
 
   // CRUD 헬퍼 메서드들
