@@ -82,6 +82,9 @@ jobs:
           docker stop backend-\$NEW_COLOR 2>/dev/null || true
           docker rm backend-\$NEW_COLOR 2>/dev/null || true
           
+          # 포트 사용 중인 프로세스 확인 및 정리
+          lsof -ti:\$NEW_PORT | xargs kill -9 2>/dev/null || true
+          
           # 새 컨테이너 시작
           docker run -d --name backend-\$NEW_COLOR -p \$NEW_PORT:8082 --env-file .env football-club-backend:latest
           
