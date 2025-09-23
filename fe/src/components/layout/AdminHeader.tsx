@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { authService } from '../../services/authService';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
@@ -8,8 +7,8 @@ interface AdminHeaderProps {
 
 const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const navigate = useNavigate();
-  
+  const { logout } = useAuth();
+
   const currentTime = new Date().toLocaleString('ko-KR', {
     year: 'numeric',
     month: 'long',
@@ -20,11 +19,11 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
-    
+
     setIsLoggingOut(true);
     try {
-      await authService.logout();
-      navigate('/admin/login');
+      // AuthContext의 logout 사용 (로그아웃 후 자동으로 리다이렉트됨)
+      await logout();
     } catch (error) {
       console.error('로그아웃 실패:', error);
     } finally {
@@ -47,20 +46,20 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          
+
           <div>
             <h2 className="text-base sm:text-lg font-semibold text-gray-900">관리자 대시보드</h2>
             <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">멀티테넌트 축구 동호회 관리 시스템</p>
           </div>
         </div>
-        
+
         {/* Right Section - 모바일 최적화 */}
         <div className="flex items-center space-x-2 sm:space-x-4">
           <div className="text-right hidden md:block">
             <p className="text-sm text-gray-600">{currentTime}</p>
             <p className="text-xs text-gray-500">시스템 관리자</p>
           </div>
-          
+
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
@@ -68,7 +67,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
           >
             {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
           </button>
-          
+
           <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
             <span className="text-gray-600 font-semibold">👤</span>
           </div>

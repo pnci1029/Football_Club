@@ -25,7 +25,6 @@ export interface AuthContextType {
   isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
-  refreshToken: () => Promise<void>;
 }
 
 export interface TokenValidationResponse {
