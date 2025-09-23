@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTeam } from '../contexts/TeamContext';
 import { communityApi } from '../api/modules/community';
 
 const CommunityWrite: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { currentTeam } = useTeam();
+  const editPostId = searchParams.get('edit');
+  const isEditing = !!editPostId;
+  
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -14,7 +18,33 @@ const CommunityWrite: React.FC = () => {
     authorPhone: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadPostForEdit = async () => {
+      if (!isEditing || !editPostId || !currentTeam) return;
+      
+      try {
+        setIsLoading(true);
+        const post = await communityApi.getPost(parseInt(editPostId), parseInt(currentTeam.id));
+        setFormData({
+          title: post.title,
+          content: post.content,
+          authorName: post.authorName,
+          authorEmail: post.authorEmail || '',
+          authorPhone: post.authorPhone || ''
+        });
+      } catch (err) {
+        console.error('Failed to load post for edit:', err);
+        setError('게시글을 불러오는데 실패했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPostForEdit();
+  }, [isEditing, editPostId, currentTeam]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -41,19 +71,31 @@ const CommunityWrite: React.FC = () => {
     }
 
     try {
-      await communityApi.createPost({
-        title: formData.title.trim(),
-        content: formData.content.trim(),
-        authorName: formData.authorName.trim(),
-        authorEmail: formData.authorEmail.trim() || undefined,
-        authorPhone: formData.authorPhone.trim() || undefined,
-        teamId: parseInt(currentTeam.id)
-      });
-      
-      navigate('/community');
+      if (isEditing && editPostId) {
+        await communityApi.updatePost(parseInt(editPostId), {
+          title: formData.title.trim(),
+          content: formData.content.trim(),
+          teamId: parseInt(currentTeam.id)
+        });
+        navigate(`/community/${editPostId}`, { 
+          state: { message: '게시글이 성공적으로 수정되었습니다.' }
+        });
+      } else {
+        await communityApi.createPost({
+          title: formData.title.trim(),
+          content: formData.content.trim(),
+          authorName: formData.authorName.trim(),
+          authorEmail: formData.authorEmail.trim() || undefined,
+          authorPhone: formData.authorPhone.trim() || undefined,
+          teamId: parseInt(currentTeam.id)
+        });
+        navigate('/community', { 
+          state: { message: '게시글이 성공적으로 작성되었습니다.' }
+        });
+      }
     } catch (err) {
-      console.error('게시글 작성 실패:', err);
-      setError('게시글 작성에 실패했습니다. 다시 시도해 주세요.');
+      console.error(`게시글 ${isEditing ? '수정' : '작성'} 실패:`, err);
+      setError(`게시글 ${isEditing ? '수정' : '작성'}에 실패했습니다. 다시 시도해 주세요.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -67,8 +109,8 @@ const CommunityWrite: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">글쓰기</h1>
-          <p className="text-gray-600 mt-2">경기 관련 문의나 메시지를 남겨주세요.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{isEditing ? '글 수정' : '글쓰기'}</h1>
+          <p className="text-gray-600 mt-2">{isEditing ? '게시글을 수정해주세요.' : '경기 관련 문의나 메시지를 남겨주세요.'}</p>
         </div>
 
         {error && (
@@ -127,6 +169,7 @@ const CommunityWrite: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 maxLength={50}
                 required
+                disabled={isEditing}
               />
             </div>
 
@@ -143,6 +186,7 @@ const CommunityWrite: React.FC = () => {
                 placeholder="이메일을 입력해주세요"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 maxLength={100}
+                disabled={isEditing}
               />
             </div>
 
@@ -159,6 +203,7 @@ const CommunityWrite: React.FC = () => {
                 placeholder="전화번호를 입력해주세요"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 maxLength={20}
+                disabled={isEditing}
               />
             </div>
           </div>
@@ -175,9 +220,9 @@ const CommunityWrite: React.FC = () => {
             <button
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isLoading}
             >
-              {isSubmitting ? '작성 중...' : '작성 완료'}
+              {isSubmitting ? (isEditing ? '수정 중...' : '작성 중...') : (isEditing ? '수정 완료' : '작성 완료')}
             </button>
           </div>
         </form>
