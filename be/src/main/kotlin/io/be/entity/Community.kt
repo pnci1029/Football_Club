@@ -32,6 +32,9 @@ data class CommunityPost(
     @Column(nullable = false, name = "team_id")
     val teamId: Long, // 멀티테넌트 구분용
     
+    @Column(name = "team_subdomain")
+    val teamSubdomain: String? = null,
+    
     @Column(name = "view_count", nullable = false)
     val viewCount: Int = 0,
     
@@ -54,7 +57,8 @@ data class CommunityPost(
         title = "",
         content = "",
         authorName = "",
-        teamId = 0L
+        teamId = 0L,
+        teamSubdomain = null
     )
 }
 

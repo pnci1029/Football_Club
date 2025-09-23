@@ -1,6 +1,9 @@
 package io.be.controller
 
-import io.be.service.*
+import io.be.service.CommunityPostDetailResponse
+import io.be.service.CommunityPostResponse
+import io.be.service.CommunityService
+import io.be.service.CreateCommunityPostRequest
 import io.be.util.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -11,11 +14,19 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/v1/community")
+@RequestMapping("/v1/community")
 @CrossOrigin(origins = ["*"])
 class CommunityController(
     private val communityService: CommunityService
 ) {
+
+    /**
+     * 테스트용 엔드포인트
+     */
+    @GetMapping("/test")
+    fun test(): ResponseEntity<ApiResponse<String>> {
+        return ResponseEntity.ok(ApiResponse.success("Community API is working!"))
+    }
 
     /**
      * 커뮤니티 게시글 목록 조회
@@ -62,9 +73,10 @@ class CommunityController(
         return ResponseEntity.ok(ApiResponse.success(post))
     }
 
-    /**
+    /*
      * 게시글 수정
      */
+    /*
     @PutMapping("/posts/{postId}")
     fun updatePost(
         @PathVariable postId: Long,
@@ -78,10 +90,12 @@ class CommunityController(
         val post = communityService.updatePost(postId, serviceRequest)
         return ResponseEntity.ok(ApiResponse.success(post))
     }
+    */
 
-    /**
+    /*
      * 게시글 삭제
      */
+    /*
     @DeleteMapping("/posts/{postId}")
     fun deletePost(
         @PathVariable postId: Long,
@@ -90,10 +104,12 @@ class CommunityController(
         communityService.deletePost(teamId, postId)
         return ResponseEntity.ok(ApiResponse.success("게시글이 삭제되었습니다."))
     }
+    */
 
-    /**
+    /*
      * 댓글 작성
      */
+    /*
     @PostMapping("/posts/{postId}/comments")
     fun createComment(
         @PathVariable postId: Long,
@@ -108,10 +124,12 @@ class CommunityController(
         val comment = communityService.createComment(postId, serviceRequest)
         return ResponseEntity.ok(ApiResponse.success(comment))
     }
+    */
 
-    /**
+    /*
      * 댓글 삭제
      */
+    /*
     @DeleteMapping("/comments/{commentId}")
     fun deleteComment(
         @PathVariable commentId: Long,
@@ -120,6 +138,7 @@ class CommunityController(
         communityService.deleteComment(teamId, commentId)
         return ResponseEntity.ok(ApiResponse.success("댓글이 삭제되었습니다."))
     }
+    */
 
     private fun getClientIpAddress(request: HttpServletRequest): String {
         val xForwardedFor = request.getHeader("X-Forwarded-For")
