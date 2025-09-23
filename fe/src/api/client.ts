@@ -4,6 +4,7 @@
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import { getApiBaseUrl } from '../utils/config';
+import { TokenManager } from '../utils/tokenManager';
 import { 
   ApiResponse, 
   PageResponse, 
@@ -17,6 +18,11 @@ import { QueryParams, RequestData, FileUploadData, PathParams } from '../types/i
 
 class UnifiedApiClient {
   private client: AxiosInstance;
+  private isRefreshing = false;
+  private failedQueue: Array<{
+    resolve: (value: string) => void;
+    reject: (error: any) => void;
+  }> = [];
 
   constructor() {
     this.client = axios.create({
@@ -32,15 +38,20 @@ class UnifiedApiClient {
   }
 
   private setupInterceptors() {
-    // 요청 인터셉터
+    // 요청 인터셉터 - 토큰 자동 첨부
     this.client.interceptors.request.use(
-      (config) => {
+      async (config) => {
         // 호스트 헤더 설정 (멀티테넌트)
         config.headers['X-Forwarded-Host'] = window.location.host;
         
-        // 인증 토큰 추가 (필요시)
-        const token = localStorage.getItem('accessToken');
-        if (token) {
+        // 토큰 갱신이 필요한지 확인
+        if (TokenManager.needsRefresh()) {
+          await this.refreshTokenIfNeeded();
+        }
+
+        // 유효한 액세스 토큰 첨부
+        const token = TokenManager.getAccessToken();
+        if (token && TokenManager.isAccessTokenValid()) {
           config.headers.Authorization = `Bearer ${token}`;
         }
 
@@ -49,10 +60,36 @@ class UnifiedApiClient {
       (error) => Promise.reject(error)
     );
 
-    // 응답 인터셉터
+    // 응답 인터셉터 - 401 에러 시 토큰 갱신 후 재시도
     this.client.interceptors.response.use(
       (response) => response,
-      (error: AxiosError) => {
+      async (error: AxiosError) => {
+        const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+
+        // 401 에러이고 재시도하지 않은 요청인 경우
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          if (TokenManager.getRefreshToken()) {
+            originalRequest._retry = true;
+            
+            try {
+              const newToken = await this.refreshTokenIfNeeded();
+              if (newToken && originalRequest.headers) {
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                return this.client(originalRequest);
+              }
+            } catch (refreshError) {
+              // 리프레시 실패 시 로그인 페이지로 리다이렉트
+              TokenManager.clearTokens();
+              window.location.href = '/admin/login';
+              return Promise.reject(refreshError);
+            }
+          } else {
+            // 리프레시 토큰이 없으면 로그인 페이지로
+            TokenManager.clearTokens();
+            window.location.href = '/admin/login';
+          }
+        }
+
         const apiError: ApiError = {
           code: error.code || 'UNKNOWN_ERROR',
           message: error.message || '알 수 없는 오류가 발생했습니다',
@@ -60,16 +97,63 @@ class UnifiedApiClient {
           timestamp: new Date().toISOString(),
         };
 
-        // 401 인증 오류시 로그아웃 처리
-        if (error.response?.status === 401) {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          window.location.href = '/admin/login';
-        }
-
         return Promise.reject(apiError);
       }
     );
+  }
+
+  // 토큰 갱신 로직
+  private async refreshTokenIfNeeded(): Promise<string | null> {
+    const refreshToken = TokenManager.getRefreshToken();
+    
+    if (!refreshToken) {
+      TokenManager.clearTokens();
+      return null;
+    }
+
+    // 이미 갱신 중이면 대기
+    if (this.isRefreshing) {
+      return new Promise((resolve, reject) => {
+        this.failedQueue.push({ resolve, reject });
+      });
+    }
+
+    this.isRefreshing = true;
+
+    try {
+      // 리프레시 API 호출 (인터셉터 없이 직접 호출)
+      const response = await axios.post(
+        `${getApiBaseUrl()}/api/admin/auth/refresh`,
+        { refreshToken }, // body에 refreshToken 전송
+        {
+          headers: {
+            'X-Forwarded-Host': window.location.host,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      // ApiResponse 래퍼 처리
+      const responseData = response.data.data || response.data;
+      const { accessToken, refreshToken: newRefreshToken } = responseData;
+      
+      TokenManager.setTokens(accessToken, newRefreshToken);
+      
+      // 대기 중인 요청들 처리
+      this.failedQueue.forEach(({ resolve }) => resolve(accessToken));
+      this.failedQueue = [];
+
+      return accessToken;
+    } catch (error) {
+      // 대기 중인 요청들 실패 처리
+      this.failedQueue.forEach(({ reject }) => reject(error));
+      this.failedQueue = [];
+      
+      TokenManager.clearTokens();
+      throw error;
+    } finally {
+      this.isRefreshing = false;
+    }
   }
 
   // Generic HTTP 메서드들

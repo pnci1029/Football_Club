@@ -56,18 +56,6 @@ export class TokenManager {
 
   // 토큰 갱신 필요 여부 확인
   static needsRefresh(): boolean {
-    const isLoggedIn = this.isLoggedIn();
-    const isAccessValid = this.isAccessTokenValid();
-    const result = isLoggedIn && !isAccessValid;
-    
-    console.log('🔍 TokenManager.needsRefresh:', {
-      isLoggedIn,
-      isAccessValid,
-      result,
-      accessToken: this.getAccessToken()?.substring(0, 20) + '...',
-      refreshToken: this.getRefreshToken()?.substring(0, 20) + '...'
-    });
-    
-    return result;
+    return this.isLoggedIn() && !this.isAccessTokenValid();
   }
 }

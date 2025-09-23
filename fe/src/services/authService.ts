@@ -4,6 +4,7 @@ import { ERROR_MESSAGES } from '../constants/messages';
 import { Auth } from '../api';
 import { LoginUserResponse } from '../types/interfaces/auth';
 import { LoginRequest } from '../api/types';
+import { TokenManager } from '../utils/tokenManager';
 
 class AuthService {
 
@@ -56,21 +57,7 @@ class AuthService {
     }
   }
 
-  /**
-   * 토큰 갱신
-   */
-  async refreshToken(): Promise<string> {
-    try {
-      const newToken = await Auth.refreshToken();
-      if (!newToken) {
-        throw new Error('Token refresh failed');
-      }
-      return newToken;
-    } catch (error) {
-      Auth.clearTokens();
-      throw new Error(ERROR_MESSAGES.TOKEN_EXPIRED);
-    }
-  }
+  // 토큰 갱신은 API 클라이언트에서 자동으로 처리
 
   /**
    * 현재 관리자 정보 조회
@@ -104,9 +91,8 @@ class AuthService {
    */
   async validateToken(token?: string): Promise<TokenValidationResponse> {
     try {
-      // 토큰 유효성 자동 확인
-      const validToken = await Auth.ensureValidToken();
-      if (validToken) {
+      // 토큰 유효성 확인
+      if (TokenManager.isLoggedIn()) {
         const user = await Auth.getCurrentUser();
         if (user) {
           const admin: AdminInfo = {
@@ -132,30 +118,30 @@ class AuthService {
    * 인증된 API 요청을 위한 헤더 반환
    */
   getAuthHeaders(): HeadersInit {
-    const token = Auth.getAccessToken();
+    const token = TokenManager.getAccessToken();
     return token ? { 'Authorization': `Bearer ${token}` } : {};
   }
 
   /**
-   * 로그인 상태 확인
+   * 로그인 상태 확인 (TokenManager 기준)
    */
   isAuthenticated(): boolean {
-    return Auth.isAuthenticated();
+    return TokenManager.isLoggedIn();
   }
 
   /**
-   * 토큰 관리 (새로운 편의 메서드들)
+   * 토큰 관리 (TokenManager로 위임)
    */
   getAccessToken(): string | null {
-    return Auth.getAccessToken();
+    return TokenManager.getAccessToken();
   }
 
   getRefreshToken(): string | null {
-    return Auth.getRefreshToken();
+    return TokenManager.getRefreshToken();
   }
 
   clearTokens(): void {
-    Auth.clearTokens();
+    TokenManager.clearTokens();
   }
 
 }

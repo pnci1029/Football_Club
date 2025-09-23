@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AdminInfo, AuthContextType } from '../types/auth';
 import { authService } from '../services/authService';
+import { TokenManager } from '../utils/tokenManager';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -32,23 +33,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
 
     try {
-      // 토큰 존재 여부를 직접 체크
-      const hasToken = localStorage.getItem('accessToken');
-
-      if (hasToken && authService.isAuthenticated()) {
-        const adminInfo = await authService.getCurrentAdmin();
-        setAdmin(adminInfo);
+      // 로그인 상태인지 확인 (리프레시 토큰 기준)
+      if (TokenManager.isLoggedIn()) {
+        try {
+          const adminInfo = await authService.getCurrentAdmin();
+          setAdmin(adminInfo);
+        } catch (error) {
+          // API 실패해도 토큰이 있으면 로그인 상태 유지
+          // admin 정보는 나중에 다시 시도
+        }
       } else {
-        authService.clearTokens();
         setAdmin(null);
       }
     } catch (error) {
-      console.warn('AuthContext: Failed to get admin info:', error);
-      // 인증 실패 시 토큰 정리
-      authService.logout();
-      setAdmin(null);
-
-      // useEffect에서 리다이렉트를 처리하므로 여기서는 제거
+      // Unexpected error
     } finally {
       setIsLoading(false);
     }
@@ -58,18 +56,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
 
     try {
-      console.log('AuthContext: Starting login');
       const loginResponse = await authService.login(username, password);
-      console.log('AuthContext: Login response received:', loginResponse);
       setAdmin(loginResponse.admin);
-      console.log('AuthContext: Admin set, isAuthenticated should now be true');
     } catch (error) {
-      console.error('AuthContext: Login failed:', error);
       setAdmin(null);
       throw error;
     } finally {
       setIsLoading(false);
-      console.log('AuthContext: Login process completed, isLoading set to false');
     }
   };
 
@@ -81,7 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await authService.logout();
     } catch (error) {
-      console.warn('Logout error:', error);
+      // Logout error ignored
     }
 
     // 강제로 토큰 정리 (혹시 남아있을 수 있는 경우)
@@ -90,35 +83,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // useEffect에서 리다이렉트를 처리하므로 여기서는 제거
   };
 
-  const refreshToken = async (): Promise<void> => {
-    try {
-      await authService.refreshToken();
-      // 토큰 갱신 후 관리자 정보 다시 불러오기
-      const adminInfo = await authService.getCurrentAdmin();
-      setAdmin(adminInfo);
-    } catch (error) {
-      console.warn('Token refresh failed:', error);
-      setAdmin(null);
-      authService.logout();
+  // 토큰 갱신은 API 클라이언트에서 자동으로 처리
 
-      // useEffect에서 리다이렉트를 처리하므로 여기서는 제거
+  const isAuthenticated = TokenManager.isLoggedIn();
 
-      throw error;
-    }
-  };
-
-  const isAuthenticated = admin !== null;
-
-  // admin 상태 변화를 모니터링하고 토큰 없을 때 상태 동기화
+  // admin 상태 변화를 모니터링하고 리다이렉트 처리
   useEffect(() => {
-    const hasToken = localStorage.getItem('accessToken');
-
-    // 토큰이 없는데 admin이 있다면 상태 불일치 → 수정
-    if (!hasToken && admin) {
-      setAdmin(null);
-      return; // 상태 업데이트 후 리렌더링을 위해 early return
-    }
-
     // 인증되지 않았고 로딩중이 아닐 때만 리다이렉트
     if (!isAuthenticated && !isLoading) {
       const currentPath = location.pathname;
@@ -126,7 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         navigate('/admin/login', { replace: true });
       }
     }
-  }, [admin, isAuthenticated, isLoading, location.pathname, navigate]);
+  }, [isAuthenticated, isLoading, location.pathname, navigate]);
 
   const value: AuthContextType = {
     admin,
@@ -134,7 +104,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     login,
     logout,
-    refreshToken,
   };
 
   return (
