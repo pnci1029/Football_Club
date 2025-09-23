@@ -5,6 +5,7 @@ import { useTeam } from '../../contexts/TeamContext';
 const Navigation: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
   const { currentTeam, isLoading } = useTeam();
   const location = useLocation();
 
@@ -69,9 +70,20 @@ const Navigation: React.FC = () => {
                 {item.submenu ? (
                   // 드롭다운 메뉴가 있는 경우
                   <div
-                    className="relative"
-                    onMouseEnter={() => setActiveDropdown(item.name)}
-                    onMouseLeave={() => setActiveDropdown(null)}
+                    className="relative group"
+                    onMouseEnter={() => {
+                      if (dropdownTimeout) {
+                        clearTimeout(dropdownTimeout);
+                        setDropdownTimeout(null);
+                      }
+                      setActiveDropdown(item.name);
+                    }}
+                    onMouseLeave={() => {
+                      const timeout = setTimeout(() => {
+                        setActiveDropdown(null);
+                      }, 300);
+                      setDropdownTimeout(timeout);
+                    }}
                   >
                     <button
                       className={`transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium touch-manipulation flex items-center ${
@@ -86,9 +98,28 @@ const Navigation: React.FC = () => {
                       </svg>
                     </button>
                     
+                    {/* 호버 브릿지 */}
+                    {activeDropdown === item.name && (
+                      <div className="absolute top-full left-0 w-48 h-2 z-40"></div>
+                    )}
+
                     {/* 드롭다운 메뉴 */}
                     {activeDropdown === item.name && (
-                      <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                      <div 
+                        className="absolute top-full left-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50"
+                        onMouseEnter={() => {
+                          if (dropdownTimeout) {
+                            clearTimeout(dropdownTimeout);
+                            setDropdownTimeout(null);
+                          }
+                        }}
+                        onMouseLeave={() => {
+                          const timeout = setTimeout(() => {
+                            setActiveDropdown(null);
+                          }, 300);
+                          setDropdownTimeout(timeout);
+                        }}
+                      >
                         {item.submenu.map((subItem) => (
                           <Link
                             key={subItem.name}
