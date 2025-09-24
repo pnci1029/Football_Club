@@ -45,12 +45,14 @@ export interface CreatePostRequest {
   authorName: string;
   authorEmail?: string;
   authorPhone?: string;
+  authorPassword: string;
   teamId: number;
 }
 
 export interface UpdatePostRequest {
   title?: string;
   content?: string;
+  authorPassword: string;
   teamId: number;
 }
 
@@ -58,6 +60,7 @@ export interface CreateCommentRequest {
   content: string;
   authorName: string;
   authorEmail?: string;
+  authorPassword: string;
   teamId: number;
 }
 
@@ -107,8 +110,11 @@ export const communityApi = {
     api.callEndpoint<CommunityPost>(API_ENDPOINTS.COMMUNITY.UPDATE_POST, { postId }, data as UpdatePostRequest & Record<string, unknown>),
 
   // 게시글 삭제
-  deletePost: (postId: number, teamId: number): Promise<string> => {
-    const params = new URLSearchParams({ teamId: teamId.toString() });
+  deletePost: (postId: number, teamId: number, authorPassword: string): Promise<string> => {
+    const params = new URLSearchParams({ 
+      teamId: teamId.toString(),
+      authorPassword: authorPassword
+    });
     return api.callEndpoint<string>({
       ...API_ENDPOINTS.COMMUNITY.DELETE_POST,
       path: `${API_ENDPOINTS.COMMUNITY.DELETE_POST.path.replace('{postId}', postId.toString())}?${params.toString()}`
@@ -120,11 +126,38 @@ export const communityApi = {
     api.callEndpoint<CommunityComment>(API_ENDPOINTS.COMMUNITY.CREATE_COMMENT, { postId }, data as CreateCommentRequest & Record<string, unknown>),
 
   // 댓글 삭제
-  deleteComment: (commentId: number, teamId: number): Promise<string> => {
-    const params = new URLSearchParams({ teamId: teamId.toString() });
+  deleteComment: (commentId: number, teamId: number, authorPassword: string): Promise<string> => {
+    const params = new URLSearchParams({ 
+      teamId: teamId.toString(),
+      authorPassword: authorPassword
+    });
     return api.callEndpoint<string>({
       ...API_ENDPOINTS.COMMUNITY.DELETE_COMMENT,
       path: `${API_ENDPOINTS.COMMUNITY.DELETE_COMMENT.path.replace('{commentId}', commentId.toString())}?${params.toString()}`
+    });
+  },
+
+  // 게시글 작성자 권한 확인
+  checkPostOwnership: (postId: number, teamId: number, authorPassword: string): Promise<boolean> => {
+    const params = new URLSearchParams({
+      teamId: teamId.toString(),
+      authorPassword: authorPassword
+    });
+    return api.callEndpoint<boolean>({
+      method: 'GET',
+      path: `/v1/community/posts/${postId}/ownership?${params.toString()}`
+    });
+  },
+
+  // 댓글 작성자 권한 확인
+  checkCommentOwnership: (commentId: number, teamId: number, authorPassword: string): Promise<boolean> => {
+    const params = new URLSearchParams({
+      teamId: teamId.toString(),
+      authorPassword: authorPassword
+    });
+    return api.callEndpoint<boolean>({
+      method: 'GET',
+      path: `/v1/community/comments/${commentId}/ownership?${params.toString()}`
     });
   },
 };

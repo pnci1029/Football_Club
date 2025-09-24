@@ -15,7 +15,8 @@ const CommunityWrite: React.FC = () => {
     content: '',
     authorName: '',
     authorEmail: '',
-    authorPhone: ''
+    authorPhone: '',
+    authorPassword: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +34,8 @@ const CommunityWrite: React.FC = () => {
           content: post.content,
           authorName: post.authorName,
           authorEmail: post.authorEmail || '',
-          authorPhone: post.authorPhone || ''
+          authorPhone: post.authorPhone || '',
+          authorPassword: ''
         });
       } catch (err) {
         console.error('Failed to load post for edit:', err);
@@ -58,8 +60,8 @@ const CommunityWrite: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!formData.title.trim() || !formData.content.trim() || !formData.authorName.trim()) {
-      setError('제목, 내용, 작성자명은 필수 입력 항목입니다.');
+    if (!formData.title.trim() || !formData.content.trim() || !formData.authorName.trim() || !formData.authorPassword.trim()) {
+      setError('제목, 내용, 작성자명, 비밀번호는 필수 입력 항목입니다.');
       return;
     }
 
@@ -75,18 +77,20 @@ const CommunityWrite: React.FC = () => {
         await communityApi.updatePost(parseInt(editPostId), {
           title: formData.title.trim(),
           content: formData.content.trim(),
+          authorPassword: formData.authorPassword.trim(),
           teamId: parseInt(currentTeam.id)
         });
         navigate(`/community/${editPostId}`, { 
           state: { message: '게시글이 성공적으로 수정되었습니다.' }
         });
       } else {
-        await communityApi.createPost({
+        const post = await communityApi.createPost({
           title: formData.title.trim(),
           content: formData.content.trim(),
           authorName: formData.authorName.trim(),
           authorEmail: formData.authorEmail.trim() || undefined,
           authorPhone: formData.authorPhone.trim() || undefined,
+          authorPassword: formData.authorPassword.trim(),
           teamId: parseInt(currentTeam.id)
         });
         navigate('/community', { 
@@ -204,6 +208,24 @@ const CommunityWrite: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 maxLength={20}
                 disabled={isEditing}
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="authorPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                비밀번호 <span className="text-red-500">*</span>
+                <span className="text-xs text-gray-500 block">게시글 수정/삭제 시 필요합니다</span>
+              </label>
+              <input
+                type="password"
+                id="authorPassword"
+                name="authorPassword"
+                value={formData.authorPassword}
+                onChange={handleChange}
+                placeholder="비밀번호를 입력해주세요"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                maxLength={50}
+                required
               />
             </div>
           </div>

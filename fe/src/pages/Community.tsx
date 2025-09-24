@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTeam } from '../contexts/TeamContext';
 import { communityApi, CommunityPost } from '../api/modules/community';
@@ -14,7 +14,7 @@ const Community: React.FC = () => {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchInput, setSearchInput] = useState('');
 
-  const loadPosts = async (page: number = 0, keyword?: string) => {
+  const loadPosts = useCallback(async (page: number = 0, keyword?: string) => {
     if (!currentTeam) {
       setError('팀 정보를 찾을 수 없습니다.');
       setLoading(false);
@@ -34,13 +34,13 @@ const Community: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentTeam]);
 
   useEffect(() => {
     if (currentTeam) {
       loadPosts(0, searchKeyword);
     }
-  }, [currentTeam, searchKeyword]);
+  }, [currentTeam, searchKeyword, loadPosts]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

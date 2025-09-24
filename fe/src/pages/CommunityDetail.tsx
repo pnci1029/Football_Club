@@ -13,6 +13,7 @@ const CommunityDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
 
   useEffect(() => {
     const loadPost = async () => {
@@ -53,18 +54,22 @@ const CommunityDetail: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (!currentTeam || !postId) return;
+    if (!currentTeam || !postId || !deletePassword.trim()) {
+      alert('비밀번호를 입력해주세요.');
+      return;
+    }
 
     try {
-      await communityApi.deletePost(parseInt(postId), parseInt(currentTeam.id));
+      await communityApi.deletePost(parseInt(postId), parseInt(currentTeam.id), deletePassword);
       navigate('/community', { 
         state: { message: '게시글이 성공적으로 삭제되었습니다.' }
       });
     } catch (err) {
       console.error('Failed to delete post:', err);
-      alert('게시글 삭제에 실패했습니다. 다시 시도해주세요.');
+      alert('비밀번호가 올바르지 않거나 삭제에 실패했습니다.');
     } finally {
       setShowDeleteConfirm(false);
+      setDeletePassword('');
     }
   };
 
@@ -231,10 +236,23 @@ const CommunityDetail: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">게시글 삭제</h3>
-              <p className="text-gray-600 mb-6">정말로 이 게시글을 삭제하시겠습니까?<br />이 작업은 되돌릴 수 없습니다.</p>
+              <p className="text-gray-600 mb-4">게시글을 삭제하려면 작성 시 입력한 비밀번호를 입력해주세요.</p>
+              
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="비밀번호를 입력하세요"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-6"
+                onKeyPress={(e) => e.key === 'Enter' && handleDelete()}
+              />
+              
               <div className="flex justify-end space-x-3">
                 <button
-                  onClick={() => setShowDeleteConfirm(false)}
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeletePassword('');
+                  }}
                   className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                 >
                   취소
