@@ -1,9 +1,12 @@
 package io.be.controller
 
+import io.be.service.CommunityCommentResponse
 import io.be.service.CommunityPostDetailResponse
 import io.be.service.CommunityPostResponse
 import io.be.service.CommunityService
+import io.be.service.CreateCommunityCommentRequest
 import io.be.service.CreateCommunityPostRequest
+import io.be.service.UpdateCommunityPostRequest
 import io.be.util.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -67,16 +70,16 @@ class CommunityController(
             authorName = request.authorName,
             authorEmail = request.authorEmail,
             authorPhone = request.authorPhone,
+            authorPassword = request.authorPassword,
             teamId = request.teamId
         )
         val post = communityService.createPost(serviceRequest)
         return ResponseEntity.ok(ApiResponse.success(post))
     }
 
-    /*
+    /**
      * 게시글 수정
      */
-    /*
     @PutMapping("/posts/{postId}")
     fun updatePost(
         @PathVariable postId: Long,
@@ -85,31 +88,29 @@ class CommunityController(
         val serviceRequest = UpdateCommunityPostRequest(
             title = request.title,
             content = request.content,
+            authorPassword = request.authorPassword,
             teamId = request.teamId
         )
         val post = communityService.updatePost(postId, serviceRequest)
         return ResponseEntity.ok(ApiResponse.success(post))
     }
-    */
 
-    /*
+    /**
      * 게시글 삭제
      */
-    /*
     @DeleteMapping("/posts/{postId}")
     fun deletePost(
         @PathVariable postId: Long,
-        @RequestParam teamId: Long
+        @RequestParam teamId: Long,
+        @RequestParam authorPassword: String
     ): ResponseEntity<ApiResponse<String>> {
-        communityService.deletePost(teamId, postId)
+        communityService.deletePost(teamId, postId, authorPassword)
         return ResponseEntity.ok(ApiResponse.success("게시글이 삭제되었습니다."))
     }
-    */
 
-    /*
+    /**
      * 댓글 작성
      */
-    /*
     @PostMapping("/posts/{postId}/comments")
     fun createComment(
         @PathVariable postId: Long,
@@ -119,26 +120,51 @@ class CommunityController(
             content = request.content,
             authorName = request.authorName,
             authorEmail = request.authorEmail,
+            authorPassword = request.authorPassword,
             teamId = request.teamId
         )
         val comment = communityService.createComment(postId, serviceRequest)
         return ResponseEntity.ok(ApiResponse.success(comment))
     }
-    */
 
-    /*
+    /**
      * 댓글 삭제
      */
-    /*
     @DeleteMapping("/comments/{commentId}")
     fun deleteComment(
         @PathVariable commentId: Long,
-        @RequestParam teamId: Long
+        @RequestParam teamId: Long,
+        @RequestParam authorPassword: String
     ): ResponseEntity<ApiResponse<String>> {
-        communityService.deleteComment(teamId, commentId)
+        communityService.deleteComment(teamId, commentId, authorPassword)
         return ResponseEntity.ok(ApiResponse.success("댓글이 삭제되었습니다."))
     }
-    */
+
+    /**
+     * 게시글 작성자 권한 확인
+     */
+    @GetMapping("/posts/{postId}/ownership")
+    fun checkPostOwnership(
+        @PathVariable postId: Long,
+        @RequestParam teamId: Long,
+        @RequestParam authorPassword: String
+    ): ResponseEntity<ApiResponse<Boolean>> {
+        val isOwner = communityService.checkPostOwnership(postId, teamId, authorPassword)
+        return ResponseEntity.ok(ApiResponse.success(isOwner))
+    }
+
+    /**
+     * 댓글 작성자 권한 확인
+     */
+    @GetMapping("/comments/{commentId}/ownership")
+    fun checkCommentOwnership(
+        @PathVariable commentId: Long,
+        @RequestParam teamId: Long,
+        @RequestParam authorPassword: String
+    ): ResponseEntity<ApiResponse<Boolean>> {
+        val isOwner = communityService.checkCommentOwnership(commentId, teamId, authorPassword)
+        return ResponseEntity.ok(ApiResponse.success(isOwner))
+    }
 
     private fun getClientIpAddress(request: HttpServletRequest): String {
         val xForwardedFor = request.getHeader("X-Forwarded-For")
@@ -175,6 +201,9 @@ data class CreatePostRequest(
 
     @field:Size(max = 20, message = "전화번호는 20자를 초과할 수 없습니다.")
     val authorPhone: String? = null,
+    
+    @field:NotBlank(message = "비밀번호를 입력해주세요.")
+    val authorPassword: String,
 
     val teamId: Long
 )
@@ -188,6 +217,9 @@ data class UpdatePostRequest(
 
     @field:Size(max = 10000, message = "내용은 10000자를 초과할 수 없습니다.")
     val content: String? = null,
+
+    @field:NotBlank(message = "비밀번호를 입력해주세요.")
+    val authorPassword: String,
 
     val teamId: Long
 )
@@ -206,6 +238,9 @@ data class CreateCommentRequest(
 
     @field:Size(max = 100, message = "이메일은 100자를 초과할 수 없습니다.")
     val authorEmail: String? = null,
+    
+    @field:NotBlank(message = "비밀번호를 입력해주세요.")
+    val authorPassword: String,
 
     val teamId: Long
 )

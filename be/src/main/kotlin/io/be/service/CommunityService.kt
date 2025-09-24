@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -20,6 +21,8 @@ class CommunityService(
     private val postRepository: CommunityPostRepository,
     private val commentRepository: CommunityCommentRepository
 ) {
+    
+    private val passwordEncoder = BCryptPasswordEncoder()
 
     private val logger = LoggerFactory.getLogger(CommunityService::class.java)
 
@@ -74,6 +77,7 @@ class CommunityService(
             authorName = request.authorName.trim(),
             authorEmail = request.authorEmail?.trim(),
             authorPhone = request.authorPhone?.trim(),
+            authorPasswordHash = passwordEncoder.encode(request.authorPassword),
             teamId = request.teamId,
             teamSubdomain = "${request.teamId}", // 임시로 팀ID 기반 서브도메인 생성
             isNotice = false // 일반 사용자는 공지사항 작성 불가
@@ -92,6 +96,11 @@ class CommunityService(
         val post = postRepository.findByIdAndTeamIdAndIsActiveTrue(postId, request.teamId)
             ?: throw ResourceNotFoundException("게시글을 찾을 수 없습니다.")
 
+        // 작성자 권한 체크 - 비밀번호 확인
+        if (!passwordEncoder.matches(request.authorPassword, post.authorPasswordHash)) {
+            throw InvalidRequestException("permission", "password", "비밀번호가 올바르지 않습니다.")
+        }
+
         validateUpdateRequest(request)
 
         val updatedPost = post.copy(
@@ -109,9 +118,14 @@ class CommunityService(
     /**
      * 게시글 삭제 (비활성화)
      */
-    fun deletePost(teamId: Long, postId: Long) {
+    fun deletePost(teamId: Long, postId: Long, authorPassword: String) {
         val post = postRepository.findByIdAndTeamIdAndIsActiveTrue(postId, teamId)
             ?: throw ResourceNotFoundException("게시글을 찾을 수 없습니다.")
+
+        // 작성자 권한 체크 - 비밀번호 확인
+        if (!passwordEncoder.matches(authorPassword, post.authorPasswordHash)) {
+            throw InvalidRequestException("permission", "password", "비밀번호가 올바르지 않습니다.")
+        }
 
         val deactivatedPost = post.copy(
             isActive = false,
@@ -135,7 +149,8 @@ class CommunityService(
             post = post,
             content = request.content.trim(),
             authorName = request.authorName.trim(),
-            authorEmail = request.authorEmail?.trim()
+            authorEmail = request.authorEmail?.trim(),
+            authorPasswordHash = passwordEncoder.encode(request.authorPassword)
         )
 
         val savedComment = commentRepository.save(comment)
@@ -147,9 +162,14 @@ class CommunityService(
     /**
      * 댓글 삭제 (비활성화)
      */
-    fun deleteComment(teamId: Long, commentId: Long) {
+    fun deleteComment(teamId: Long, commentId: Long, authorPassword: String) {
         val comment = commentRepository.findByIdAndTeamId(commentId, teamId)
             ?: throw ResourceNotFoundException("댓글을 찾을 수 없습니다.")
+
+        // 작성자 권한 체크 - 비밀번호 확인
+        if (!passwordEncoder.matches(authorPassword, comment.authorPasswordHash)) {
+            throw InvalidRequestException("permission", "password", "비밀번호가 올바르지 않습니다.")
+        }
 
         val deactivatedComment = comment.copy(
             isActive = false,
@@ -207,6 +227,28 @@ class CommunityService(
         if (request.authorName.length > 50) {
             throw InvalidRequestException("authorName", request.authorName, "작성자명은 50자를 초과할 수 없습니다.")
         }
+    }
+
+    /**
+     * 게시글 작성자 권한 확인
+     */
+    @Transactional(readOnly = true)
+    fun checkPostOwnership(postId: Long, teamId: Long, authorPassword: String): Boolean {
+        val post = postRepository.findByIdAndTeamIdAndIsActiveTrue(postId, teamId)
+            ?: return false
+        
+        return passwordEncoder.matches(authorPassword, post.authorPasswordHash)
+    }
+
+    /**
+     * 댓글 작성자 권한 확인
+     */
+    @Transactional(readOnly = true)
+    fun checkCommentOwnership(commentId: Long, teamId: Long, authorPassword: String): Boolean {
+        val comment = commentRepository.findByIdAndTeamId(commentId, teamId)
+            ?: return false
+        
+        return passwordEncoder.matches(authorPassword, comment.authorPasswordHash)
     }
 }
 
@@ -297,12 +339,14 @@ data class CreateCommunityPostRequest(
     val authorName: String,
     val authorEmail: String? = null,
     val authorPhone: String? = null,
+    val authorPassword: String,
     val teamId: Long
 )
 
 data class UpdateCommunityPostRequest(
     val title: String? = null,
     val content: String? = null,
+    val authorPassword: String,
     val teamId: Long
 )
 
@@ -310,5 +354,6 @@ data class CreateCommunityCommentRequest(
     val content: String,
     val authorName: String,
     val authorEmail: String? = null,
+    val authorPassword: String,
     val teamId: Long
 )
