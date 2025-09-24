@@ -29,6 +29,9 @@ data class CommunityPost(
     @Column(name = "author_phone")
     val authorPhone: String? = null,
     
+    @Column(name = "author_password_hash", nullable = false)
+    val authorPasswordHash: String,
+    
     @Column(nullable = false, name = "team_id")
     val teamId: Long, // 멀티테넌트 구분용
     
@@ -58,7 +61,8 @@ data class CommunityPost(
         content = "",
         authorName = "",
         teamId = 0L,
-        teamSubdomain = null
+        teamSubdomain = null,
+        authorPasswordHash = ""
     )
 }
 
@@ -83,6 +87,9 @@ data class CommunityComment(
     @Column(name = "author_email")
     val authorEmail: String? = null,
     
+    @Column(name = "author_password_hash", nullable = false)
+    val authorPasswordHash: String,
+    
     @Column(name = "is_active", nullable = false)
     val isActive: Boolean = true,
     
@@ -98,6 +105,7 @@ data class CommunityComment(
     constructor() : this(
         post = CommunityPost(),
         content = "",
-        authorName = ""
+        authorName = "",
+        authorPasswordHash = ""
     )
 }
