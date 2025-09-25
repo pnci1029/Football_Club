@@ -6,6 +6,7 @@ import io.be.repository.CommunityPostRepository
 import io.be.repository.CommunityCommentRepository
 import io.be.exception.ResourceNotFoundException
 import io.be.exception.InvalidRequestException
+import io.be.dto.*
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -14,6 +15,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 @Transactional
@@ -23,14 +26,20 @@ class CommunityService(
 ) {
     
     private val passwordEncoder = BCryptPasswordEncoder()
-
     private val logger = LoggerFactory.getLogger(CommunityService::class.java)
+    
+    // Rate limiting을 위한 간단한 메모리 기반 카운터
+    private val ownershipCheckAttempts = ConcurrentHashMap<String, AtomicInteger>()
+    private val lastAttemptTime = ConcurrentHashMap<String, Long>()
+    private val MAX_ATTEMPTS_PER_HOUR = 10
+    private val RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000L // 1시간
 
     /**
      * 게시글 목록 조회 (페이징)
      */
     @Transactional(readOnly = true)
     fun getPosts(teamId: Long, page: Int, size: Int, keyword: String? = null): Page<CommunityPostResponse> {
+        logger.info("Fetching posts for teamId: $teamId, page: $page, size: $size, keyword: $keyword")
         val pageable: Pageable = PageRequest.of(page, size)
 
         val posts = if (keyword.isNullOrBlank()) {
@@ -38,6 +47,8 @@ class CommunityService(
         } else {
             postRepository.findByTeamIdAndKeyword(teamId, keyword.trim(), pageable)
         }
+        
+        logger.info("Found ${posts.totalElements} posts for teamId: $teamId")
 
         return posts.map { post ->
             val commentCount = commentRepository.countByPostIdAndIsActiveTrue(post.id)
@@ -97,6 +108,11 @@ class CommunityService(
             ?: throw ResourceNotFoundException("게시글을 찾을 수 없습니다.")
 
         // 작성자 권한 체크 - 비밀번호 확인
+        if (post.authorPasswordHash.isNullOrBlank()) {
+            logger.warn("Post $postId has no password hash - cannot update")
+            throw InvalidRequestException("permission", "password", "이 게시글은 비밀번호가 설정되지 않아 수정할 수 없습니다.")
+        }
+        
         if (!passwordEncoder.matches(request.authorPassword, post.authorPasswordHash)) {
             throw InvalidRequestException("permission", "password", "비밀번호가 올바르지 않습니다.")
         }
@@ -123,6 +139,11 @@ class CommunityService(
             ?: throw ResourceNotFoundException("게시글을 찾을 수 없습니다.")
 
         // 작성자 권한 체크 - 비밀번호 확인
+        if (post.authorPasswordHash.isNullOrBlank()) {
+            logger.warn("Post $postId has no password hash - cannot delete")
+            throw InvalidRequestException("permission", "password", "이 게시글은 비밀번호가 설정되지 않아 삭제할 수 없습니다.")
+        }
+        
         if (!passwordEncoder.matches(authorPassword, post.authorPasswordHash)) {
             throw InvalidRequestException("permission", "password", "비밀번호가 올바르지 않습니다.")
         }
@@ -167,6 +188,11 @@ class CommunityService(
             ?: throw ResourceNotFoundException("댓글을 찾을 수 없습니다.")
 
         // 작성자 권한 체크 - 비밀번호 확인
+        if (comment.authorPasswordHash.isNullOrBlank()) {
+            logger.warn("Comment $commentId has no password hash - cannot delete")
+            throw InvalidRequestException("permission", "password", "이 댓글은 비밀번호가 설정되지 않아 삭제할 수 없습니다.")
+        }
+        
         if (!passwordEncoder.matches(authorPassword, comment.authorPasswordHash)) {
             throw InvalidRequestException("permission", "password", "비밀번호가 올바르지 않습니다.")
         }
@@ -230,130 +256,114 @@ class CommunityService(
     }
 
     /**
-     * 게시글 작성자 권한 확인
+     * Rate limiting 체크
      */
-    @Transactional(readOnly = true)
-    fun checkPostOwnership(postId: Long, teamId: Long, authorPassword: String): Boolean {
-        val post = postRepository.findByIdAndTeamIdAndIsActiveTrue(postId, teamId)
-            ?: return false
+    private fun checkRateLimit(identifier: String): Boolean {
+        val now = System.currentTimeMillis()
+        val key = "ownership_$identifier"
         
-        return passwordEncoder.matches(authorPassword, post.authorPasswordHash)
+        // 시간 윈도우가 지났으면 카운터 리셋
+        val lastTime = lastAttemptTime[key] ?: 0
+        if (now - lastTime > RATE_LIMIT_WINDOW_MS) {
+            ownershipCheckAttempts[key] = AtomicInteger(0)
+            lastAttemptTime[key] = now
+        }
+        
+        val attempts = ownershipCheckAttempts.computeIfAbsent(key) { AtomicInteger(0) }
+        val currentAttempts = attempts.incrementAndGet()
+        
+        if (currentAttempts > MAX_ATTEMPTS_PER_HOUR) {
+            logger.warn("Rate limit exceeded for identifier: $identifier, attempts: $currentAttempts")
+            return false
+        }
+        
+        lastAttemptTime[key] = now
+        return true
     }
 
     /**
-     * 댓글 작성자 권한 확인
+     * 게시글 작성자 권한 확인 - 보안 강화
      */
     @Transactional(readOnly = true)
-    fun checkCommentOwnership(commentId: Long, teamId: Long, authorPassword: String): Boolean {
-        val comment = commentRepository.findByIdAndTeamId(commentId, teamId)
-            ?: return false
+    fun checkPostOwnership(postId: Long, teamId: Long, authorPassword: String, clientIdentifier: String = "unknown"): Boolean {
+        // Rate limiting 체크
+        if (!checkRateLimit("${clientIdentifier}_post_${postId}")) {
+            throw InvalidRequestException("rate_limit", "attempts", "너무 많은 시도입니다. 잠시 후 다시 시도해주세요.")
+        }
+        if (authorPassword.isBlank()) {
+            logger.warn("Empty password provided for post ownership check - postId: $postId")
+            return false
+        }
         
-        return passwordEncoder.matches(authorPassword, comment.authorPasswordHash)
+        if (authorPassword.length > 100) {
+            logger.warn("Password too long for post ownership check - postId: $postId")
+            return false
+        }
+        
+        val post = postRepository.findByIdAndTeamIdAndIsActiveTrue(postId, teamId)
+            ?: run {
+                logger.warn("Post not found or inactive - postId: $postId, teamId: $teamId")
+                return false
+            }
+        
+        logger.debug("Checking post ownership - postId: $postId, hasPasswordHash: ${!post.authorPasswordHash.isNullOrBlank()}")
+        
+        if (post.authorPasswordHash.isNullOrBlank()) {
+            logger.warn("Post $postId has no password hash - cannot verify ownership")
+            return false
+        }
+        
+        return try {
+            passwordEncoder.matches(authorPassword, post.authorPasswordHash)
+        } catch (e: Exception) {
+            logger.error("Password verification failed for postId: $postId", e)
+            false
+        }
     }
-}
 
-// DTO 클래스들
-data class CommunityPostResponse(
-    val id: Long,
-    val title: String,
-    val content: String,
-    val authorName: String,
-    val viewCount: Int,
-    val commentCount: Long,
-    val isNotice: Boolean,
-    val createdAt: LocalDateTime,
-    val updatedAt: LocalDateTime
-) {
-    companion object {
-        fun from(post: CommunityPost, commentCount: Long): CommunityPostResponse {
-            return CommunityPostResponse(
-                id = post.id,
-                title = post.title,
-                content = post.content,
-                authorName = post.authorName,
-                viewCount = post.viewCount,
-                commentCount = commentCount,
-                isNotice = post.isNotice,
-                createdAt = post.createdAt,
-                updatedAt = post.updatedAt
-            )
+    /**
+     * 댓글 작성자 권한 확인 - 보안 강화
+     */
+    @Transactional(readOnly = true)
+    fun checkCommentOwnership(commentId: Long, teamId: Long, authorPassword: String, clientIdentifier: String = "unknown"): Boolean {
+        // Rate limiting 체크
+        if (!checkRateLimit("${clientIdentifier}_comment_${commentId}")) {
+            throw InvalidRequestException("rate_limit", "attempts", "너무 많은 시도입니다. 잠시 후 다시 시도해주세요.")
+        }
+        if (authorPassword.isBlank()) {
+            logger.warn("Empty password provided for comment ownership check - commentId: $commentId")
+            return false
+        }
+        
+        if (authorPassword.length > 100) {
+            logger.warn("Password too long for comment ownership check - commentId: $commentId")
+            return false
+        }
+        
+        val comment = commentRepository.findByIdAndTeamId(commentId, teamId)
+            ?: run {
+                logger.warn("Comment not found - commentId: $commentId, teamId: $teamId")
+                return false
+            }
+        
+        if (!comment.isActive) {
+            logger.warn("Comment is inactive - commentId: $commentId")
+            return false
+        }
+        
+        logger.debug("Checking comment ownership - commentId: $commentId, hasPasswordHash: ${!comment.authorPasswordHash.isNullOrBlank()}")
+        
+        if (comment.authorPasswordHash.isNullOrBlank()) {
+            logger.warn("Comment $commentId has no password hash - cannot verify ownership")
+            return false
+        }
+        
+        return try {
+            passwordEncoder.matches(authorPassword, comment.authorPasswordHash)
+        } catch (e: Exception) {
+            logger.error("Password verification failed for commentId: $commentId", e)
+            false
         }
     }
 }
 
-data class CommunityPostDetailResponse(
-    val id: Long,
-    val title: String,
-    val content: String,
-    val authorName: String,
-    val authorEmail: String?,
-    val authorPhone: String?,
-    val viewCount: Int,
-    val isNotice: Boolean,
-    val createdAt: LocalDateTime,
-    val updatedAt: LocalDateTime,
-    val comments: List<CommunityCommentResponse>
-) {
-    companion object {
-        fun from(post: CommunityPost, comments: List<CommunityCommentResponse>): CommunityPostDetailResponse {
-            return CommunityPostDetailResponse(
-                id = post.id,
-                title = post.title,
-                content = post.content,
-                authorName = post.authorName,
-                authorEmail = post.authorEmail,
-                authorPhone = post.authorPhone,
-                viewCount = post.viewCount,
-                isNotice = post.isNotice,
-                createdAt = post.createdAt,
-                updatedAt = post.updatedAt,
-                comments = comments
-            )
-        }
-    }
-}
-
-data class CommunityCommentResponse(
-    val id: Long,
-    val content: String,
-    val authorName: String,
-    val createdAt: LocalDateTime,
-    val updatedAt: LocalDateTime
-) {
-    companion object {
-        fun from(comment: CommunityComment): CommunityCommentResponse {
-            return CommunityCommentResponse(
-                id = comment.id,
-                content = comment.content,
-                authorName = comment.authorName,
-                createdAt = comment.createdAt,
-                updatedAt = comment.updatedAt
-            )
-        }
-    }
-}
-
-data class CreateCommunityPostRequest(
-    val title: String,
-    val content: String,
-    val authorName: String,
-    val authorEmail: String? = null,
-    val authorPhone: String? = null,
-    val authorPassword: String,
-    val teamId: Long
-)
-
-data class UpdateCommunityPostRequest(
-    val title: String? = null,
-    val content: String? = null,
-    val authorPassword: String,
-    val teamId: Long
-)
-
-data class CreateCommunityCommentRequest(
-    val content: String,
-    val authorName: String,
-    val authorEmail: String? = null,
-    val authorPassword: String,
-    val teamId: Long
-)

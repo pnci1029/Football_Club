@@ -1,17 +1,13 @@
 package io.be.controller
 
-import io.be.service.CommunityCommentResponse
-import io.be.service.CommunityPostDetailResponse
-import io.be.service.CommunityPostResponse
 import io.be.service.CommunityService
-import io.be.service.CreateCommunityCommentRequest
-import io.be.service.CreateCommunityPostRequest
-import io.be.service.UpdateCommunityPostRequest
+import io.be.dto.*
 import io.be.util.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -22,6 +18,8 @@ import org.springframework.web.bind.annotation.*
 class CommunityController(
     private val communityService: CommunityService
 ) {
+
+    private val logger = LoggerFactory.getLogger(CommunityController::class.java)
 
     /**
      * 테스트용 엔드포인트
@@ -41,7 +39,9 @@ class CommunityController(
         @RequestParam(required = false) keyword: String?,
         @RequestParam teamId: Long
     ): ResponseEntity<ApiResponse<Page<CommunityPostResponse>>> {
+        logger.info("GET /posts request - teamId: $teamId, page: $page, size: $size, keyword: $keyword")
         val posts = communityService.getPosts(teamId, page, size, keyword)
+        logger.info("Returning ${posts.content.size} posts out of ${posts.totalElements} total")
         return ResponseEntity.ok(ApiResponse.success(posts))
     }
 
@@ -141,29 +141,45 @@ class CommunityController(
     }
 
     /**
-     * 게시글 작성자 권한 확인
+     * 게시글 작성자 권한 확인 - 보안 강화
      */
-    @GetMapping("/posts/{postId}/ownership")
+    @PostMapping("/posts/{postId}/ownership")
     fun checkPostOwnership(
         @PathVariable postId: Long,
-        @RequestParam teamId: Long,
-        @RequestParam authorPassword: String
-    ): ResponseEntity<ApiResponse<Boolean>> {
-        val isOwner = communityService.checkPostOwnership(postId, teamId, authorPassword)
-        return ResponseEntity.ok(ApiResponse.success(isOwner))
+        @RequestBody ownershipRequest: OwnershipCheckRequest,
+        httpRequest: HttpServletRequest
+    ): ResponseEntity<ApiResponse<OwnershipCheckResponse>> {
+        val clientIp = getClientIpAddress(httpRequest)
+        logger.info("Post ownership check attempt - postId: $postId, teamId: ${ownershipRequest.teamId}, clientIp: $clientIp")
+
+        val isOwner = communityService.checkPostOwnership(postId, ownershipRequest.teamId, ownershipRequest.authorPassword, clientIp)
+
+        return ResponseEntity.ok(ApiResponse.success(OwnershipCheckResponse(
+            isOwner = isOwner,
+            canEdit = isOwner,
+            canDelete = isOwner
+        )))
     }
 
     /**
-     * 댓글 작성자 권한 확인
+     * 댓글 작성자 권한 확인 - 보안 강화
      */
-    @GetMapping("/comments/{commentId}/ownership")
+    @PostMapping("/comments/{commentId}/ownership")
     fun checkCommentOwnership(
         @PathVariable commentId: Long,
-        @RequestParam teamId: Long,
-        @RequestParam authorPassword: String
-    ): ResponseEntity<ApiResponse<Boolean>> {
-        val isOwner = communityService.checkCommentOwnership(commentId, teamId, authorPassword)
-        return ResponseEntity.ok(ApiResponse.success(isOwner))
+        @RequestBody ownershipRequest: OwnershipCheckRequest,
+        httpRequest: HttpServletRequest
+    ): ResponseEntity<ApiResponse<OwnershipCheckResponse>> {
+        val clientIp = getClientIpAddress(httpRequest)
+        logger.info("Comment ownership check attempt - commentId: $commentId, teamId: ${ownershipRequest.teamId}, clientIp: $clientIp")
+
+        val isOwner = communityService.checkCommentOwnership(commentId, ownershipRequest.teamId, ownershipRequest.authorPassword, clientIp)
+
+        return ResponseEntity.ok(ApiResponse.success(OwnershipCheckResponse(
+            isOwner = isOwner,
+            canEdit = false, // 댓글은 수정 불가
+            canDelete = isOwner
+        )))
     }
 
     private fun getClientIpAddress(request: HttpServletRequest): String {
@@ -180,67 +196,3 @@ class CommunityController(
     }
 }
 
-/**
- * 게시글 작성 요청 DTO
- */
-data class CreatePostRequest(
-    @field:NotBlank(message = "제목을 입력해주세요.")
-    @field:Size(max = 200, message = "제목은 200자를 초과할 수 없습니다.")
-    val title: String,
-
-    @field:NotBlank(message = "내용을 입력해주세요.")
-    @field:Size(max = 10000, message = "내용은 10000자를 초과할 수 없습니다.")
-    val content: String,
-
-    @field:NotBlank(message = "작성자명을 입력해주세요.")
-    @field:Size(max = 50, message = "작성자명은 50자를 초과할 수 없습니다.")
-    val authorName: String,
-
-    @field:Size(max = 100, message = "이메일은 100자를 초과할 수 없습니다.")
-    val authorEmail: String? = null,
-
-    @field:Size(max = 20, message = "전화번호는 20자를 초과할 수 없습니다.")
-    val authorPhone: String? = null,
-    
-    @field:NotBlank(message = "비밀번호를 입력해주세요.")
-    val authorPassword: String,
-
-    val teamId: Long
-)
-
-/**
- * 게시글 수정 요청 DTO
- */
-data class UpdatePostRequest(
-    @field:Size(max = 200, message = "제목은 200자를 초과할 수 없습니다.")
-    val title: String? = null,
-
-    @field:Size(max = 10000, message = "내용은 10000자를 초과할 수 없습니다.")
-    val content: String? = null,
-
-    @field:NotBlank(message = "비밀번호를 입력해주세요.")
-    val authorPassword: String,
-
-    val teamId: Long
-)
-
-/**
- * 댓글 작성 요청 DTO
- */
-data class CreateCommentRequest(
-    @field:NotBlank(message = "댓글 내용을 입력해주세요.")
-    @field:Size(max = 1000, message = "댓글은 1000자를 초과할 수 없습니다.")
-    val content: String,
-
-    @field:NotBlank(message = "작성자명을 입력해주세요.")
-    @field:Size(max = 50, message = "작성자명은 50자를 초과할 수 없습니다.")
-    val authorName: String,
-
-    @field:Size(max = 100, message = "이메일은 100자를 초과할 수 없습니다.")
-    val authorEmail: String? = null,
-    
-    @field:NotBlank(message = "비밀번호를 입력해주세요.")
-    val authorPassword: String,
-
-    val teamId: Long
-)
