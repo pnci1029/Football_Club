@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTeam } from '../contexts/TeamContext';
-import { communityApi, CommunityPost } from '../api/modules/community';
+import { communityApi } from '../api/modules/community';
+import type { CommunityPost } from '../api/types';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const Community: React.FC = () => {
@@ -59,9 +60,9 @@ const Community: React.FC = () => {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      return date.toLocaleTimeString('ko-KR', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      return date.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit'
       });
     } else if (diffDays === 1) {
       return '어제';
@@ -214,12 +215,12 @@ const Community: React.FC = () => {
                   >
                     이전
                   </button>
-                  
+
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     const startPage = Math.max(0, currentPage - 2);
                     const pageNum = startPage + i;
                     if (pageNum >= totalPages) return null;
-                    
+
                     return (
                       <button
                         key={pageNum}
@@ -234,7 +235,7 @@ const Community: React.FC = () => {
                       </button>
                     );
                   })}
-                  
+
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage >= totalPages - 1}

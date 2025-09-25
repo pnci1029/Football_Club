@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTeam } from '../contexts/TeamContext';
-import { communityApi, CommunityPostDetail } from '../api/modules/community';
+import { communityApi } from '../api/modules/community';
+import type { CommunityPostDetail, OwnershipCheckResponse } from '../api/types';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import AuthModal from '../components/community/AuthModal';
+import { communityAuthManager } from '../utils/communityAuth';
+import { getErrorMessage } from '../utils/errorHandler';
 
 const CommunityDetail: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -12,8 +16,11 @@ const CommunityDetail: React.FC = () => {
   const [post, setPost] = useState<CommunityPostDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deletePassword, setDeletePassword] = useState('');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [modalAction, setModalAction] = useState<'edit' | 'delete'>('delete');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [userPermissions, setUserPermissions] = useState<OwnershipCheckResponse | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadPost = async () => {
@@ -27,6 +34,16 @@ const CommunityDetail: React.FC = () => {
         setLoading(true);
         const response = await communityApi.getPost(parseInt(postId), parseInt(currentTeam.id));
         setPost(response);
+        
+        // 성공 메시지 처리 (location state에서)
+        const state = window.history.state?.usr;
+        if (state?.message) {
+          setSuccessMessage(state.message);
+          // 5초 후 메시지 자동 제거
+          setTimeout(() => setSuccessMessage(null), 5000);
+          // 메시지 표시 후 state 클리어
+          window.history.replaceState({}, document.title);
+        }
       } catch (err) {
         console.error('Failed to load post:', err);
         setError('게시글을 불러오는데 실패했습니다.');
@@ -50,26 +67,64 @@ const CommunityDetail: React.FC = () => {
   };
 
   const handleEdit = () => {
-    navigate(`/community/write?edit=${postId}`);
+    setModalAction('edit');
+    setShowAuthModal(true);
   };
 
-  const handleDelete = async () => {
-    if (!currentTeam || !postId || !deletePassword.trim()) {
-      alert('비밀번호를 입력해주세요.');
-      return;
+  const handleDelete = () => {
+    setModalAction('delete');
+    setShowAuthModal(true);
+  };
+
+  const handlePasswordConfirm = async (password: string) => {
+    if (!currentTeam || !postId) {
+      throw new Error('팀 정보 또는 게시글 ID를 찾을 수 없습니다.');
     }
 
+    setIsProcessing(true);
+
     try {
-      await communityApi.deletePost(parseInt(postId), parseInt(currentTeam.id), deletePassword);
-      navigate('/community', { 
-        state: { message: '게시글이 성공적으로 삭제되었습니다.' }
-      });
+      if (modalAction === 'edit') {
+        // 수정: 비밀번호 확인 후 권한 저장 및 수정 페이지로 이동
+        const authResponse = await communityApi.checkPostOwnership(
+          parseInt(postId), 
+          parseInt(currentTeam.id), 
+          password
+        );
+        
+        if (!authResponse.isOwner || !authResponse.canEdit) {
+          throw new Error('수정 권한이 없습니다.');
+        }
+        
+        // 임시 권한 저장
+        communityAuthManager.setTemporaryAuth(
+          'post', 
+          parseInt(postId), 
+          parseInt(currentTeam.id), 
+          authResponse
+        );
+        
+        setShowAuthModal(false);
+        navigate(`/community/write?edit=${postId}`);
+        
+      } else if (modalAction === 'delete') {
+        // 삭제: 바로 삭제 진행
+        await communityApi.deletePost(
+          parseInt(postId), 
+          parseInt(currentTeam.id), 
+          password
+        );
+        
+        setShowAuthModal(false);
+        navigate('/community', { 
+          state: { message: '게시글이 성공적으로 삭제되었습니다.' }
+        });
+      }
     } catch (err) {
-      console.error('Failed to delete post:', err);
-      alert('비밀번호가 올바르지 않거나 삭제에 실패했습니다.');
+      console.error(`Failed to ${modalAction} post:`, err);
+      throw err;
     } finally {
-      setShowDeleteConfirm(false);
-      setDeletePassword('');
+      setIsProcessing(false);
     }
   };
 
@@ -104,6 +159,25 @@ const CommunityDetail: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 성공 메시지 */}
+        {successMessage && (
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-green-800 font-medium">{successMessage}</span>
+            </div>
+            <button
+              onClick={() => setSuccessMessage(null)}
+              className="text-green-600 hover:text-green-800 transition-colors duration-200"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
         {/* 게시글 상세 */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           {/* 헤더 */}
@@ -153,21 +227,23 @@ const CommunityDetail: React.FC = () => {
             <div className="flex items-center space-x-2 mt-4">
               <button
                 onClick={handleEdit}
-                className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
+                disabled={isProcessing}
+                className="inline-flex items-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-lg text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                수정
+                수정하기
               </button>
               <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="inline-flex items-center px-3 py-1.5 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 transition-colors duration-200"
+                onClick={handleDelete}
+                disabled={isProcessing}
+                className="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-lg text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-                삭제
+                삭제하기
               </button>
             </div>
           </div>
@@ -231,42 +307,19 @@ const CommunityDetail: React.FC = () => {
           </Link>
         </div>
 
-        {/* 삭제 확인 모달 */}
-        {showDeleteConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">게시글 삭제</h3>
-              <p className="text-gray-600 mb-4">게시글을 삭제하려면 작성 시 입력한 비밀번호를 입력해주세요.</p>
-              
-              <input
-                type="password"
-                value={deletePassword}
-                onChange={(e) => setDeletePassword(e.target.value)}
-                placeholder="비밀번호를 입력하세요"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-6"
-                onKeyPress={(e) => e.key === 'Enter' && handleDelete()}
-              />
-              
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => {
-                    setShowDeleteConfirm(false);
-                    setDeletePassword('');
-                  }}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                >
-                  취소
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
-                >
-                  삭제
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* 인증 모달 */}
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onConfirm={handlePasswordConfirm}
+          title={modalAction === 'edit' ? '게시글 수정' : '게시글 삭제'}
+          message={modalAction === 'edit' 
+            ? '게시글을 수정하려면 작성 시 입력한 비밀번호를 입력해주세요.'
+            : '게시글을 삭제하려면 작성 시 입력한 비밀번호를 입력해주세요. 삭제된 게시글은 복구할 수 없습니다.'}
+          actionLabel={modalAction === 'edit' ? '수정하기' : '삭제하기'}
+          actionType={modalAction}
+          isLoading={isProcessing}
+        />
       </div>
     </div>
   );

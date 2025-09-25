@@ -4,75 +4,17 @@
 
 import { api } from '../client';
 import { API_ENDPOINTS } from '../endpoints';
-
-export interface CommunityPost {
-  id: number;
-  title: string;
-  content: string;
-  authorName: string;
-  viewCount: number;
-  commentCount: number;
-  isNotice: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CommunityPostDetail {
-  id: number;
-  title: string;
-  content: string;
-  authorName: string;
-  authorEmail?: string;
-  authorPhone?: string;
-  viewCount: number;
-  isNotice: boolean;
-  createdAt: string;
-  updatedAt: string;
-  comments: CommunityComment[];
-}
-
-export interface CommunityComment {
-  id: number;
-  content: string;
-  authorName: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreatePostRequest {
-  title: string;
-  content: string;
-  authorName: string;
-  authorEmail?: string;
-  authorPhone?: string;
-  authorPassword: string;
-  teamId: number;
-}
-
-export interface UpdatePostRequest {
-  title?: string;
-  content?: string;
-  authorPassword: string;
-  teamId: number;
-}
-
-export interface CreateCommentRequest {
-  content: string;
-  authorName: string;
-  authorEmail?: string;
-  authorPassword: string;
-  teamId: number;
-}
-
-export interface CommunityPostsResponse {
-  content: CommunityPost[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
-  first: boolean;
-  last: boolean;
-}
+import type { 
+  CommunityPost,
+  CommunityPostDetail,
+  CommunityComment,
+  CreateCommunityPostRequest,
+  UpdateCommunityPostRequest,
+  CreateCommunityCommentRequest,
+  OwnershipCheckRequest,
+  OwnershipCheckResponse,
+  CommunityPostsResponse
+} from '../types';
 
 export const communityApi = {
   // 게시글 목록 조회
@@ -85,7 +27,7 @@ export const communityApi = {
     if (keyword) {
       params.append('keyword', keyword);
     }
-    
+
     return api.callEndpoint<CommunityPostsResponse>({
       ...API_ENDPOINTS.COMMUNITY.GET_POSTS,
       path: `${API_ENDPOINTS.COMMUNITY.GET_POSTS.path}?${params.toString()}`
@@ -102,16 +44,16 @@ export const communityApi = {
   },
 
   // 게시글 작성
-  createPost: (data: CreatePostRequest): Promise<CommunityPost> =>
-    api.callEndpoint<CommunityPost>(API_ENDPOINTS.COMMUNITY.CREATE_POST, undefined, data as CreatePostRequest & Record<string, unknown>),
+  createPost: (data: CreateCommunityPostRequest): Promise<CommunityPost> =>
+    api.callEndpoint<CommunityPost>(API_ENDPOINTS.COMMUNITY.CREATE_POST, undefined, data as CreateCommunityPostRequest & Record<string, unknown>),
 
   // 게시글 수정
-  updatePost: (postId: number, data: UpdatePostRequest): Promise<CommunityPost> =>
-    api.callEndpoint<CommunityPost>(API_ENDPOINTS.COMMUNITY.UPDATE_POST, { postId }, data as UpdatePostRequest & Record<string, unknown>),
+  updatePost: (postId: number, data: UpdateCommunityPostRequest): Promise<CommunityPost> =>
+    api.callEndpoint<CommunityPost>(API_ENDPOINTS.COMMUNITY.UPDATE_POST, { postId }, data as UpdateCommunityPostRequest & Record<string, unknown>),
 
   // 게시글 삭제
   deletePost: (postId: number, teamId: number, authorPassword: string): Promise<string> => {
-    const params = new URLSearchParams({ 
+    const params = new URLSearchParams({
       teamId: teamId.toString(),
       authorPassword: authorPassword
     });
@@ -122,12 +64,12 @@ export const communityApi = {
   },
 
   // 댓글 작성
-  createComment: (postId: number, data: CreateCommentRequest): Promise<CommunityComment> =>
-    api.callEndpoint<CommunityComment>(API_ENDPOINTS.COMMUNITY.CREATE_COMMENT, { postId }, data as CreateCommentRequest & Record<string, unknown>),
+  createComment: (postId: number, data: CreateCommunityCommentRequest): Promise<CommunityComment> =>
+    api.callEndpoint<CommunityComment>(API_ENDPOINTS.COMMUNITY.CREATE_COMMENT, { postId }, data as CreateCommunityCommentRequest & Record<string, unknown>),
 
   // 댓글 삭제
   deleteComment: (commentId: number, teamId: number, authorPassword: string): Promise<string> => {
-    const params = new URLSearchParams({ 
+    const params = new URLSearchParams({
       teamId: teamId.toString(),
       authorPassword: authorPassword
     });
@@ -138,27 +80,27 @@ export const communityApi = {
   },
 
   // 게시글 작성자 권한 확인
-  checkPostOwnership: (postId: number, teamId: number, authorPassword: string): Promise<boolean> => {
-    const params = new URLSearchParams({
-      teamId: teamId.toString(),
-      authorPassword: authorPassword
-    });
-    return api.callEndpoint<boolean>({
-      method: 'GET',
-      path: `/v1/community/posts/${postId}/ownership?${params.toString()}`
-    });
+  checkPostOwnership: (postId: number, teamId: number, authorPassword: string): Promise<OwnershipCheckResponse> => {
+    const data: OwnershipCheckRequest = {
+      authorPassword,
+      teamId
+    };
+    return api.callEndpoint<OwnershipCheckResponse>({
+      method: 'POST',
+      path: `/api/v1/community/posts/${postId}/ownership`
+    }, undefined, data as OwnershipCheckRequest & Record<string, unknown>);
   },
 
   // 댓글 작성자 권한 확인
-  checkCommentOwnership: (commentId: number, teamId: number, authorPassword: string): Promise<boolean> => {
-    const params = new URLSearchParams({
-      teamId: teamId.toString(),
-      authorPassword: authorPassword
-    });
-    return api.callEndpoint<boolean>({
-      method: 'GET',
-      path: `/v1/community/comments/${commentId}/ownership?${params.toString()}`
-    });
+  checkCommentOwnership: (commentId: number, teamId: number, authorPassword: string): Promise<OwnershipCheckResponse> => {
+    const data: OwnershipCheckRequest = {
+      authorPassword,
+      teamId
+    };
+    return api.callEndpoint<OwnershipCheckResponse>({
+      method: 'POST',
+      path: `/api/v1/community/comments/${commentId}/ownership`
+    }, undefined, data as OwnershipCheckRequest & Record<string, unknown>);
   },
 };
 
