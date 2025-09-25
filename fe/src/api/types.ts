@@ -297,3 +297,84 @@ export interface UpdateHeroSlideRequest {
   sortOrder?: number;
   isActive?: boolean;
 }
+
+// Community 관련 타입들
+export interface CommunityPost {
+  id: number;
+  title: string;
+  content: string;
+  authorName: string;
+  viewCount: number;
+  commentCount: number;
+  isNotice: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CommunityPostDetail {
+  id: number;
+  title: string;
+  content: string;
+  authorName: string;
+  authorEmail?: string;
+  authorPhone?: string;
+  viewCount: number;
+  isNotice: boolean;
+  createdAt: string;
+  updatedAt: string;
+  comments: CommunityComment[];
+}
+
+export interface CommunityComment {
+  id: number;
+  content: string;
+  authorName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCommunityPostRequest {
+  title: string;
+  content: string;
+  authorName: string;
+  authorEmail?: string;
+  authorPhone?: string;
+  authorPassword: string;
+  teamId: number;
+}
+
+export interface UpdateCommunityPostRequest {
+  title?: string;
+  content?: string;
+  authorPassword: string;
+  teamId: number;
+}
+
+export interface CreateCommunityCommentRequest {
+  content: string;
+  authorName: string;
+  authorEmail?: string;
+  authorPassword: string;
+  teamId: number;
+}
+
+export interface OwnershipCheckRequest {
+  authorPassword: string;
+  teamId: number;
+}
+
+export interface OwnershipCheckResponse {
+  isOwner: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
+export interface CommunityPostsResponse {
+  content: CommunityPost[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
