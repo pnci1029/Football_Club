@@ -108,7 +108,17 @@ const CommunityDetail: React.FC = () => {
         navigate(`/community/write?edit=${postId}`);
         
       } else if (modalAction === 'delete') {
-        // 삭제: 바로 삭제 진행
+        // 삭제: 권한 확인 후 삭제 진행
+        const authResponse = await communityApi.checkPostOwnership(
+          parseInt(postId), 
+          parseInt(currentTeam.id), 
+          password
+        );
+        
+        if (!authResponse.isOwner || !authResponse.canDelete) {
+          throw new Error('삭제 권한이 없습니다.');
+        }
+        
         await communityApi.deletePost(
           parseInt(postId), 
           parseInt(currentTeam.id), 
