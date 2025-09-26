@@ -3,7 +3,7 @@ name: Deploy Backend to Cafe24
 on:
   push:
     branches: [ main ]
-#    paths: ['be/**']
+    paths: ['be/**']
   workflow_dispatch:
 
 jobs:
@@ -70,16 +70,8 @@ jobs:
           docker pull ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} &&
           docker tag ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} football-club-backend:latest &&
           
-          # Redis 컨테이너 확인 및 실행 (host 네트워크 사용)
-          if ! docker ps | grep -q \"redis-container\"; then
-            echo \"Starting Redis container\"
-            docker stop redis-container 2>/dev/null || true
-            docker rm redis-container 2>/dev/null || true
-            docker run -d --name redis-container -p 6379:6379 redis:7-alpine
-            echo \"Redis container started\"
-          else
-            echo \"Redis container already running\"
-          fi
+          # Redis 컨테이너 실행 (성공하는 버전에 최소 추가)
+          docker run -d --name redis-container -p 6379:6379 redis:7-alpine 2>/dev/null || echo \"Redis already running\" &&
           
           # Blue-Green 포트 결정
           if docker ps --format \"table {{.Names}}\" | grep -q \"backend-blue\"; then
@@ -95,9 +87,9 @@ jobs:
           # 포트 사용 중인 프로세스 확인 및 정리
           lsof -ti:\$NEW_PORT | xargs kill -9 2>/dev/null || true
           
-          # 새 컨테이너 시작 (host 네트워크 사용)
+          # 새 컨테이너 시작 (SPRING_PROFILES_ACTIVE 추가만)
           echo \"Starting backend-\$NEW_COLOR on port \$NEW_PORT\"
-          docker run -d --name backend-\$NEW_COLOR -p \$NEW_PORT:8082 --env-file .env -e SPRING_PROFILES_ACTIVE=prod -e REDIS_HOST=localhost football-club-backend:latest
+          docker run -d --name backend-\$NEW_COLOR -p \$NEW_PORT:8082 --env-file .env -e SPRING_PROFILES_ACTIVE=prod football-club-backend:latest
           
           # 컨테이너 상태 확인
           sleep 5
