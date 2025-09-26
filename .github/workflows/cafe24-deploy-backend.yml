@@ -86,7 +86,7 @@ jobs:
           
             # 새 컨테이너 시작
             echo \"Starting backend-\$NEW_COLOR on port \$NEW_PORT\"
-            docker run -d --name backend-\$NEW_COLOR -p \$NEW_PORT:8082 --env-file .env football-club-backend:latest
+            docker run -d --name backend-\$NEW_COLOR -p \$NEW_PORT:8082 --env-file .env -e SPRING_PROFILES_ACTIVE=prod football-club-backend:latest
           
             # 컨테이너 상태 확인
             sleep 5
