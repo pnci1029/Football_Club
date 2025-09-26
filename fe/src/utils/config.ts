@@ -39,6 +39,14 @@ export const getProductionDomain = (): string => {
  * 팀 도메인 URL 생성
  */
 export const getTeamUrl = (teamCode: string): string => {
+  const hostname = window.location.hostname;
+  
+  // 로컬 개발 환경
+  if (hostname.includes('localhost')) {
+    return `http://localhost:3000`; // 로컬에서는 메인 도메인으로
+  }
+  
+  // 배포 환경
   const domain = getProductionDomain();
   return `https://${teamCode}.${domain}`;
 };

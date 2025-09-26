@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Card } from '../components/common';
 import { inquiryService, CreateInquiryRequest } from '../services/inquiryService';
-import { getProductionDomain } from '../utils/config';
+import { getTeamUrl } from '../utils/config';
 
 const Landing: React.FC = () => {
   const [contactForm, setContactForm] = useState({
@@ -79,9 +79,10 @@ const Landing: React.FC = () => {
   ];
 
   const sampleTeams = [
-    { name: '김철수 FC', domain: `kim.${getProductionDomain()}`, description: '서울 지역 축구 동호회' },
-    { name: '박영희 유나이티드', domain: `park.${getProductionDomain()}`, description: '부산 지역 축구 동호회' }
+    { name: '김철수 FC', teamCode: 'kim', description: '서울 지역 축구 동호회' },
+    { name: '박영희 유나이티드', teamCode: 'park', description: '부산 지역 축구 동호회' }
   ];
+  console.log(sampleTeams.toString())
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white">
@@ -182,7 +183,7 @@ const Landing: React.FC = () => {
                 <p className="text-sm sm:text-base text-gray-600 mb-4 leading-relaxed">{team.description}</p>
                 <Button
                   variant="primary"
-                  onClick={() => window.open(`http://${team.domain}`, '_blank')}
+                  onClick={() => window.open(getTeamUrl(team.teamCode), '_blank')}
                   className="w-full py-3 text-sm sm:text-base"
                 >
                   {team.name} 사이트 방문하기
