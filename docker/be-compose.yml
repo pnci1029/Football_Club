@@ -1,17 +1,6 @@
 version: '3.8'
 
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: football-club-redis
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-    networks:
-      - backend-network
-    volumes:
-      - redis-data:/data
-
   backend:
     image: football-club-backend:latest
     container_name: football-club-backend
@@ -22,14 +11,6 @@ services:
     restart: unless-stopped
     networks:
       - backend-network
-    depends_on:
-      - redis
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-
-volumes:
-  redis-data:
 
 networks:
   backend-network:
