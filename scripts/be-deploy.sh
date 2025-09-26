@@ -15,9 +15,10 @@ if ! docker load < football-club-backend.tar.gz; then
     exit 1
 fi
 
-# 기존 백엔드 컨테이너만 정지 및 제거
+# 기존 백엔드 컨테이너만 정지 및 제거 (레디스는 건드리지 않음)
 echo "Stopping existing backend containers..."
-docker-compose -f docker/be-compose.yml down
+docker stop football-club-backend 2>/dev/null || true
+docker rm -f football-club-backend 2>/dev/null || true
 
 # 실행 중인 football-club-backend 컨테이너 강제 종료
 echo "Force stopping football-club-backend containers..."
@@ -41,12 +42,20 @@ else
     echo "Backend network already exists"
 fi
 
-# 새 컨테이너 시작
-echo "Starting new containers..."
-if ! docker-compose -f docker/be-compose.yml up -d; then
-    echo "ERROR: Failed to start containers"
+# 레디스 컨테이너 확인 및 시작 (없을 경우에만)
+echo "Ensuring Redis is running..."
+if ! docker ps | grep -q football-club-redis; then
+    echo "Starting Redis container..."
+    docker-compose -f docker/be-compose.yml up -d redis
+    sleep 3
+fi
+
+# 새 백엔드 컨테이너 시작
+echo "Starting new backend container..."
+if ! docker-compose -f docker/be-compose.yml up -d backend; then
+    echo "ERROR: Failed to start backend container"
     echo "Container logs:"
-    docker-compose -f docker/be-compose.yml logs
+    docker-compose -f docker/be-compose.yml logs backend
     exit 1
 fi
 
