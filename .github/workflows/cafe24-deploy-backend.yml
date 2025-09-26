@@ -70,15 +70,12 @@ jobs:
           docker pull ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} &&
           docker tag ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} football-club-backend:latest &&
           
-          # 공용 네트워크 생성 (이미 존재하면 무시)
-          docker network create football-network 2>/dev/null || true
-          
-          # Redis 컨테이너 확인 및 실행
+          # Redis 컨테이너 확인 및 실행 (host 네트워크 사용)
           if ! docker ps | grep -q \"redis-container\"; then
             echo \"Starting Redis container\"
             docker stop redis-container 2>/dev/null || true
             docker rm redis-container 2>/dev/null || true
-            docker run -d --name redis-container --network football-network -p 6379:6379 redis:7-alpine
+            docker run -d --name redis-container -p 6379:6379 redis:7-alpine
             echo \"Redis container started\"
           else
             echo \"Redis container already running\"
@@ -98,9 +95,9 @@ jobs:
           # 포트 사용 중인 프로세스 확인 및 정리
           lsof -ti:\$NEW_PORT | xargs kill -9 2>/dev/null || true
           
-          # 새 컨테이너 시작 (네트워크 연결 포함)
+          # 새 컨테이너 시작 (host 네트워크 사용)
           echo \"Starting backend-\$NEW_COLOR on port \$NEW_PORT\"
-          docker run -d --name backend-\$NEW_COLOR --network football-network -p \$NEW_PORT:8082 --env-file .env -e SPRING_PROFILES_ACTIVE=prod -e REDIS_HOST=redis-container football-club-backend:latest
+          docker run -d --name backend-\$NEW_COLOR -p \$NEW_PORT:8082 --env-file .env -e SPRING_PROFILES_ACTIVE=prod -e REDIS_HOST=localhost football-club-backend:latest
           
           # 컨테이너 상태 확인
           sleep 5
