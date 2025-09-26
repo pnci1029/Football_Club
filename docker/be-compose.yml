@@ -6,8 +6,22 @@ services:
     container_name: football-club-backend
     ports:
       - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - REDIS_HOST=redis
     volumes:
       - /opt/football-club/images:/opt/football-club/images
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
     restart: unless-stopped
     networks:
       - backend-network

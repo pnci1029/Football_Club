@@ -31,12 +31,28 @@ services:
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - REDIS_HOST=redis
     volumes:
       - /opt/football-club/logs:/var/log/football-club
       - /opt/football-club/uploads:/opt/football-club/uploads
       - /opt/football-club/images:/opt/football-club/images
-    # depends_on:
-    #   - db
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+    networks:
+      - football-club-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
     restart: unless-stopped
     networks:
       - football-club-network

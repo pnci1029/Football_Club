@@ -1,75 +1,29 @@
 #!/bin/bash
 
-# Backend 배포 스크립트 - 비활성화됨
-# set -e  # 오류 발생 시 스크립트 종료
+# Backend 배포 스크립트
+set -e
 
-echo "⚠️ Backend deployment script is disabled - EC2/AWS services disconnected"
-exit 1
+echo "Starting Backend deployment..."
 
-# echo "Starting Backend deployment..."
+# Docker 이미지 로드 (있는 경우)
+[ -f football-club-backend.tar.gz ] && docker load < football-club-backend.tar.gz
 
-# Docker 이미지 로드
-echo "Loading Docker image..."
-if ! docker load < football-club-backend.tar.gz; then
-    echo "ERROR: Failed to load Docker image"
-    exit 1
-fi
+# 백엔드 컨테이너만 정리 (Redis는 유지)
+docker ps -q --filter "name=football-club-backend" | xargs -r docker stop 2>/dev/null || true
+docker ps -aq --filter "name=football-club-backend" | xargs -r docker rm -f 2>/dev/null || true
+lsof -ti :8082 | xargs kill -9 2>/dev/null || true
 
-# 기존 백엔드 컨테이너만 정지 및 제거
-echo "Stopping existing backend containers..."
-docker-compose -f docker/be-compose.yml down
+# 네트워크 확인
+docker network ls | grep -q backend-network || docker network create backend-network
 
-# 실행 중인 football-club-backend 컨테이너 강제 종료
-echo "Force stopping football-club-backend containers..."
-docker ps -q --filter "name=football-club-backend" | xargs -r docker stop
-docker ps -aq --filter "name=football-club-backend" | xargs -r docker rm -f
+# 컨테이너 시작 (Redis 있으면 재사용, 없으면 새로 생성)
+docker-compose -f docker/be-compose.yml up -d
 
-# 포트 8082 사용 중인 프로세스 종료
-echo "Checking for processes using port 8082..."
-if lsof -i :8082 2>/dev/null; then
-    echo "Killing processes using port 8082..."
-    lsof -ti :8082 | xargs kill -9 2>/dev/null || true
-    sleep 2
-fi
-
-# Backend 전용 네트워크 확인 및 생성
-echo "Ensuring backend network exists..."
-if ! docker network ls | grep -q backend-network; then
-    docker network create backend-network
-    echo "Created backend network: backend-network"
-else
-    echo "Backend network already exists"
-fi
-
-# 새 컨테이너 시작
-echo "Starting new containers..."
-if ! docker-compose -f docker/be-compose.yml up -d; then
-    echo "ERROR: Failed to start containers"
-    echo "Container logs:"
-    docker-compose -f docker/be-compose.yml logs
-    exit 1
-fi
-
-# 컨테이너 시작 확인 (10초 대기)
-echo "Waiting for container to be ready..."
+# 시작 확인
 for i in {1..10}; do
-    if docker ps | grep football-club-backend | grep -q "Up"; then
-        echo "Container is running successfully"
-        break
-    fi
-    if [ $i -eq 10 ]; then
-        echo "ERROR: Container failed to start properly"
-        echo "Container status:"
-        docker ps -a | grep football-club-backend
-        echo "Container logs:"
-        docker-compose -f docker/be-compose.yml logs
-        exit 1
-    fi
+    docker ps | grep football-club-backend | grep -q "Up" && break
+    [ $i -eq 10 ] && echo "Container failed to start" && exit 1
     sleep 1
 done
 
-# 불필요한 이미지 정리
-echo "Cleaning up old images..."
-docker image prune -f
-
-echo "Backend deployment completed successfully!"
+echo "Backend deployment completed!"
