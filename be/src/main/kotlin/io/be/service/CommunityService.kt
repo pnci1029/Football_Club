@@ -22,7 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger
 @Transactional
 class CommunityService(
     private val postRepository: CommunityPostRepository,
-    private val commentRepository: CommunityCommentRepository
+    private val commentRepository: CommunityCommentRepository,
+    private val profanityFilterService: ProfanityFilterService
 ) {
     
     private val passwordEncoder = BCryptPasswordEncoder()
@@ -81,6 +82,12 @@ class CommunityService(
      */
     fun createPost(request: CreateCommunityPostRequest): CommunityPostResponse {
         validatePostRequest(request)
+        
+        // 비속어 필터링 검사
+        val profanityValidation = profanityFilterService.validateContent(request.title, request.content)
+        if (!profanityValidation.isValid) {
+            throw InvalidRequestException("profanity", "content", profanityValidation.violations.first())
+        }
 
         val post = CommunityPost(
             title = request.title.trim(),
@@ -118,6 +125,12 @@ class CommunityService(
         }
 
         validateUpdateRequest(request)
+        
+        // 비속어 필터링 검사
+        val profanityValidation = profanityFilterService.validateContent(request.title, request.content)
+        if (!profanityValidation.isValid) {
+            throw InvalidRequestException("profanity", "content", profanityValidation.violations.first())
+        }
 
         val updatedPost = post.copy(
             title = request.title?.trim() ?: post.title,
@@ -165,6 +178,12 @@ class CommunityService(
             ?: throw ResourceNotFoundException("게시글을 찾을 수 없습니다.")
 
         validateCommentRequest(request)
+        
+        // 비속어 필터링 검사 (댓글 내용만)
+        val profanityValidation = profanityFilterService.validateContent(null, request.content)
+        if (!profanityValidation.isValid) {
+            throw InvalidRequestException("profanity", "content", profanityValidation.violations.first())
+        }
 
         val comment = CommunityComment(
             post = post,
