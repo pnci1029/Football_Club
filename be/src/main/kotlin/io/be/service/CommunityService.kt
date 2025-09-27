@@ -86,7 +86,8 @@ class CommunityService(
         // 비속어 필터링 검사
         val profanityValidation = profanityFilterService.validateContent(request.title, request.content)
         if (!profanityValidation.isValid) {
-            throw InvalidRequestException("profanity", "content", profanityValidation.violations.first())
+            val violationMessage = profanityValidation.violations.firstOrNull() ?: "부적절한 표현이 포함되어 있습니다."
+            throw InvalidRequestException("content", "profanity", violationMessage)
         }
 
         val post = CommunityPost(
@@ -129,7 +130,8 @@ class CommunityService(
         // 비속어 필터링 검사
         val profanityValidation = profanityFilterService.validateContent(request.title, request.content)
         if (!profanityValidation.isValid) {
-            throw InvalidRequestException("profanity", "content", profanityValidation.violations.first())
+            val violationMessage = profanityValidation.violations.firstOrNull() ?: "부적절한 표현이 포함되어 있습니다."
+            throw InvalidRequestException("content", "profanity", violationMessage)
         }
 
         val updatedPost = post.copy(
@@ -182,7 +184,8 @@ class CommunityService(
         // 비속어 필터링 검사 (댓글 내용만)
         val profanityValidation = profanityFilterService.validateContent(null, request.content)
         if (!profanityValidation.isValid) {
-            throw InvalidRequestException("profanity", "content", profanityValidation.violations.first())
+            val violationMessage = profanityValidation.violations.firstOrNull() ?: "댓글에 부적절한 표현이 포함되어 있습니다."
+            throw InvalidRequestException("content", "profanity", violationMessage)
         }
 
         val comment = CommunityComment(

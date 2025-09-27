@@ -25,26 +25,42 @@ interface ApiErrorResponse {
  * API 에러에서 사용자 친화적인 메시지를 추출합니다.
  */
 export function getErrorMessage(error: any): string {
-  // Axios 에러 구조 확인
+  // API 클라이언트에서 처리된 에러 구조 확인 (error.details)
+  if (error?.details?.error?.message) {
+    const fullMessage = error.details.error.message;
+    
+    // "Invalid value 'content' for field 'profanity': 제목에 부적절한 표현이 포함되어 있습니다." 
+    // 형태에서 콜론 뒤의 실제 메시지만 추출
+    const colonIndex = fullMessage.lastIndexOf(': ');
+    if (colonIndex !== -1) {
+      const extractedMessage = fullMessage.substring(colonIndex + 2).trim();
+      return extractedMessage;
+    }
+    
+    return fullMessage;
+  }
+
+  // Axios 에러 구조 확인 (error.response.data)
   if (error?.response?.data) {
-    const errorData = error.response.data as ApiErrorResponse;
+    const errorData = error.response.data;
     
     // 백엔드 에러 응답 구조 - error.message에서 실제 메시지 추출
     if (errorData.error?.message) {
       const fullMessage = errorData.error.message;
       
-      // "Invalid value 'password' for field 'permission': 비밀번호가 올바르지 않습니다." 
+      // "Invalid value 'content' for field 'profanity': 제목에 부적절한 표현이 포함되어 있습니다." 
       // 형태에서 콜론 뒤의 실제 메시지만 추출
       const colonIndex = fullMessage.lastIndexOf(': ');
       if (colonIndex !== -1) {
-        return fullMessage.substring(colonIndex + 2).trim();
+        const extractedMessage = fullMessage.substring(colonIndex + 2).trim();
+        return extractedMessage;
       }
       
       return fullMessage;
     }
     
-    // 일반적인 메시지
-    if (errorData.message) {
+    // 백엔드 RuntimeException 처리
+    if (errorData.message && typeof errorData.message === 'string') {
       return errorData.message;
     }
     
@@ -97,11 +113,28 @@ export function isPermissionError(error: any): boolean {
 }
 
 /**
+ * 비속어 필터 관련 에러인지 확인합니다.
+ */
+export function isProfanityError(error: any): boolean {
+  const errorCode = error?.response?.data?.error?.code || error?.code;
+  return errorCode === 'PROFANITY_IN_TITLE' || 
+         errorCode === 'PROFANITY_IN_CONTENT' || 
+         errorCode === 'PROFANITY_IN_COMMENT' ||
+         errorCode === 'PROFANITY_DETECTED' ||
+         (errorCode === 'INVALID_REQUEST' && 
+          error?.response?.data?.error?.message?.includes('부적절한 표현'));
+}
+
+/**
  * 에러 상황에 따른 사용자 행동 가이드를 제공합니다.
  */
 export function getErrorActionGuide(error: any): string | null {
   const message = getErrorMessage(error);
   const status = error?.response?.status;
+
+  if (isProfanityError(error)) {
+    return '부적절한 표현을 수정한 후 다시 작성해주세요.';
+  }
 
   if (isPasswordError(error)) {
     return '작성 시 입력한 비밀번호를 정확히 입력해주세요.';

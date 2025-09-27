@@ -45,7 +45,6 @@ const CommunityDetail: React.FC = () => {
           window.history.replaceState({}, document.title);
         }
       } catch (err) {
-        console.error('Failed to load post:', err);
         setError('게시글을 불러오는데 실패했습니다.');
       } finally {
         setLoading(false);
@@ -131,7 +130,6 @@ const CommunityDetail: React.FC = () => {
         });
       }
     } catch (err) {
-      console.error(`Failed to ${modalAction} post:`, err);
       throw err;
     } finally {
       setIsProcessing(false);

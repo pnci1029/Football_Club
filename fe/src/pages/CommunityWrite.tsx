@@ -57,7 +57,6 @@ const CommunityWrite: React.FC = () => {
           authorPassword: '' // 보안상 비밀번호는 초기화
         });
       } catch (err) {
-        console.error('Failed to load post for edit:', err);
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);
         navigate('/community');
@@ -127,7 +126,6 @@ const CommunityWrite: React.FC = () => {
         });
       }
     } catch (err) {
-      console.error(`게시글 ${isEditing ? '수정' : '작성'} 실패:`, err);
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);
     } finally {
