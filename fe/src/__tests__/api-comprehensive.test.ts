@@ -41,12 +41,15 @@ const mockMatchData = {
   homeTeamId: 1,
   awayTeamId: 2,
   matchDate: '2024-01-01T15:00:00',
-  venue: 'Test Stadium',
+  stadiumId: 1,
 };
 
 const mockInquiryData = {
   title: 'Test Inquiry',
   content: 'Test inquiry content',
+  name: 'Test User',
+  email: 'test@test.com',
+  message: 'Test inquiry content',
   category: 'GENERAL' as const,
 };
 
@@ -55,12 +58,12 @@ const mockHeroSlideData = {
   content: 'Test slide content',
   imageUrl: 'https://test.com/image.jpg',
   linkUrl: 'https://test.com',
-  order: 1,
-  active: true,
+  sortOrder: 1,
+  isActive: true,
 };
 
 const mockLoginData = {
-  email: 'test@test.com',
+  username: 'test@test.com',
   password: 'testpassword',
 };
 
@@ -188,7 +191,7 @@ describe('Comprehensive API Tests', () => {
 
     test('Admin Tenants - create', async () => {
       try {
-        await Admin.tenants.create({ name: 'Test', code: 'test' });
+        await Admin.tenants.create({ name: 'Test', code: 'test', description: 'Test description' });
       } catch (error: any) {
         expect([401, 403, 404, 409]).toContain(error.response?.status);
       }
@@ -418,7 +421,8 @@ describe('Comprehensive API Tests', () => {
     test('Auth - register', async () => {
       try {
         await Auth.api.register({
-          ...mockLoginData,
+          email: 'test@test.com',
+          password: 'testpassword',
           name: 'Test User',
           confirmPassword: 'testpassword',
         });

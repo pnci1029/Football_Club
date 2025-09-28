@@ -69,7 +69,7 @@ describe('API Coverage Report', () => {
     // 테스트 결과 요약 출력
     console.log('\n=== API Coverage Report ===\n');
     
-    const categories = [...new Set(testResults.map(r => r.category))];
+    const categories = Array.from(new Set(testResults.map(r => r.category)));
     
     categories.forEach(category => {
       const categoryResults = testResults.filter(r => r.category === category);
@@ -131,14 +131,14 @@ describe('API Coverage Report', () => {
       testResults.push(await testApiCall('getPlayers', 'Admin Tenants', () => Admin.tenants.getPlayers('test')));
       testResults.push(await testApiCall('getStadiums', 'Admin Tenants', () => Admin.tenants.getStadiums('test')));
       testResults.push(await testApiCall('updateSettings', 'Admin Tenants', () => Admin.tenants.updateSettings('test', {})));
-      testResults.push(await testApiCall('create', 'Admin Tenants', () => Admin.tenants.create({ name: 'Test', code: 'test' })));
+      testResults.push(await testApiCall('create', 'Admin Tenants', () => Admin.tenants.create({ name: 'Test', code: 'test', description: 'Test description' })));
     });
 
     test('Admin Teams APIs', async () => {
       testResults.push(await testApiCall('getAll', 'Admin Teams', () => Teams.admin.getAll()));
       testResults.push(await testApiCall('getById', 'Admin Teams', () => Teams.admin.getById(1)));
       testResults.push(await testApiCall('getByCode', 'Admin Teams', () => Teams.admin.getByCode('test')));
-      testResults.push(await testApiCall('create', 'Admin Teams', () => Teams.admin.create({ name: 'Test', code: 'TEST' })));
+      testResults.push(await testApiCall('create', 'Admin Teams', () => Teams.admin.create({ name: 'Test', code: 'TEST', description: 'Test description' })));
       testResults.push(await testApiCall('update', 'Admin Teams', () => Teams.admin.update(1, { name: 'Updated' })));
       testResults.push(await testApiCall('delete', 'Admin Teams', () => Teams.admin.delete(999)));
       testResults.push(await testApiCall('getStats', 'Admin Teams', () => Teams.admin.getStats(1)));
@@ -155,7 +155,7 @@ describe('API Coverage Report', () => {
     test('Admin Stadiums APIs', async () => {
       testResults.push(await testApiCall('getAll', 'Admin Stadiums', () => Stadiums.admin.getAll()));
       testResults.push(await testApiCall('getById', 'Admin Stadiums', () => Stadiums.admin.getById(1)));
-      testResults.push(await testApiCall('create', 'Admin Stadiums', () => Stadiums.admin.create({ name: 'Test', address: 'Test' })));
+      testResults.push(await testApiCall('create', 'Admin Stadiums', () => Stadiums.admin.create({ name: 'Test', address: 'Test', latitude: 37.5665, longitude: 126.9780 })));
       testResults.push(await testApiCall('update', 'Admin Stadiums', () => Stadiums.admin.update(1, { name: 'Updated' })));
       testResults.push(await testApiCall('delete', 'Admin Stadiums', () => Stadiums.admin.delete(999)));
     });
@@ -164,7 +164,7 @@ describe('API Coverage Report', () => {
       testResults.push(await testApiCall('getAll', 'Admin Matches', () => Matches.admin.getAll()));
       testResults.push(await testApiCall('getById', 'Admin Matches', () => Matches.admin.getById(1)));
       testResults.push(await testApiCall('getByTeam', 'Admin Matches', () => Matches.admin.getByTeam(1)));
-      testResults.push(await testApiCall('create', 'Admin Matches', () => Matches.admin.create({ homeTeamId: 1, awayTeamId: 2, matchDate: '2024-01-01T15:00:00', venue: 'Test' })));
+      testResults.push(await testApiCall('create', 'Admin Matches', () => Matches.admin.create({ homeTeamId: 1, awayTeamId: 2, matchDate: '2024-01-01T15:00:00', stadiumId: 1 })));
       testResults.push(await testApiCall('update', 'Admin Matches', () => Matches.admin.update(1, { status: 'IN_PROGRESS' })));
       testResults.push(await testApiCall('delete', 'Admin Matches', () => Matches.admin.delete(999)));
     });
@@ -172,7 +172,7 @@ describe('API Coverage Report', () => {
     test('Admin HeroSlides APIs', async () => {
       testResults.push(await testApiCall('getAll', 'Admin HeroSlides', () => HeroSlides.admin.getAll()));
       testResults.push(await testApiCall('getById', 'Admin HeroSlides', () => HeroSlides.admin.getById(1)));
-      testResults.push(await testApiCall('create', 'Admin HeroSlides', () => HeroSlides.admin.create({ title: 'Test', content: 'Test', imageUrl: 'test.jpg' })));
+      testResults.push(await testApiCall('create', 'Admin HeroSlides', () => HeroSlides.admin.create({ title: 'Test', content: 'Test', imageUrl: 'test.jpg', sortOrder: 1, isActive: true })));
       testResults.push(await testApiCall('update', 'Admin HeroSlides', () => HeroSlides.admin.update(1, { title: 'Updated' })));
       testResults.push(await testApiCall('delete', 'Admin HeroSlides', () => HeroSlides.admin.delete(999)));
       testResults.push(await testApiCall('updateOrder', 'Admin HeroSlides', () => HeroSlides.admin.updateOrder(1, 2)));
@@ -214,7 +214,7 @@ describe('API Coverage Report', () => {
   // 3. Other Services (17 methods)
   describe('Other Services', () => {
     test('Auth APIs', async () => {
-      testResults.push(await testApiCall('login', 'Auth', () => Auth.api.login({ email: 'test@test.com', password: 'test' })));
+      testResults.push(await testApiCall('login', 'Auth', () => Auth.api.login({ username: 'test@test.com', password: 'test' })));
       testResults.push(await testApiCall('register', 'Auth', () => Auth.api.register({ email: 'test@test.com', password: 'test', name: 'Test', confirmPassword: 'test' })));
       testResults.push(await testApiCall('logout', 'Auth', () => Auth.api.logout()));
       testResults.push(await testApiCall('getMe', 'Auth', () => Auth.api.getMe()));
@@ -222,7 +222,7 @@ describe('API Coverage Report', () => {
     });
 
     test('Inquiries APIs', async () => {
-      testResults.push(await testApiCall('create', 'Inquiries', () => Inquiries.public.create({ title: 'Test', content: 'Test', category: 'GENERAL' })));
+      testResults.push(await testApiCall('create', 'Inquiries', () => Inquiries.public.create({ title: 'Test Inquiry', content: 'Test content', name: 'Test User', email: 'test@test.com', message: 'Test', category: 'GENERAL' })));
       testResults.push(await testApiCall('getMy', 'Inquiries', () => Inquiries.public.getMy()));
       testResults.push(await testApiCall('getById', 'Inquiries', () => Inquiries.public.getById(1)));
     });
