@@ -82,7 +82,6 @@ data class CommunityPostResponse(
     val authorName: String,
     val viewCount: Int,
     val commentCount: Long,
-    val isNotice: Boolean,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 ) {
@@ -95,7 +94,6 @@ data class CommunityPostResponse(
                 authorName = post.authorName,
                 viewCount = post.viewCount,
                 commentCount = commentCount,
-                isNotice = post.isNotice,
                 createdAt = post.createdAt,
                 updatedAt = post.updatedAt
             )
@@ -111,7 +109,6 @@ data class CommunityPostDetailResponse(
     val authorEmail: String?,
     val authorPhone: String?,
     val viewCount: Int,
-    val isNotice: Boolean,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val comments: List<CommunityCommentResponse>
@@ -126,7 +123,6 @@ data class CommunityPostDetailResponse(
                 authorEmail = post.authorEmail,
                 authorPhone = post.authorPhone,
                 viewCount = post.viewCount,
-                isNotice = post.isNotice,
                 createdAt = post.createdAt,
                 updatedAt = post.updatedAt,
                 comments = comments
@@ -186,3 +182,54 @@ data class CreateCommunityCommentRequest(
     val authorPassword: String,
     val teamId: Long
 )
+
+// All Community DTOs
+data class AllCommunityPostResponse(
+    val id: Long,
+    val title: String,
+    val content: String,
+    val authorName: String,
+    val viewCount: Int,
+    val commentCount: Long,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime,
+    val teamId: Long,
+    val teamName: String,
+    val teamSubdomain: String?
+) {
+    companion object {
+        fun from(post: CommunityPost, team: io.be.entity.Team?, commentCount: Long): AllCommunityPostResponse {
+            return AllCommunityPostResponse(
+                id = post.id,
+                title = post.title,
+                content = post.content,
+                authorName = post.authorName,
+                viewCount = post.viewCount,
+                commentCount = commentCount,
+                createdAt = post.createdAt,
+                updatedAt = post.updatedAt,
+                teamId = post.teamId,
+                teamName = team?.name ?: "Unknown Team",
+                teamSubdomain = team?.code
+            )
+        }
+    }
+}
+
+data class TeamInfoResponse(
+    val id: Long,
+    val name: String,
+    val subdomain: String?,
+    val description: String?
+) {
+    companion object {
+        fun from(team: io.be.entity.Team): TeamInfoResponse {
+            return TeamInfoResponse(
+                id = team.id,
+                name = team.name,
+                subdomain = team.code,
+                description = team.description
+            )
+        }
+    }
+}

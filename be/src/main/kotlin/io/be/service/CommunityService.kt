@@ -43,10 +43,11 @@ class CommunityService(
         logger.info("Fetching posts for teamId: $teamId, page: $page, size: $size, keyword: $keyword")
         val pageable: Pageable = PageRequest.of(page, size)
 
-        val posts = if (keyword.isNullOrBlank()) {
-            postRepository.findByTeamIdAndIsActiveTrueOrderByIsNoticeDescCreatedAtDesc(teamId, pageable)
-        } else {
-            postRepository.findByTeamIdAndKeyword(teamId, keyword.trim(), pageable)
+        val posts = when {
+            !keyword.isNullOrBlank() -> 
+                postRepository.findByTeamIdAndKeyword(teamId, keyword.trim(), pageable)
+            else -> 
+                postRepository.findByTeamIdAndIsActiveTrueOrderByCreatedAtDesc(teamId, pageable)
         }
         
         logger.info("Found ${posts.totalElements} posts for teamId: $teamId")

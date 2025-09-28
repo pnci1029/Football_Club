@@ -41,8 +41,6 @@ data class CommunityPost(
     @Column(name = "view_count", nullable = false)
     val viewCount: Int = 0,
     
-    @Column(name = "is_notice", nullable = false)
-    val isNotice: Boolean = false, // 공지사항 여부
     
     @Column(name = "is_active", nullable = false)
     val isActive: Boolean = true, // 활성화 여부 (삭제 대신 비활성화)
