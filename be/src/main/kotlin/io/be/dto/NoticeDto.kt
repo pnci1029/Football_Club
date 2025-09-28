@@ -1,0 +1,230 @@
+package io.be.dto
+
+import io.be.entity.Notice
+import io.be.entity.NoticeComment
+import io.be.entity.Team
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
+import java.time.LocalDateTime
+
+// 공지사항 응답 DTO
+data class NoticeResponse(
+    val id: Long,
+    val title: String,
+    val content: String,
+    val authorName: String,
+    val viewCount: Int,
+    val commentCount: Long,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
+) {
+    companion object {
+        fun from(notice: Notice, commentCount: Long): NoticeResponse {
+            return NoticeResponse(
+                id = notice.id,
+                title = notice.title,
+                content = notice.content,
+                authorName = notice.authorName,
+                viewCount = notice.viewCount,
+                commentCount = commentCount,
+                createdAt = notice.createdAt,
+                updatedAt = notice.updatedAt
+            )
+        }
+    }
+}
+
+// 공지사항 상세 응답 DTO
+data class NoticeDetailResponse(
+    val id: Long,
+    val title: String,
+    val content: String,
+    val authorName: String,
+    val authorEmail: String?,
+    val authorPhone: String?,
+    val viewCount: Int,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime,
+    val comments: List<NoticeCommentResponse>
+) {
+    companion object {
+        fun from(notice: Notice, comments: List<NoticeCommentResponse>): NoticeDetailResponse {
+            return NoticeDetailResponse(
+                id = notice.id,
+                title = notice.title,
+                content = notice.content,
+                authorName = notice.authorName,
+                authorEmail = notice.authorEmail,
+                authorPhone = notice.authorPhone,
+                viewCount = notice.viewCount,
+                createdAt = notice.createdAt,
+                updatedAt = notice.updatedAt,
+                comments = comments
+            )
+        }
+    }
+}
+
+// 공지사항 댓글 응답 DTO
+data class NoticeCommentResponse(
+    val id: Long,
+    val content: String,
+    val authorName: String,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
+) {
+    companion object {
+        fun from(comment: NoticeComment): NoticeCommentResponse {
+            return NoticeCommentResponse(
+                id = comment.id,
+                content = comment.content,
+                authorName = comment.authorName,
+                createdAt = comment.createdAt,
+                updatedAt = comment.updatedAt
+            )
+        }
+    }
+}
+
+// 전체 공지사항 응답 DTO (팀 정보 포함)
+data class AllNoticeResponse(
+    val id: Long,
+    val title: String,
+    val content: String,
+    val authorName: String,
+    val viewCount: Int,
+    val commentCount: Long,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime,
+    val teamId: Long,
+    val teamName: String,
+    val teamSubdomain: String?
+) {
+    companion object {
+        fun from(notice: Notice, team: Team?, commentCount: Long): AllNoticeResponse {
+            return AllNoticeResponse(
+                id = notice.id,
+                title = notice.title,
+                content = notice.content,
+                authorName = notice.authorName,
+                viewCount = notice.viewCount,
+                commentCount = commentCount,
+                createdAt = notice.createdAt,
+                updatedAt = notice.updatedAt,
+                teamId = notice.teamId,
+                teamName = team?.name ?: "Unknown Team",
+                teamSubdomain = team?.code
+            )
+        }
+    }
+}
+
+// 공지사항 작성 요청 DTO
+data class CreateNoticeRequest(
+    @field:NotBlank(message = "제목을 입력해주세요.")
+    @field:Size(max = 200, message = "제목은 200자를 초과할 수 없습니다.")
+    val title: String,
+    
+    @field:NotBlank(message = "내용을 입력해주세요.")
+    @field:Size(max = 10000, message = "내용은 10000자를 초과할 수 없습니다.")
+    val content: String,
+    
+    @field:NotBlank(message = "작성자명을 입력해주세요.")
+    @field:Size(max = 50, message = "작성자명은 50자를 초과할 수 없습니다.")
+    val authorName: String,
+    
+    @field:Size(max = 100, message = "이메일은 100자를 초과할 수 없습니다.")
+    val authorEmail: String? = null,
+    
+    @field:Size(max = 20, message = "연락처는 20자를 초과할 수 없습니다.")
+    val authorPhone: String? = null,
+    
+    @field:NotBlank(message = "비밀번호를 입력해주세요.")
+    val authorPassword: String,
+    
+    val teamId: Long
+)
+
+// 공지사항 수정 요청 DTO
+data class UpdateNoticeRequest(
+    @field:Size(max = 200, message = "제목은 200자를 초과할 수 없습니다.")
+    val title: String? = null,
+    
+    @field:Size(max = 10000, message = "내용은 10000자를 초과할 수 없습니다.")
+    val content: String? = null,
+    
+    @field:NotBlank(message = "비밀번호를 입력해주세요.")
+    val authorPassword: String,
+    
+    val teamId: Long
+)
+
+// 공지사항 댓글 작성 요청 DTO
+data class CreateNoticeCommentRequest(
+    @field:NotBlank(message = "댓글 내용을 입력해주세요.")
+    @field:Size(max = 1000, message = "댓글은 1000자를 초과할 수 없습니다.")
+    val content: String,
+    
+    @field:NotBlank(message = "작성자명을 입력해주세요.")
+    @field:Size(max = 50, message = "작성자명은 50자를 초과할 수 없습니다.")
+    val authorName: String,
+    
+    @field:Size(max = 100, message = "이메일은 100자를 초과할 수 없습니다.")
+    val authorEmail: String? = null,
+    
+    @field:NotBlank(message = "비밀번호를 입력해주세요.")
+    val authorPassword: String,
+    
+    val teamId: Long
+)
+
+// 공지사항 권한 확인 요청 DTO
+data class NoticeOwnershipCheckRequest(
+    @field:NotBlank(message = "비밀번호를 입력해주세요.")
+    val authorPassword: String,
+    val teamId: Long
+)
+
+// 공지사항 권한 확인 응답 DTO
+data class NoticeOwnershipCheckResponse(
+    val isOwner: Boolean,
+    val canEdit: Boolean,
+    val canDelete: Boolean
+)
+
+// 공지사항 목록 응답 DTO
+data class NoticesResponse(
+    val content: List<NoticeResponse>,
+    val totalElements: Long,
+    val totalPages: Int,
+    val size: Int,
+    val number: Int,
+    val first: Boolean,
+    val last: Boolean
+)
+
+// 컨트롤러 요청 DTO들 (JSON 변환용)
+data class CreateNoticeRequestDto(
+    val title: String,
+    val content: String,
+    val authorName: String,
+    val authorEmail: String? = null,
+    val authorPhone: String? = null,
+    val authorPassword: String,
+    val teamId: Long
+)
+
+data class UpdateNoticeRequestDto(
+    val title: String? = null,
+    val content: String? = null,
+    val authorPassword: String,
+    val teamId: Long
+)
+
+data class CreateNoticeCommentRequestDto(
+    val content: String,
+    val authorName: String,
+    val authorEmail: String? = null,
+    val authorPassword: String,
+    val teamId: Long
+)
