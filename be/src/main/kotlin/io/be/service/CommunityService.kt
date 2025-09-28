@@ -99,8 +99,7 @@ class CommunityService(
             authorPhone = request.authorPhone?.trim(),
             authorPasswordHash = passwordEncoder.encode(request.authorPassword),
             teamId = request.teamId,
-            teamSubdomain = "${request.teamId}", // 임시로 팀ID 기반 서브도메인 생성
-            isNotice = false // 일반 사용자는 공지사항 작성 불가
+            teamSubdomain = "${request.teamId}" // 임시로 팀ID 기반 서브도메인 생성
         )
 
         val savedPost = postRepository.save(post)

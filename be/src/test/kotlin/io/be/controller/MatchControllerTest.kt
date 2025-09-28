@@ -1,6 +1,6 @@
 package io.be.controller
 
-import io.be.controller.public.MatchController
+import io.be.controller.`public`.MatchController
 import io.be.service.MatchService
 import io.be.service.SubdomainService
 import io.be.config.SubdomainResolver
@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@WebMvcTest(MatchController::class)
+@WebMvcTest
 @WithMockUser
 class MatchControllerTest {
 

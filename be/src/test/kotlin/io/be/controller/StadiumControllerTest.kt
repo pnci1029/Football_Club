@@ -1,6 +1,6 @@
 package io.be.controller
 
-import io.be.controller.public.StadiumController
+import io.be.controller.`public`.StadiumController
 import io.be.dto.StadiumDto
 import io.be.service.StadiumService
 import io.be.service.SubdomainService
@@ -19,7 +19,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@WebMvcTest(StadiumController::class)
+@WebMvcTest
 @WithMockUser
 class StadiumControllerTest {
 
@@ -37,7 +37,7 @@ class StadiumControllerTest {
 
     @Test
     fun `getAllStadiums should return paginated stadiums`() {
-        val stadiumDto = StadiumDto(1L, "Test Stadium", "Test Address", 37.5665, 126.9780, "Test facilities", 50000, "09:00-22:00", "010-1234-5678", "image1.jpg")
+        val stadiumDto = StadiumDto(1L, "Test Stadium", "Test Address", 37.5665, 126.9780, 1L, "Test Team", listOf("Test facilities"), 50000, "09:00-22:00", listOf("월", "화", "수", "목", "금"), "010-1234-5678", listOf("image1.jpg"))
         val page = PageImpl(listOf(stadiumDto), PageRequest.of(0, 10), 1)
         
         given(stadiumService.findAllStadiums(any())).willReturn(page)
@@ -53,7 +53,7 @@ class StadiumControllerTest {
 
     @Test
     fun `getStadium should return stadium when found`() {
-        val stadiumDto = StadiumDto(1L, "Test Stadium", "Test Address", 37.5665, 126.9780, "Test facilities", 50000, "09:00-22:00", "010-1234-5678", "image1.jpg")
+        val stadiumDto = StadiumDto(1L, "Test Stadium", "Test Address", 37.5665, 126.9780, 1L, "Test Team", listOf("Test facilities"), 50000, "09:00-22:00", listOf("월", "화", "수", "목", "금"), "010-1234-5678", listOf("image1.jpg"))
         
         given(stadiumService.findStadiumById(1L)).willReturn(stadiumDto)
 
@@ -74,7 +74,7 @@ class StadiumControllerTest {
 
     @Test
     fun `searchStadiums should return stadiums by name`() {
-        val stadiumDto = StadiumDto(1L, "Test Stadium", "Test Address", 37.5665, 126.9780, "Test facilities", 50000, "09:00-22:00", "010-1234-5678", "image1.jpg")
+        val stadiumDto = StadiumDto(1L, "Test Stadium", "Test Address", 37.5665, 126.9780, 1L, "Test Team", listOf("Test facilities"), 50000, "09:00-22:00", listOf("월", "화", "수", "목", "금"), "010-1234-5678", listOf("image1.jpg"))
         
         given(stadiumService.searchStadiumsByName("Test")).willReturn(listOf(stadiumDto))
 
@@ -87,7 +87,7 @@ class StadiumControllerTest {
 
     @Test
     fun `searchStadiums should return stadiums by address`() {
-        val stadiumDto = StadiumDto(1L, "Test Stadium", "Test Address", 37.5665, 126.9780, "Test facilities", 50000, "09:00-22:00", "010-1234-5678", "image1.jpg")
+        val stadiumDto = StadiumDto(1L, "Test Stadium", "Test Address", 37.5665, 126.9780, 1L, "Test Team", listOf("Test facilities"), 50000, "09:00-22:00", listOf("월", "화", "수", "목", "금"), "010-1234-5678", listOf("image1.jpg"))
         
         given(stadiumService.searchStadiumsByAddress("Test Address")).willReturn(listOf(stadiumDto))
 

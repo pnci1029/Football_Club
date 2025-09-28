@@ -18,7 +18,7 @@ class TenantContextTest {
     @Test
     fun `should create valid tenant context`() {
         // given
-        val context = TenantContext(
+        val context = TenantInfo(
             teamId = 1L,
             subdomain = "barcelona",
             teamName = "FC Barcelona",
@@ -36,7 +36,7 @@ class TenantContextTest {
     @Test
     fun `should reject invalid tenant context with invalid team id`() {
         // given
-        val context = TenantContext(
+        val context = TenantInfo(
             teamId = 0L, // Invalid
             subdomain = "barcelona",
             teamName = "FC Barcelona",
@@ -50,7 +50,7 @@ class TenantContextTest {
     @Test
     fun `should reject invalid tenant context with blank subdomain`() {
         // given
-        val context = TenantContext(
+        val context = TenantInfo(
             teamId = 1L,
             subdomain = "", // Invalid
             teamName = "FC Barcelona",
@@ -64,7 +64,7 @@ class TenantContextTest {
     @Test
     fun `should set and get tenant context`() {
         // given
-        val context = TenantContext(
+        val context = TenantInfo(
             teamId = 1L,
             subdomain = "barcelona",
             teamName = "FC Barcelona",
@@ -85,7 +85,7 @@ class TenantContextTest {
     @Test
     fun `should throw exception when setting invalid context`() {
         // given
-        val invalidContext = TenantContext(
+        val invalidContext = TenantInfo(
             teamId = 0L, // Invalid
             subdomain = "barcelona",
             teamName = "FC Barcelona",
@@ -133,7 +133,7 @@ class TenantContextTest {
     @Test
     fun `should check team access correctly`() {
         // given
-        val context = TenantContext(
+        val context = TenantInfo(
             teamId = 1L,
             subdomain = "barcelona",
             teamName = "FC Barcelona",
@@ -158,7 +158,7 @@ class TenantContextTest {
     @Test
     fun `should clear context correctly`() {
         // given
-        val context = TenantContext(
+        val context = TenantInfo(
             teamId = 1L,
             subdomain = "barcelona",
             teamName = "FC Barcelona",
@@ -178,7 +178,7 @@ class TenantContextTest {
     @Test
     fun `should provide debug information`() {
         // given
-        val context = TenantContext(
+        val context = TenantInfo(
             teamId = 1L,
             subdomain = "barcelona",
             teamName = "FC Barcelona",
@@ -191,20 +191,20 @@ class TenantContextTest {
         val debugInfoWithContext = TenantContextHolder.getDebugInfo()
 
         // then
-        assertEquals("TenantContext(NOT_SET)", debugInfoWithoutContext)
-        assertEquals("TenantContext(teamId=1, subdomain=barcelona, host=barcelona.football-club.kr)", debugInfoWithContext)
+        assertEquals("TenantInfo(NOT_SET)", debugInfoWithoutContext)
+        assertEquals("TenantInfo(teamId=1, subdomain=barcelona, host=barcelona.football-club.kr)", debugInfoWithContext)
     }
 
     @Test
     fun `should handle concurrent access safely`() {
         // This test demonstrates thread-local behavior
-        val contexts = mutableListOf<TenantContext>()
+        val contexts = mutableListOf<TenantInfo>()
         val threads = mutableListOf<Thread>()
 
         // given - create multiple threads with different contexts
         repeat(5) { i ->
             val thread = Thread {
-                val context = TenantContext(
+                val context = TenantInfo(
                     teamId = (i + 1).toLong(),
                     subdomain = "team$i",
                     teamName = "Team $i",
@@ -241,7 +241,7 @@ class TenantContextTest {
     @Test
     fun `should include optional fields in context`() {
         // given
-        val context = TenantContext(
+        val context = TenantInfo(
             teamId = 1L,
             subdomain = "barcelona",
             teamName = "FC Barcelona",
