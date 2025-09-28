@@ -43,7 +43,7 @@ export const getTeamUrl = (teamCode: string): string => {
   
   // 로컬 개발 환경
   if (hostname.includes('localhost')) {
-    return `http://localhost:3000`; // 로컬에서는 메인 도메인으로
+    return `http://${teamCode}.localhost:3000`; // 로컬에서도 서브도메인 사용
   }
   
   // 배포 환경
