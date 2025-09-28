@@ -48,7 +48,7 @@ class ProfanityFilterService(
                 logger.info("Added ${defaultProfanityWords.size} profanity words to Redis")
             }
         } catch (e: Exception) {
-            logger.error("Failed to initialize profanity words in Redis", e)
+            logger.warn("Redis unavailable (${e.message}), using default profanity word list")
         }
     }
     
@@ -168,7 +168,7 @@ class ProfanityFilterService(
             
             words
         } catch (e: Exception) {
-            logger.error("Failed to get profanity words from Redis, using default list", e)
+            logger.warn("Redis unavailable, using default profanity list")
             defaultProfanityWords
         }
     }

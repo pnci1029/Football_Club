@@ -18,7 +18,7 @@ import type {
 
 export const communityApi = {
   // 게시글 목록 조회
-  getPosts: (teamId: number, page: number = 0, size: number = 20, keyword?: string): Promise<CommunityPostsResponse> => {
+  getPosts: (teamId: number, page: number = 0, size: number = 20, keyword?: string, isNotice?: boolean): Promise<CommunityPostsResponse> => {
     const params = new URLSearchParams({
       teamId: teamId.toString(),
       page: page.toString(),
@@ -26,6 +26,9 @@ export const communityApi = {
     });
     if (keyword) {
       params.append('keyword', keyword);
+    }
+    if (isNotice !== undefined) {
+      params.append('isNotice', isNotice.toString());
     }
 
     return api.callEndpoint<CommunityPostsResponse>({

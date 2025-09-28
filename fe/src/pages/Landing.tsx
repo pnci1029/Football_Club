@@ -96,14 +96,24 @@ const Landing: React.FC = () => {
               </div>
               <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Football Club</h1>
             </div>
-            <Button
-              variant="primary"
-              size="sm"
-              className="text-sm px-3 py-2 sm:px-4 sm:py-2 sm:text-base"
-              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              무료 체험
-            </Button>
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-sm px-3 py-2 sm:px-4 sm:py-2 sm:text-base"
+                onClick={() => window.location.href = '/community'}
+              >
+                커뮤니티
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                className="text-sm px-3 py-2 sm:px-4 sm:py-2 sm:text-base"
+                onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                무료 체험
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -132,7 +142,7 @@ const Landing: React.FC = () => {
               variant="outline"
               size="lg"
               className="w-full sm:w-auto text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8"
-              onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => window.location.href = '/community'}
             >
               데모 보기
             </Button>
@@ -164,8 +174,9 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
-      {/* 데모 섹션 - 모바일 최적화 */}
-      <section id="demo" className="py-12 sm:py-16 lg:py-20 bg-gray-50">
+
+      {/* 샘플 팀 섹션 */}
+      <section className="py-12 sm:py-16 lg:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12 lg:mb-16">
             <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
@@ -195,7 +206,7 @@ const Landing: React.FC = () => {
       </section>
 
       {/* 문의 섹션 - 모바일 최적화 */}
-      <section id="contact" className="py-12 sm:py-16 lg:py-20 bg-white">
+      <section id="contact" className="py-12 sm:py-16 lg:py-20 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
             <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">

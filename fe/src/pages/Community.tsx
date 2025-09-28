@@ -105,6 +105,7 @@ const Community: React.FC = () => {
             </Link>
           </div>
 
+
           {/* 검색 */}
           <form onSubmit={handleSearch} className="mt-4">
             <div className="flex gap-2">

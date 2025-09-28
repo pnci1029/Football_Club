@@ -378,3 +378,105 @@ export interface CommunityPostsResponse {
   first: boolean;
   last: boolean;
 }
+
+// Notice 관련 타입들
+export interface Notice {
+  id: number;
+  title: string;
+  content: string;
+  authorName: string;
+  viewCount: number;
+  commentCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NoticeDetail {
+  id: number;
+  title: string;
+  content: string;
+  authorName: string;
+  authorEmail?: string;
+  authorPhone?: string;
+  viewCount: number;
+  createdAt: string;
+  updatedAt: string;
+  comments: NoticeComment[];
+}
+
+export interface NoticeComment {
+  id: number;
+  content: string;
+  authorName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateNoticeRequest {
+  title: string;
+  content: string;
+  authorName: string;
+  authorEmail?: string;
+  authorPhone?: string;
+  authorPassword: string;
+  teamId: number;
+}
+
+export interface UpdateNoticeRequest {
+  title?: string;
+  content?: string;
+  authorPassword: string;
+  teamId: number;
+}
+
+export interface CreateNoticeCommentRequest {
+  content: string;
+  authorName: string;
+  authorEmail?: string;
+  authorPassword: string;
+  teamId: number;
+}
+
+export interface NoticeOwnershipCheckRequest {
+  authorPassword: string;
+  teamId: number;
+}
+
+export interface NoticeOwnershipCheckResponse {
+  isOwner: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
+export interface NoticesResponse {
+  content: Notice[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
+
+// AllNotice 관련 타입들 (전체 팀 공지사항 조회용)
+export interface AllNoticePost {
+  id: number;
+  title: string;
+  content: string;
+  authorName: string;
+  viewCount: number;
+  commentCount: number;
+  createdAt: string;
+  updatedAt: string;
+  teamId: number;
+  teamName: string;
+  teamSubdomain: string | null;
+  isNotice: boolean;
+}
+
+export interface TeamInfo {
+  id: number;
+  name: string;
+  subdomain: string | null;
+  description: string | null;
+}

@@ -14,7 +14,8 @@ const Navigation: React.FC = () => {
     { name: '구장', href: '/stadiums' },
     { name: '경기', href: '/matches', submenu: [
       { name: '경기 일정', href: '/matches' },
-      { name: '커뮤니티', href: '/community' }
+      { name: '커뮤니티', href: '/community' },
+      { name: '공지사항', href: '/notices' }
     ]},
   ];
 

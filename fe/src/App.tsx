@@ -23,6 +23,8 @@ import AdminHeroSlides from './pages/admin/AdminHeroSlides';
 import TenantManagement from './pages/admin/TenantManagement';
 import NotFound from './pages/NotFound';
 import Landing from './pages/Landing';
+import AllCommunityPage from './pages/AllCommunityPage';
+import Notices from './pages/Notices';
 import './App.css';
 
 import { isMainDomain } from './utils/config';
@@ -40,8 +42,14 @@ const AppContent: React.FC = () => {
                        hostname.startsWith('admin.');
 
   if (isMainDomain(hostname)) {
-    // 메인 도메인: 랜딩 페이지만 표시
-    return <Landing />;
+    // 메인 도메인: 랜딩 페이지와 전체 커뮤니티
+    return (
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/community" element={<AllCommunityPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    );
   }
 
   if (isAdminDomain) {
@@ -157,6 +165,7 @@ const AppContent: React.FC = () => {
           <Route path="/community" element={<Community />} />
           <Route path="/community/write" element={<CommunityWrite />} />
           <Route path="/community/:postId" element={<CommunityDetail />} />
+          <Route path="/notices" element={<Notices />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
