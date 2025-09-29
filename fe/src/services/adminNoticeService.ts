@@ -1,66 +1,15 @@
 import { apiClient } from './api';
-
-export interface Notice {
-  id: number;
-  title: string;
-  content: string;
-  authorName: string;
-  authorEmail?: string;
-  authorPhone?: string;
-  viewCount: number;
-  commentCount: number;
-  createdAt: string;
-  updatedAt: string;
-  teamId: number;
-  teamName: string;
-  teamSubdomain?: string;
-}
-
-export interface NoticeDetail extends Notice {
-  comments: NoticeComment[];
-}
-
-export interface NoticeComment {
-  id: number;
-  content: string;
-  authorName: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateNoticeRequest {
-  title: string;
-  content: string;
-  authorName: string;
-  authorEmail?: string;
-  authorPhone?: string;
-  authorPassword: string;
-  teamId: number;
-}
-
-export interface UpdateNoticeRequest {
-  title?: string;
-  content?: string;
-  authorPassword: string;
-  teamId: number;
-}
-
-export interface NoticeListResponse {
-  content: Notice[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
-  first: boolean;
-  last: boolean;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  errorCode?: string;
-  message?: string;
-}
+import { 
+  Notice, 
+  NoticeDetail, 
+  NoticeComment, 
+  CreateNoticeRequest, 
+  UpdateNoticeRequest, 
+  NoticeListResponse,
+  CreateNoticeCommentRequest,
+  NoticeOwnershipResponse
+} from '../types/interfaces/notice';
+import { AdminApiResponse } from '../types/interfaces/admin';
 
 class AdminNoticeService {
   // 공지사항 목록 조회 (팀별)
@@ -80,7 +29,7 @@ class AdminNoticeService {
       params.append('keyword', keyword);
     }
 
-    const response = await apiClient.get<ApiResponse<NoticeListResponse>>(`/api/v1/notices?${params}`);
+    const response = await apiClient.get<AdminApiResponse<NoticeListResponse>>(`/api/v1/notices?${params}`);
     return response.data;
   }
 
@@ -99,7 +48,7 @@ class AdminNoticeService {
       params.append('keyword', keyword);
     }
 
-    const response = await apiClient.get<ApiResponse<NoticeListResponse>>(`/api/v1/all-notices?${params}`);
+    const response = await apiClient.get<AdminApiResponse<NoticeListResponse>>(`/api/v1/all-notices?${params}`);
     return response.data;
   }
 
@@ -109,19 +58,19 @@ class AdminNoticeService {
       teamId: teamId.toString(),
     });
 
-    const response = await apiClient.get<ApiResponse<NoticeDetail>>(`/api/v1/notices/${noticeId}?${params}`);
+    const response = await apiClient.get<AdminApiResponse<NoticeDetail>>(`/api/v1/notices/${noticeId}?${params}`);
     return response.data;
   }
 
   // 공지사항 작성
   async createNotice(request: CreateNoticeRequest): Promise<Notice> {
-    const response = await apiClient.post<ApiResponse<Notice>>('/api/v1/notices', request);
+    const response = await apiClient.post<AdminApiResponse<Notice>>('/api/v1/notices', request);
     return response.data;
   }
 
   // 공지사항 수정
   async updateNotice(noticeId: number, request: UpdateNoticeRequest): Promise<Notice> {
-    const response = await apiClient.put<ApiResponse<Notice>>(`/api/v1/notices/${noticeId}`, request);
+    const response = await apiClient.put<AdminApiResponse<Notice>>(`/api/v1/notices/${noticeId}`, request);
     return response.data;
   }
 
@@ -132,7 +81,7 @@ class AdminNoticeService {
       authorPassword,
     });
 
-    await apiClient.delete<ApiResponse<string>>(`/api/v1/notices/${noticeId}?${params}`);
+    await apiClient.delete<AdminApiResponse<string>>(`/api/v1/notices/${noticeId}?${params}`);
   }
 
   // 공지사항 권한 확인
@@ -140,8 +89,8 @@ class AdminNoticeService {
     noticeId: number, 
     teamId: number, 
     authorPassword: string
-  ): Promise<{ isOwner: boolean; canEdit: boolean; canDelete: boolean }> {
-    const response = await apiClient.post<ApiResponse<{ isOwner: boolean; canEdit: boolean; canDelete: boolean }>>(`/api/v1/notices/${noticeId}/ownership`, {
+  ): Promise<NoticeOwnershipResponse> {
+    const response = await apiClient.post<AdminApiResponse<NoticeOwnershipResponse>>(`/api/v1/notices/${noticeId}/ownership`, {
       teamId,
       authorPassword,
     });
@@ -151,15 +100,9 @@ class AdminNoticeService {
   // 댓글 작성
   async createComment(
     noticeId: number,
-    request: {
-      content: string;
-      authorName: string;
-      authorEmail?: string;
-      authorPassword: string;
-      teamId: number;
-    }
+    request: CreateNoticeCommentRequest
   ): Promise<NoticeComment> {
-    const response = await apiClient.post<ApiResponse<NoticeComment>>(`/api/v1/notices/${noticeId}/comments`, request);
+    const response = await apiClient.post<AdminApiResponse<NoticeComment>>(`/api/v1/notices/${noticeId}/comments`, request);
     return response.data;
   }
 
@@ -170,7 +113,7 @@ class AdminNoticeService {
       authorPassword,
     });
 
-    await apiClient.delete<ApiResponse<string>>(`/api/v1/notices/comments/${commentId}?${params}`);
+    await apiClient.delete<AdminApiResponse<string>>(`/api/v1/notices/comments/${commentId}?${params}`);
   }
 }
 
