@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Card } from '../../components/common';
 import { adminTeamService, AdminTeam } from '../../services/adminTeamService';
 import { adminService } from '../../services/adminService';
+import { adminNoticeService, Notice } from '../../services/adminNoticeService';
 import { StadiumDto } from '../../types/interfaces/admin/index';
 import TeamEditModal from '../../components/admin/TeamEditModal';
 import StadiumCreateModal from '../../components/admin/StadiumCreateModal';
@@ -15,7 +16,9 @@ const AdminTeamDetail: React.FC = () => {
   
   const [team, setTeam] = useState<AdminTeam | null>(null);
   const [stadiums, setStadiums] = useState<StadiumDto[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'overview' | 'stadiums' | 'notices' | 'players'>('overview');
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateStadiumModal, setShowCreateStadiumModal] = useState(false);
   const [showEditStadiumModal, setShowEditStadiumModal] = useState(false);
@@ -23,6 +26,13 @@ const AdminTeamDetail: React.FC = () => {
   const [showDeleteStadiumModal, setShowDeleteStadiumModal] = useState(false);
   const [deletingStadium, setDeletingStadium] = useState<StadiumDto | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [noticeForm, setNoticeForm] = useState({
+    title: '',
+    content: '',
+    authorName: '관리자',
+    authorPassword: '',
+  });
+  const [showNoticeForm, setShowNoticeForm] = useState(false);
 
   useEffect(() => {
     if (teamId) {
@@ -30,6 +40,12 @@ const AdminTeamDetail: React.FC = () => {
       loadTeamStadiums();
     }
   }, [teamId]);
+
+  useEffect(() => {
+    if (teamId && activeTab === 'notices') {
+      loadTeamNotices();
+    }
+  }, [teamId, activeTab]);
 
   const loadTeamDetails = async () => {
     try {
@@ -53,6 +69,16 @@ const AdminTeamDetail: React.FC = () => {
       setStadiums(response.content);
     } catch (error) {
       console.error('Error loading team stadiums:', error);
+    }
+  };
+
+  const loadTeamNotices = async () => {
+    try {
+      const response = await adminNoticeService.getNoticesByTeam(parseInt(teamId!), 0, 10);
+      setNotices(response.content);
+    } catch (error) {
+      console.error('Error loading team notices:', error);
+      setNotices([]); // 오류 시 빈 배열로 설정
     }
   };
 
@@ -107,6 +133,40 @@ const AdminTeamDetail: React.FC = () => {
 
   const handleViewPlayers = () => {
     navigate(`/admin/players?teamId=${teamId}`);
+  };
+
+  const handleNoticeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!noticeForm.title.trim() || !noticeForm.content.trim() || !noticeForm.authorPassword) {
+      alert('모든 필드를 입력해주세요.');
+      return;
+    }
+
+    try {
+      await adminNoticeService.createNotice({
+        title: noticeForm.title,
+        content: noticeForm.content,
+        authorName: noticeForm.authorName,
+        authorPassword: noticeForm.authorPassword,
+        teamId: parseInt(teamId!),
+      });
+      
+      alert('공지사항이 성공적으로 작성되었습니다.');
+      setNoticeForm({ title: '', content: '', authorName: '관리자', authorPassword: '' });
+      setShowNoticeForm(false);
+      loadTeamNotices();
+    } catch (error) {
+      alert('공지사항 작성에 실패했습니다.');
+      console.error('Error creating notice:', error);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
   };
 
   if (loading) {
@@ -177,7 +237,7 @@ const AdminTeamDetail: React.FC = () => {
       </div>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">{team.playerCount || 0}</div>
@@ -192,121 +252,327 @@ const AdminTeamDetail: React.FC = () => {
         </Card>
         <Card>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">0</div>
+            <div className="text-2xl font-bold text-blue-600">{notices.length}</div>
+            <div className="text-sm text-gray-600">공지사항</div>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-orange-600">0</div>
             <div className="text-sm text-gray-600">예정 경기</div>
           </div>
         </Card>
       </div>
 
-      {/* 액션 버튼들 */}
-      <div className="flex gap-3">
-        <Button 
-          className="bg-green-600 hover:bg-green-700"
-          onClick={handleViewPlayers}
-        >
-          <span className="mr-2">👥</span>
-          선수 관리
-        </Button>
-        <Button 
-          className="bg-purple-600 hover:bg-purple-700"
-          onClick={handleCreateStadium}
-        >
-          <span className="mr-2">🏟️</span>
-          구장 추가
-        </Button>
-        <Button 
-          variant="outline"
-          className="text-orange-600 border-orange-200 hover:bg-orange-50"
-          onClick={() => navigate(`/admin/hero-slides/${teamId}`)}
-        >
-          <span className="mr-2">🎬</span>
-          슬라이드 관리
-        </Button>
+      {/* 탭 네비게이션 */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          {[
+            { key: 'overview', label: '개요', icon: '📊' },
+            { key: 'stadiums', label: '구장 관리', icon: '🏟️' },
+            { key: 'notices', label: '공지사항', icon: '📢' },
+            { key: 'players', label: '선수 관리', icon: '👥' },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key as any)}
+              className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                activeTab === tab.key
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <span className="mr-2">{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
-      {/* 구장 목록 */}
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900">보유 구장</h2>
-          <Button
-            size="sm"
-            className="bg-purple-600 hover:bg-purple-700"
-            onClick={handleCreateStadium}
-          >
-            <span className="mr-1">➕</span>
-            구장 추가
-          </Button>
-        </div>
-
-        {stadiums.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {stadiums.map((stadium) => (
-              <div key={stadium.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="mb-3">
-                  <h3 className="font-bold text-gray-900 mb-1">{stadium.name}</h3>
-                  <p className="text-gray-600 text-sm mb-2">{stadium.address}</p>
-                  <div className="flex justify-between items-center text-sm text-gray-500">
-                    <span>시간당: {stadium.hourlyRate?.toLocaleString()}원</span>
-                    <span>{stadium.availableHours}</span>
+      {/* 탭별 컨텐츠 */}
+      {activeTab === 'overview' && (
+        <div className="space-y-6">
+          <Card>
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">팀 개요</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">기본 정보</h3>
+                  <div className="space-y-2 text-sm">
+                    <div><span className="font-medium">팀명:</span> {team.name}</div>
+                    <div><span className="font-medium">코드:</span> {team.code}</div>
+                    <div><span className="font-medium">설명:</span> {team.description}</div>
+                    <div><span className="font-medium">생성일:</span> {new Date(team.createdAt).toLocaleDateString('ko-KR')}</div>
                   </div>
                 </div>
-                
-                {stadium.facilities && stadium.facilities.length > 0 && (
-                  <div className="mb-3">
-                    <div className="flex flex-wrap gap-1">
-                      {stadium.facilities.slice(0, 3).map((facility, index) => (
-                        <span 
-                          key={index}
-                          className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"
-                        >
-                          {facility}
-                        </span>
-                      ))}
-                      {stadium.facilities.length > 3 && (
-                        <span className="text-xs text-gray-500">
-                          +{stadium.facilities.length - 3}개
-                        </span>
-                      )}
-                    </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">빠른 액션</h3>
+                  <div className="space-y-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setActiveTab('players')}
+                      className="w-full justify-start"
+                    >
+                      👥 선수 관리
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setActiveTab('stadiums')}
+                      className="w-full justify-start"
+                    >
+                      🏟️ 구장 관리
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setActiveTab('notices')}
+                      className="w-full justify-start"
+                    >
+                      📢 공지사항 관리
+                    </Button>
                   </div>
-                )}
-
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
-                    onClick={() => handleEditStadium(stadium)}
-                  >
-                    <span className="mr-1">✏️</span>
-                    수정
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="text-red-600 border-red-200 hover:bg-red-50"
-                    onClick={() => handleDeleteStadium(stadium)}
-                  >
-                    🗑️
-                  </Button>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <div className="text-gray-400 text-4xl mb-2">🏟️</div>
-            <p className="text-gray-600 mb-4">등록된 구장이 없습니다</p>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {activeTab === 'stadiums' && (
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900">보유 구장</h2>
             <Button
+              size="sm"
               className="bg-purple-600 hover:bg-purple-700"
               onClick={handleCreateStadium}
             >
-              <span className="mr-2">➕</span>
-              첫 번째 구장 추가하기
+              <span className="mr-1">➕</span>
+              구장 추가
             </Button>
           </div>
-        )}
-      </Card>
+
+          {stadiums.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {stadiums.map((stadium) => (
+                <div key={stadium.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="mb-3">
+                    <h3 className="font-bold text-gray-900 mb-1">{stadium.name}</h3>
+                    <p className="text-gray-600 text-sm mb-2">{stadium.address}</p>
+                    <div className="flex justify-between items-center text-sm text-gray-500">
+                      <span>시간당: {stadium.hourlyRate?.toLocaleString()}원</span>
+                      <span>{stadium.availableHours}</span>
+                    </div>
+                  </div>
+                  
+                  {stadium.facilities && stadium.facilities.length > 0 && (
+                    <div className="mb-3">
+                      <div className="flex flex-wrap gap-1">
+                        {stadium.facilities.slice(0, 3).map((facility, index) => (
+                          <span 
+                            key={index}
+                            className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"
+                          >
+                            {facility}
+                          </span>
+                        ))}
+                        {stadium.facilities.length > 3 && (
+                          <span className="text-xs text-gray-500">
+                            +{stadium.facilities.length - 3}개
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+                      onClick={() => handleEditStadium(stadium)}
+                    >
+                      <span className="mr-1">✏️</span>
+                      수정
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                      onClick={() => handleDeleteStadium(stadium)}
+                    >
+                      🗑️
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-gray-400 text-4xl mb-2">🏟️</div>
+              <p className="text-gray-600 mb-4">등록된 구장이 없습니다</p>
+              <Button
+                className="bg-purple-600 hover:bg-purple-700"
+                onClick={handleCreateStadium}
+              >
+                <span className="mr-2">➕</span>
+                첫 번째 구장 추가하기
+              </Button>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {activeTab === 'notices' && (
+        <div className="space-y-6">
+          {/* 공지사항 작성 폼 */}
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">공지사항 관리</h2>
+              <Button
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setShowNoticeForm(!showNoticeForm)}
+              >
+                <span className="mr-1">📝</span>
+                {showNoticeForm ? '취소' : '새 공지사항 작성'}
+              </Button>
+            </div>
+
+            {showNoticeForm && (
+              <form onSubmit={handleNoticeSubmit} className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      제목 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={noticeForm.title}
+                      onChange={(e) => setNoticeForm(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="공지사항 제목을 입력하세요"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      내용 <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={noticeForm.content}
+                      onChange={(e) => setNoticeForm(prev => ({ ...prev, content: e.target.value }))}
+                      rows={6}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="공지사항 내용을 입력하세요"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        작성자명 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={noticeForm.authorName}
+                        onChange={(e) => setNoticeForm(prev => ({ ...prev, authorName: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        비밀번호 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        value={noticeForm.authorPassword}
+                        onChange={(e) => setNoticeForm(prev => ({ ...prev, authorPassword: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="수정/삭제시 사용할 비밀번호"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowNoticeForm(false)}
+                    >
+                      취소
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      공지사항 등록
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            {/* 공지사항 목록 */}
+            {notices.length > 0 ? (
+              <div className="space-y-4">
+                {notices.map((notice) => (
+                  <div key={notice.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-gray-900">{notice.title}</h3>
+                      <span className="text-sm text-gray-500">{formatDate(notice.createdAt)}</span>
+                    </div>
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                      {notice.content.length > 100 
+                        ? `${notice.content.substring(0, 100)}...` 
+                        : notice.content
+                      }
+                    </p>
+                    <div className="flex justify-between items-center text-sm text-gray-500">
+                      <div>
+                        <span className="mr-4">작성자: {notice.authorName}</span>
+                        <span className="mr-4">조회: {notice.viewCount}</span>
+                        <span>댓글: {notice.commentCount}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-gray-400 text-4xl mb-2">📢</div>
+                <p className="text-gray-600 mb-4">등록된 공지사항이 없습니다</p>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setShowNoticeForm(true)}
+                >
+                  <span className="mr-2">📝</span>
+                  첫 번째 공지사항 작성하기
+                </Button>
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
+
+      {activeTab === 'players' && (
+        <Card>
+          <div className="text-center py-12">
+            <div className="text-gray-400 text-6xl mb-4">👥</div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">선수 관리</h3>
+            <p className="text-gray-600 mb-4">이 팀의 선수들을 관리할 수 있습니다</p>
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={handleViewPlayers}
+            >
+              선수 관리 페이지로 이동
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {/* 팀 수정 모달 */}
       <TeamEditModal
