@@ -4,7 +4,8 @@ import {
   NoticeDetail, 
   NoticeComment, 
   CreateNoticeRequest, 
-  UpdateNoticeRequest, 
+  UpdateNoticeRequest,
+  AdminUpdateNoticeRequest,
   NoticeListResponse,
   CreateNoticeCommentRequest,
   NoticeOwnershipResponse
@@ -114,6 +115,71 @@ class AdminNoticeService {
     });
 
     await apiClient.delete<AdminApiResponse<string>>(`/api/v1/notices/comments/${commentId}?${params}`);
+  }
+
+  // === 관리자용 메서드들 (비밀번호 불필요) ===
+
+  // 관리자용 전체 공지사항 목록 조회
+  async getAllNoticesForAdmin(
+    page: number = 0,
+    size: number = 20,
+    keyword?: string
+  ): Promise<NoticeListResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    if (keyword) {
+      params.append('keyword', keyword);
+    }
+
+    const response = await apiClient.get<AdminApiResponse<NoticeListResponse>>(`/api/v1/admin/notices?${params}`);
+    return response.data;
+  }
+
+  // 관리자용 팀별 공지사항 목록 조회
+  async getNoticesByTeamForAdmin(
+    teamId: number,
+    page: number = 0,
+    size: number = 20,
+    keyword?: string
+  ): Promise<NoticeListResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    if (keyword) {
+      params.append('keyword', keyword);
+    }
+
+    const response = await apiClient.get<AdminApiResponse<NoticeListResponse>>(`/api/v1/admin/notices/team/${teamId}?${params}`);
+    return response.data;
+  }
+
+  // 관리자용 공지사항 수정 (비밀번호 불필요)
+  async adminUpdateNotice(noticeId: number, request: AdminUpdateNoticeRequest): Promise<Notice> {
+    const response = await apiClient.put<AdminApiResponse<Notice>>(`/api/v1/admin/notices/${noticeId}`, request);
+    return response.data;
+  }
+
+  // 관리자용 공지사항 삭제 (비밀번호 불필요)
+  async adminDeleteNotice(teamId: number, noticeId: number): Promise<void> {
+    const params = new URLSearchParams({
+      teamId: teamId.toString(),
+    });
+
+    await apiClient.delete<AdminApiResponse<string>>(`/api/v1/admin/notices/${noticeId}?${params}`);
+  }
+
+  // 관리자용 댓글 삭제 (비밀번호 불필요)
+  async adminDeleteComment(teamId: number, commentId: number): Promise<void> {
+    const params = new URLSearchParams({
+      teamId: teamId.toString(),
+    });
+
+    await apiClient.delete<AdminApiResponse<string>>(`/api/v1/admin/notices/comments/${commentId}?${params}`);
   }
 }
 

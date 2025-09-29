@@ -43,6 +43,12 @@ export interface UpdateNoticeRequest {
   teamId: number;
 }
 
+export interface AdminUpdateNoticeRequest {
+  title?: string;
+  content?: string;
+  teamId: number;
+}
+
 export interface NoticeListResponse {
   content: Notice[];
   totalElements: number;

@@ -25,6 +25,7 @@ import NotFound from './pages/NotFound';
 import Landing from './pages/Landing';
 import AllCommunityPage from './pages/AllCommunityPage';
 import Notices from './pages/Notices';
+import NoticeDetail from './pages/NoticeDetail';
 import './App.css';
 
 import { isMainDomain } from './utils/config';
@@ -166,6 +167,7 @@ const AppContent: React.FC = () => {
           <Route path="/community/write" element={<CommunityWrite />} />
           <Route path="/community/:postId" element={<CommunityDetail />} />
           <Route path="/notices" element={<Notices />} />
+          <Route path="/notices/:noticeId" element={<NoticeDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

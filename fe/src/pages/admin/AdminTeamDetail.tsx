@@ -10,10 +10,13 @@ import TeamEditModal from '../../components/admin/TeamEditModal';
 import StadiumCreateModal from '../../components/admin/StadiumCreateModal';
 import StadiumEditModal from '../../components/admin/StadiumEditModal';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
+import { useToast } from '../../components/Toast';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const AdminTeamDetail: React.FC = () => {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
+  const { showToast, ToastContainer, success, error, warning } = useToast();
   
   const [team, setTeam] = useState<AdminTeam | null>(null);
   const [stadiums, setStadiums] = useState<StadiumDto[]>([]);
@@ -26,7 +29,8 @@ const AdminTeamDetail: React.FC = () => {
   const [editingStadium, setEditingStadium] = useState<StadiumDto | null>(null);
   const [showDeleteStadiumModal, setShowDeleteStadiumModal] = useState(false);
   const [deletingStadium, setDeletingStadium] = useState<StadiumDto | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showDeleteNoticeModal, setShowDeleteNoticeModal] = useState(false);
+  const [deletingNotice, setDeletingNotice] = useState<Notice | null>(null);
   const [noticeForm, setNoticeForm] = useState({
     title: '',
     content: '',
@@ -34,18 +38,22 @@ const AdminTeamDetail: React.FC = () => {
     authorPassword: '',
   });
   const [showNoticeForm, setShowNoticeForm] = useState(false);
+  const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
+  const [showEditNoticeForm, setShowEditNoticeForm] = useState(false);
 
   useEffect(() => {
     if (teamId) {
       loadTeamDetails();
       loadTeamStadiums();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamId]);
 
   useEffect(() => {
     if (teamId && activeTab === 'notices') {
       loadTeamNotices();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamId, activeTab]);
 
   const loadTeamDetails = async () => {
@@ -57,8 +65,8 @@ const AdminTeamDetail: React.FC = () => {
       } else {
         console.error('Failed to load team details');
       }
-    } catch (error) {
-      console.error('Error loading team details:', error);
+    } catch (err) {
+      console.error('Error loading team details:', err);
     } finally {
       setLoading(false);
     }
@@ -68,16 +76,16 @@ const AdminTeamDetail: React.FC = () => {
     try {
       const response = await adminService.getStadiumsByTeam(parseInt(teamId!), 0, 100);
       setStadiums(response.content);
-    } catch (error) {
+    } catch (err) {
       console.error('Error loading team stadiums:', error);
     }
   };
 
   const loadTeamNotices = async () => {
     try {
-      const response = await adminNoticeService.getNoticesByTeam(parseInt(teamId!), 0, 10);
+      const response = await adminNoticeService.getNoticesByTeamForAdmin(parseInt(teamId!), 0, 10);
       setNotices(response.content);
-    } catch (error) {
+    } catch (err) {
       console.error('Error loading team notices:', error);
       setNotices([]); // 오류 시 빈 배열로 설정
     }
@@ -113,24 +121,6 @@ const AdminTeamDetail: React.FC = () => {
     setShowDeleteStadiumModal(true);
   };
 
-  const confirmDeleteStadium = async () => {
-    if (!deletingStadium) return;
-    
-    setDeleteLoading(true);
-    try {
-      // adminStadiumService.deleteStadium 호출
-      // const response = await adminStadiumService.deleteStadium(deletingStadium.id);
-      // if (response.success) {
-        loadTeamStadiums();
-        setShowDeleteStadiumModal(false);
-        setDeletingStadium(null);
-      // }
-    } catch (error) {
-      console.error('Failed to delete stadium:', error);
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
 
   const handleViewPlayers = () => {
     navigate(`/admin/players?teamId=${teamId}`);
@@ -139,7 +129,7 @@ const AdminTeamDetail: React.FC = () => {
   const handleNoticeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!noticeForm.title.trim() || !noticeForm.content.trim() || !noticeForm.authorPassword) {
-      alert('모든 필드를 입력해주세요.');
+      warning('모든 필드를 입력해주세요.');
       return;
     }
 
@@ -152,13 +142,13 @@ const AdminTeamDetail: React.FC = () => {
         teamId: parseInt(teamId!),
       });
       
-      alert('공지사항이 성공적으로 작성되었습니다.');
+      success('공지사항이 성공적으로 작성되었습니다.');
       setNoticeForm({ title: '', content: '', authorName: '관리자', authorPassword: '' });
       setShowNoticeForm(false);
       loadTeamNotices();
-    } catch (error) {
-      alert('공지사항 작성에 실패했습니다.');
-      console.error('Error creating notice:', error);
+    } catch (err) {
+      error('공지사항 작성에 실패했습니다.');
+      console.error('Error creating notice:', err);
     }
   };
 
@@ -168,6 +158,63 @@ const AdminTeamDetail: React.FC = () => {
       month: '2-digit',
       day: '2-digit',
     });
+  };
+
+  const handleEditNotice = (notice: Notice) => {
+    setEditingNotice(notice);
+    setNoticeForm({
+      title: notice.title,
+      content: notice.content,
+      authorName: notice.authorName,
+      authorPassword: '', // 관리자는 비밀번호 필요없음
+    });
+    setShowEditNoticeForm(true);
+  };
+
+  const handleUpdateNotice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingNotice || !noticeForm.title.trim() || !noticeForm.content.trim()) {
+      warning('제목과 내용을 입력해주세요.');
+      return;
+    }
+
+    try {
+      await adminNoticeService.adminUpdateNotice(editingNotice.id, {
+        title: noticeForm.title,
+        content: noticeForm.content,
+        teamId: parseInt(teamId!),
+      });
+      
+      success('공지사항이 성공적으로 수정되었습니다.');
+      setNoticeForm({ title: '', content: '', authorName: '관리자', authorPassword: '' });
+      setShowEditNoticeForm(false);
+      setEditingNotice(null);
+      loadTeamNotices();
+    } catch (err) {
+      error('공지사항 수정에 실패했습니다.');
+      console.error('Error updating notice:', err);
+    }
+  };
+
+  const handleDeleteNotice = (notice: Notice) => {
+    setDeletingNotice(notice);
+    setShowDeleteNoticeModal(true);
+  };
+
+  const confirmDeleteNotice = async () => {
+    if (!deletingNotice) return;
+
+    try {
+      await adminNoticeService.adminDeleteNotice(parseInt(teamId!), deletingNotice.id);
+      success('공지사항이 성공적으로 삭제되었습니다.');
+      loadTeamNotices();
+    } catch (err) {
+      error('공지사항 삭제에 실패했습니다.');
+      console.error('Error deleting notice:', err);
+    } finally {
+      setShowDeleteNoticeModal(false);
+      setDeletingNotice(null);
+    }
   };
 
   if (loading) {
@@ -442,6 +489,60 @@ const AdminTeamDetail: React.FC = () => {
               </Button>
             </div>
 
+            {/* 공지사항 수정 폼 */}
+            {showEditNoticeForm && editingNotice && (
+              <form onSubmit={handleUpdateNotice} className="mb-6 p-4 border border-gray-200 rounded-lg bg-blue-50">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">공지사항 수정</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      제목 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={noticeForm.title}
+                      onChange={(e) => setNoticeForm(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="공지사항 제목을 입력하세요"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      내용 <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={noticeForm.content}
+                      onChange={(e) => setNoticeForm(prev => ({ ...prev, content: e.target.value }))}
+                      rows={6}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="공지사항 내용을 입력하세요"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setShowEditNoticeForm(false);
+                        setEditingNotice(null);
+                        setNoticeForm({ title: '', content: '', authorName: '관리자', authorPassword: '' });
+                      }}
+                    >
+                      취소
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      수정 완료
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            )}
+
             {showNoticeForm && (
               <form onSubmit={handleNoticeSubmit} className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
                 <div className="space-y-4">
@@ -538,6 +639,24 @@ const AdminTeamDetail: React.FC = () => {
                         <span className="mr-4">조회: {notice.viewCount}</span>
                         <span>댓글: {notice.commentCount}</span>
                       </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                          onClick={() => handleEditNotice(notice)}
+                        >
+                          수정
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                          onClick={() => handleDeleteNotice(notice)}
+                        >
+                          삭제
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -609,7 +728,6 @@ const AdminTeamDetail: React.FC = () => {
         title="구장 삭제"
         itemName={deletingStadium?.name || ''}
         itemType="구장"
-        loading={deleteLoading}
         stadiumId={deletingStadium?.id}
         onSuccess={() => {
           loadTeamStadiums();
@@ -617,6 +735,24 @@ const AdminTeamDetail: React.FC = () => {
           setDeletingStadium(null);
         }}
       />
+
+      {/* 공지사항 삭제 확인 모달 */}
+      <ConfirmModal
+        isOpen={showDeleteNoticeModal}
+        title="공지사항 삭제"
+        message={`"${deletingNotice?.title}" 공지사항을 삭제하시겠습니까?`}
+        confirmText="삭제"
+        cancelText="취소"
+        onConfirm={confirmDeleteNotice}
+        onCancel={() => {
+          setShowDeleteNoticeModal(false);
+          setDeletingNotice(null);
+        }}
+        type="danger"
+      />
+
+      {/* 토스트 컨테이너 */}
+      <ToastContainer />
     </div>
   );
 };
