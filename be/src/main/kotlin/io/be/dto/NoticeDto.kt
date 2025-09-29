@@ -228,3 +228,10 @@ data class CreateNoticeCommentRequestDto(
     val authorPassword: String,
     val teamId: Long
 )
+
+// 관리자용 공지사항 수정 요청 DTO (비밀번호 불필요)
+data class AdminUpdateNoticeRequestDto(
+    val title: String? = null,
+    val content: String? = null,
+    val teamId: Long
+)

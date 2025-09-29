@@ -2,8 +2,10 @@ package io.be.service
 
 import io.be.entity.Notice
 import io.be.entity.NoticeComment
+import io.be.entity.Team
 import io.be.repository.NoticeRepository
 import io.be.repository.NoticeCommentRepository
+import io.be.repository.TeamRepository
 import io.be.exception.ResourceNotFoundException
 import io.be.exception.InvalidRequestException
 import io.be.dto.*
@@ -11,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class NoticeService(
     private val noticeRepository: NoticeRepository,
     private val commentRepository: NoticeCommentRepository,
+    private val teamRepository: TeamRepository,
     private val profanityFilterService: ProfanityFilterService
 ) {
     
@@ -54,6 +58,32 @@ class NoticeService(
         return notices.map { notice ->
             val commentCount = commentRepository.countByNoticeIdAndIsActiveTrue(notice.id)
             NoticeResponse.from(notice, commentCount)
+        }
+    }
+
+    /**
+     * 전체 팀의 공지사항 목록 조회 (관리자용)
+     */
+    @Transactional(readOnly = true)
+    fun getAllNotices(page: Int, size: Int, keyword: String? = null): Page<AllNoticeResponse> {
+        logger.info("Fetching all notices - page: $page, size: $size, keyword: $keyword")
+        val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
+        
+        val notices = if (keyword.isNullOrBlank()) {
+            noticeRepository.findByIsActiveTrueOrderByCreatedAtDesc(pageable)
+        } else {
+            noticeRepository.findByIsActiveTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
+                keyword.trim(), keyword.trim(), pageable
+            )
+        }
+
+        logger.info("Found ${notices.totalElements} notices across all teams")
+
+        return notices.map { notice ->
+            val team = teamRepository.findById(notice.teamId).orElse(null)
+            val commentCount = commentRepository.countByNoticeIdAndIsActiveTrue(notice.id)
+            
+            AllNoticeResponse.from(notice, team, commentCount)
         }
     }
 
@@ -385,5 +415,76 @@ class NoticeService(
             logger.error("Password verification failed for commentId: $commentId", e)
             false
         }
+    }
+
+    /**
+     * 관리자용 공지사항 수정 (비밀번호 검증 없음)
+     */
+    fun adminUpdateNotice(noticeId: Long, teamId: Long, title: String?, content: String?): NoticeResponse {
+        val notice = noticeRepository.findByIdAndTeamIdAndIsActiveTrue(noticeId, teamId)
+            ?: throw ResourceNotFoundException("공지사항을 찾을 수 없습니다.")
+
+        // 제목, 내용 검증
+        title?.let {
+            if (it.isBlank() || it.length > 200) {
+                throw InvalidRequestException("title", it, "제목이 올바르지 않습니다.")
+            }
+        }
+        content?.let {
+            if (it.isBlank() || it.length > 10000) {
+                throw InvalidRequestException("content", it, "내용이 올바르지 않습니다.")
+            }
+        }
+        
+        // 비속어 필터링 검사
+        val profanityValidation = profanityFilterService.validateContent(title, content)
+        if (!profanityValidation.isValid) {
+            val violationMessage = profanityValidation.violations.firstOrNull() ?: "부적절한 표현이 포함되어 있습니다."
+            throw InvalidRequestException("content", "profanity", violationMessage)
+        }
+
+        val updatedNotice = notice.copy(
+            title = title?.trim() ?: notice.title,
+            content = content?.trim() ?: notice.content,
+            updatedAt = LocalDateTime.now()
+        )
+
+        val savedNotice = noticeRepository.save(updatedNotice)
+        val commentCount = commentRepository.countByNoticeIdAndIsActiveTrue(savedNotice.id)
+
+        logger.info("Admin updated notice: $noticeId for team: $teamId")
+        return NoticeResponse.from(savedNotice, commentCount)
+    }
+
+    /**
+     * 관리자용 공지사항 삭제 (비밀번호 검증 없음)
+     */
+    fun adminDeleteNotice(teamId: Long, noticeId: Long) {
+        val notice = noticeRepository.findByIdAndTeamIdAndIsActiveTrue(noticeId, teamId)
+            ?: throw ResourceNotFoundException("공지사항을 찾을 수 없습니다.")
+
+        val deactivatedNotice = notice.copy(
+            isActive = false,
+            updatedAt = LocalDateTime.now()
+        )
+
+        noticeRepository.save(deactivatedNotice)
+        logger.info("Admin deleted notice: $noticeId for team: $teamId")
+    }
+
+    /**
+     * 관리자용 댓글 삭제 (비밀번호 검증 없음)
+     */
+    fun adminDeleteComment(teamId: Long, commentId: Long) {
+        val comment = commentRepository.findByIdAndTeamId(commentId, teamId)
+            ?: throw ResourceNotFoundException("댓글을 찾을 수 없습니다.")
+
+        val deactivatedComment = comment.copy(
+            isActive = false,
+            updatedAt = LocalDateTime.now()
+        )
+
+        commentRepository.save(deactivatedComment)
+        logger.info("Admin deleted comment: $commentId for team: $teamId")
     }
 }

@@ -20,19 +20,20 @@ class ProfanityFilterService(
     }
     
     private val defaultProfanityWords = setOf(
-        // 기본 비속어 목록
-        "시발", "씨발", "시팔", "씨팔", "ㅅㅂ", "ㅆㅂ",
-        "개새끼", "개놈", "개년", "개자식", "개빢",
-        "병신", "븅신", "ㅂㅅ", "멍청이", "바보",
-        "좆", "좇", "존나", "ㅈㄴ", "지랄", "ㅈㄹ",
-        "꺼져", "닥쳐", "죽어", "뒤져",
-        "개똥", "똥개", "쓰레기", "애미", "애비",
-        "호로", "창녀", "걸레", "썅", "새끼",
-        "미친", "또라이", "정신병", "정신나간",
-        "한남", "한녀", "페미", "맘충", "틀딱",
-        "급식충", "일베", "좌좀", "우좀", "종북",
-        "닌겐", "쪽발이", "쪽빨이", "원숭이",
-        "fuck", "shit", "bitch", "damn", "ass"
+        // 기본 비속어 목록 (강화된 버전)
+        "시발", "씨발", "시팔", "씨팔", "ㅅㅂ", "ㅆㅂ", "시1발", "씨1발", "s발", "씨8", "시8", "뭐시발", "뭐씨발",
+        "개새끼", "개놈", "개년", "개자식", "개빢", "개세끼", "개쉐이", "개시끼", "갸새끼", "개새키", "ㄱㅐ새끼",
+        "병신", "븅신", "ㅂㅅ", "멍청이", "바보", "벼신", "병1신", "병8신", "ㅂㅇ신",
+        "좆", "좇", "존나", "ㅈㄴ", "지랄", "ㅈㄹ", "좃", "조까", "좆까", "존1나", "ㅈ같", "좆같",
+        "꺼져", "닥쳐", "죽어", "뒤져", "꺼지라", "닥치라", "뒈져", "디져", "뒤1져",
+        "개똥", "똥개", "쓰레기", "애미", "애비", "에미", "에비", "애1미", "어미", "아비",
+        "호로", "창녀", "걸레", "썅", "새끼", "새1끼", "쌔끼", "색히", "ㅅㅐ끼",
+        "미친", "또라이", "정신병", "정신나간", "미1친", "ㅁㅊ", "미쳤", "또라인",
+        "한남", "한녀", "페미", "맘충", "틀딱", "급식충", "일베", "좌좀", "우좀", "종북",
+        "닌겐", "쪽발이", "쪽빨이", "원숭이", "쪽팔이", "쫄보", "찌질이",
+        "fuck", "shit", "bitch", "damn", "ass", "pussy", "cunt", "faggot", "nigger",
+        // 특수문자로 변형된 버전들
+        "씨8ㅏㄹ", "ㅅ1ㅂ", "ㅂ1ㅅ", "ㅈ1ㄴ", "ㅈ1ㄹ", "개1년", "새1끼"
     )
     
     @PostConstruct
@@ -56,12 +57,25 @@ class ProfanityFilterService(
         if (text.isBlank()) return false
         
         try {
-            val cleanText = text.replace(Regex("[^가-힣a-zA-Z0-9\\s]"), "").lowercase()
+            // 다양한 형태로 텍스트 정리
+            val normalizedTexts = listOf(
+                text.lowercase(), // 원본 소문자
+                text.replace(Regex("[^가-힣a-zA-Z0-9\\s]"), "").lowercase(), // 특수문자 제거
+                text.replace(Regex("\\s"), "").lowercase(), // 공백 제거
+                text.replace(Regex("[^가-힣a-zA-Z0-9]"), "").lowercase(), // 특수문자와 공백 모두 제거
+                text.replace(Regex("[0-9]"), "").lowercase(), // 숫자 제거
+                text.replace(Regex("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~`]"), "").lowercase() // 특수문자만 제거
+            )
+            
             val profanityWords = getProfanityWords()
             
             return profanityWords.any { word ->
-                cleanText.contains(word.lowercase()) ||
-                cleanText.replace("\\s".toRegex(), "").contains(word.lowercase().replace("\\s".toRegex(), ""))
+                val normalizedWord = word.lowercase()
+                normalizedTexts.any { normalizedText ->
+                    normalizedText.contains(normalizedWord) ||
+                    // 자음/모음 분리 검사
+                    normalizedText.replace(Regex("\\s"), "").contains(normalizedWord.replace(Regex("\\s"), ""))
+                }
             }
         } catch (e: Exception) {
             logger.error("Error checking profanity for text: ${text.take(50)}...", e)
