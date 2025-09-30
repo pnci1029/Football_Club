@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTeam } from '../contexts/TeamContext';
 import { communityApi } from '../api/modules/community';
 import { communityAuthManager } from '../utils/communityAuth';
-import { getErrorMessage } from '../utils/errorHandler';
+import { getErrorMessage, NetworkError } from '../utils/errorHandler';
 
 const CommunityWrite: React.FC = () => {
   const navigate = useNavigate();
@@ -57,7 +57,7 @@ const CommunityWrite: React.FC = () => {
           authorPassword: '' // 보안상 비밀번호는 초기화
         });
       } catch (err) {
-        const errorMessage = getErrorMessage(err);
+        const errorMessage = getErrorMessage(err as NetworkError);
         setError(errorMessage);
         navigate('/community');
       } finally {
@@ -126,7 +126,7 @@ const CommunityWrite: React.FC = () => {
         });
       }
     } catch (err) {
-      const errorMessage = getErrorMessage(err);
+      const errorMessage = getErrorMessage(err as NetworkError);
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);

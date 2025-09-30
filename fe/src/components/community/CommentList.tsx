@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { CommunityComment } from '../../api/types';
-import { getErrorMessage } from '../../utils/errorHandler';
+import { getErrorMessage, NetworkError } from '../../utils/errorHandler';
 
 interface CommentListProps {
   comments: CommunityComment[];
@@ -64,7 +64,7 @@ const CommentList: React.FC<CommentListProps> = ({ comments, onDeleteComment, is
       setDeleteCommentPassword('');
       setCommentMenuOpen(null);
     } catch (err) {
-      const errorMessage = getErrorMessage(err);
+      const errorMessage = getErrorMessage(err as NetworkError);
       setDeleteError(errorMessage);
     }
   };

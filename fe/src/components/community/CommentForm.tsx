@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getErrorMessage } from '../../utils/errorHandler';
+import { getErrorMessage, NetworkError } from '../../utils/errorHandler';
 
 interface CommentFormProps {
   onSubmit: (comment: { content: string; authorName: string; authorPassword: string }) => Promise<void>;
@@ -45,7 +45,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ onSubmit, isSubmitting }) => 
         authorPassword: ''
       });
     } catch (err) {
-      const errorMessage = getErrorMessage(err);
+      const errorMessage = getErrorMessage(err as NetworkError);
       setError(errorMessage);
     }
   };
