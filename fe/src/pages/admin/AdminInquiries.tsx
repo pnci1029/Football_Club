@@ -103,7 +103,7 @@ const AdminInquiries: React.FC = () => {
       setLoading(true);
       const response = selectedStatus === 'all' 
         ? await adminInquiryService.getAllInquiries(currentPage, 20, searchForm)
-        : await adminInquiryService.getInquiriesByStatus(selectedStatus as any, currentPage, 20);
+        : await adminInquiryService.getInquiriesByStatus(selectedStatus as 'PENDING' | 'CONTACTED' | 'COMPLETED' | 'CANCELED', currentPage, 20);
       
       if (response.success) {
         setInquiries(response.data.content);
@@ -138,7 +138,7 @@ const AdminInquiries: React.FC = () => {
   const handleStatusChange = async (inquiryId: number, newStatus: string, adminNote?: string) => {
     try {
       const request: UpdateInquiryStatusRequest = {
-        status: newStatus as any,
+        status: newStatus as 'PENDING' | 'CONTACTED' | 'COMPLETED' | 'CANCELED',
         adminNote
       };
       

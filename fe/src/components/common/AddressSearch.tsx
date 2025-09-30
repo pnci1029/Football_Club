@@ -27,10 +27,21 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
 }) => {
   const [showPostcode, setShowPostcode] = useState(false);
 
-  const handleComplete = (data: any) => {
+  interface PostcodeData {
+    roadAddress?: string;
+    autoRoadAddress?: string;
+    jibunAddress?: string;
+    autoJibunAddress?: string;
+    zonecode: string;
+    sido: string;
+    sigungu: string;
+    bname: string;
+  }
+
+  const handleComplete = (data: PostcodeData) => {
     const address: Address = {
-      roadAddress: data.roadAddress || data.autoRoadAddress,
-      jibunAddress: data.jibunAddress || data.autoJibunAddress,
+      roadAddress: data.roadAddress || data.autoRoadAddress || '',
+      jibunAddress: data.jibunAddress || data.autoJibunAddress || '',
       zonecode: data.zonecode,
       sido: data.sido,
       sigungu: data.sigungu,

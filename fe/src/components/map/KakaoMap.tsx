@@ -1,8 +1,63 @@
 import React, { useEffect, useRef } from 'react';
 
+interface KakaoMap {
+  setCenter(latlng: KakaoLatLng): void;
+  setLevel(level: number): void;
+  relayout(): void;
+}
+
+interface KakaoLatLng {
+  getLat(): number;
+  getLng(): number;
+}
+
+interface KakaoMarker {
+  setMap(map: KakaoMap | null): void;
+  setPosition(latlng: KakaoLatLng): void;
+}
+
+interface KakaoInfoWindow {
+  open(map: KakaoMap, marker: KakaoMarker): void;
+  close(): void;
+}
+
+interface KakaoMaps {
+  load: (callback: () => void) => void;
+  Map: new (container: HTMLElement, options: {
+    center: KakaoLatLng;
+    level: number;
+  }) => KakaoMap;
+  LatLng: new (lat: number, lng: number) => KakaoLatLng;
+  Marker: new (options: {
+    position: KakaoLatLng;
+    map?: KakaoMap;
+  }) => KakaoMarker;
+  InfoWindow: new (options: {
+    content: string;
+    removable?: boolean;
+  }) => KakaoInfoWindow;
+  event: {
+    addListener: (target: any, type: string, handler: () => void) => void;
+  };
+}
+
+interface KakaoServices {
+  Geocoder: new () => {
+    addressSearch(address: string, callback: (result: unknown[], status: string) => void): void;
+  };
+  Status: {
+    OK: string;
+  };
+}
+
+interface KakaoSDK {
+  maps: KakaoMaps;
+  services: KakaoServices;
+}
+
 declare global {
   interface Window {
-    kakao: any;
+    kakao: KakaoSDK;
   }
 }
 
@@ -33,14 +88,16 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
 
     // 카카오맵 API가 로드되었는지 확인
-    if (window.kakao.maps) {
+    if (window.kakao.maps && window.kakao.maps.Map) {
       initializeMap();
     } else {
       // API가 아직 로드되지 않았다면 로드될 때까지 기다림
-      window.kakao.maps.load(initializeMap);
+      window.kakao.maps?.load(initializeMap);
     }
 
     function initializeMap() {
+      if (!mapContainer.current) return;
+      
       const mapOption = {
         center: new window.kakao.maps.LatLng(latitude, longitude),
         level: 3 // 지도의 확대 레벨
