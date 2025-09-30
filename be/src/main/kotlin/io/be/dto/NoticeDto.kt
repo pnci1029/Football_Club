@@ -15,6 +15,7 @@ data class NoticeResponse(
     val authorName: String,
     val viewCount: Int,
     val commentCount: Long,
+    val isGlobalVisible: Boolean,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 ) {
@@ -27,6 +28,7 @@ data class NoticeResponse(
                 authorName = notice.authorName,
                 viewCount = notice.viewCount,
                 commentCount = commentCount,
+                isGlobalVisible = notice.isGlobalVisible,
                 createdAt = notice.createdAt,
                 updatedAt = notice.updatedAt
             )
@@ -94,6 +96,7 @@ data class AllNoticeResponse(
     val authorName: String,
     val viewCount: Int,
     val commentCount: Long,
+    val isGlobalVisible: Boolean,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val teamId: Long,
@@ -109,6 +112,7 @@ data class AllNoticeResponse(
                 authorName = notice.authorName,
                 viewCount = notice.viewCount,
                 commentCount = commentCount,
+                isGlobalVisible = notice.isGlobalVisible,
                 createdAt = notice.createdAt,
                 updatedAt = notice.updatedAt,
                 teamId = notice.teamId,
@@ -142,7 +146,9 @@ data class CreateNoticeRequest(
     @field:NotBlank(message = "비밀번호를 입력해주세요.")
     val authorPassword: String,
     
-    val teamId: Long
+    val teamId: Long,
+    
+    val isGlobalVisible: Boolean = false
 )
 
 // 공지사항 수정 요청 DTO
@@ -156,7 +162,9 @@ data class UpdateNoticeRequest(
     @field:NotBlank(message = "비밀번호를 입력해주세요.")
     val authorPassword: String,
     
-    val teamId: Long
+    val teamId: Long,
+    
+    val isGlobalVisible: Boolean? = null
 )
 
 // 공지사항 댓글 작성 요청 DTO
@@ -211,7 +219,8 @@ data class CreateNoticeRequestDto(
     val authorEmail: String? = null,
     val authorPhone: String? = null,
     val authorPassword: String,
-    val teamId: Long
+    val teamId: Long,
+    val isGlobalVisible: Boolean = false
 )
 
 data class UpdateNoticeRequestDto(
@@ -233,5 +242,6 @@ data class CreateNoticeCommentRequestDto(
 data class AdminUpdateNoticeRequestDto(
     val title: String? = null,
     val content: String? = null,
-    val teamId: Long
+    val teamId: Long,
+    val isGlobalVisible: Boolean? = null
 )

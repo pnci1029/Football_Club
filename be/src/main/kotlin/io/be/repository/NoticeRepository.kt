@@ -107,6 +107,26 @@ interface NoticeRepository : JpaRepository<Notice, Long> {
         AND c.isActive = true
     """)
     fun countCommentsByNoticeId(@Param("noticeId") noticeId: Long): Long
+    
+    /**
+     * 전체 노출 설정된 활성화된 공지사항 목록 조회 (메인 페이지용)
+     */
+    fun findByIsActiveTrueAndIsGlobalVisibleTrueOrderByCreatedAtDesc(pageable: Pageable): Page<Notice>
+    
+    /**
+     * 전체 노출 설정된 공지사항에서 키워드 검색
+     */
+    @Query("""
+        SELECT n FROM Notice n 
+        WHERE n.isActive = true 
+        AND n.isGlobalVisible = true
+        AND (n.title LIKE %:keyword% OR n.content LIKE %:keyword%)
+        ORDER BY n.createdAt DESC
+    """)
+    fun findByIsActiveTrueAndIsGlobalVisibleTrueAndKeyword(
+        @Param("keyword") keyword: String,
+        pageable: Pageable
+    ): Page<Notice>
 }
 
 @Repository

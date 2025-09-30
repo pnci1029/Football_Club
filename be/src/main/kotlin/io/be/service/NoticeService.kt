@@ -88,6 +88,30 @@ class NoticeService(
     }
 
     /**
+     * 전체 노출 설정된 공지사항 목록 조회 (메인 페이지용)
+     */
+    @Transactional(readOnly = true)
+    fun getGlobalNotices(page: Int, size: Int, keyword: String? = null): Page<AllNoticeResponse> {
+        logger.info("Fetching global notices - page: $page, size: $size, keyword: $keyword")
+        val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
+        
+        val notices = if (keyword.isNullOrBlank()) {
+            noticeRepository.findByIsActiveTrueAndIsGlobalVisibleTrueOrderByCreatedAtDesc(pageable)
+        } else {
+            noticeRepository.findByIsActiveTrueAndIsGlobalVisibleTrueAndKeyword(keyword.trim(), pageable)
+        }
+
+        logger.info("Found ${notices.totalElements} global visible notices")
+
+        return notices.map { notice ->
+            val team = teamRepository.findById(notice.teamId).orElse(null)
+            val commentCount = commentRepository.countByNoticeIdAndIsActiveTrue(notice.id)
+            
+            AllNoticeResponse.from(notice, team, commentCount)
+        }
+    }
+
+    /**
      * 공지사항 상세 조회
      */
     @Transactional
@@ -128,7 +152,8 @@ class NoticeService(
             authorPhone = request.authorPhone?.trim(),
             authorPasswordHash = passwordEncoder.encode(request.authorPassword),
             teamId = request.teamId,
-            teamSubdomain = "${request.teamId}"
+            teamSubdomain = "${request.teamId}",
+            isGlobalVisible = request.isGlobalVisible
         )
 
         val savedNotice = noticeRepository.save(notice)
@@ -166,6 +191,7 @@ class NoticeService(
         val updatedNotice = notice.copy(
             title = request.title?.trim() ?: notice.title,
             content = request.content?.trim() ?: notice.content,
+            isGlobalVisible = request.isGlobalVisible ?: notice.isGlobalVisible,
             updatedAt = LocalDateTime.now()
         )
 
@@ -420,7 +446,7 @@ class NoticeService(
     /**
      * 관리자용 공지사항 수정 (비밀번호 검증 없음)
      */
-    fun adminUpdateNotice(noticeId: Long, teamId: Long, title: String?, content: String?): NoticeResponse {
+    fun adminUpdateNotice(noticeId: Long, teamId: Long, title: String?, content: String?, isGlobalVisible: Boolean? = null): NoticeResponse {
         val notice = noticeRepository.findByIdAndTeamIdAndIsActiveTrue(noticeId, teamId)
             ?: throw ResourceNotFoundException("공지사항을 찾을 수 없습니다.")
 
@@ -446,6 +472,7 @@ class NoticeService(
         val updatedNotice = notice.copy(
             title = title?.trim() ?: notice.title,
             content = content?.trim() ?: notice.content,
+            isGlobalVisible = isGlobalVisible ?: notice.isGlobalVisible,
             updatedAt = LocalDateTime.now()
         )
 
