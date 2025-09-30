@@ -26,6 +26,7 @@ import Landing from './pages/Landing';
 import AllCommunityPage from './pages/AllCommunityPage';
 import Notices from './pages/Notices';
 import NoticeDetail from './pages/NoticeDetail';
+import GlobalNotices from './pages/GlobalNotices';
 import './App.css';
 
 import { isMainDomain } from './utils/config';
@@ -45,11 +46,15 @@ const AppContent: React.FC = () => {
   if (isMainDomain(hostname)) {
     // 메인 도메인: 랜딩 페이지와 전체 커뮤니티
     return (
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/community" element={<AllCommunityPage />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/community" element={<AllCommunityPage />} />
+          <Route path="/global-notices" element={<GlobalNotices />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
     );
   }
 
