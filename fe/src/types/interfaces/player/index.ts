@@ -16,9 +16,14 @@ export interface PlayerApiResponse {
 }
 
 export interface PlayerTransformData {
+  id: number;
+  name: string;
+  position: string;
+  backNumber: number;
   teamName: string;
   isActive: boolean;
   teamId?: number;
+  profileImageUrl?: string;
   [key: string]: unknown;
 }
 

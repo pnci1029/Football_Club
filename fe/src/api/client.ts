@@ -21,7 +21,7 @@ class UnifiedApiClient {
   private isRefreshing = false;
   private failedQueue: Array<{
     resolve: (value: string) => void;
-    reject: (error: any) => void;
+    reject: (error: Error) => void;
   }> = [];
 
   constructor() {
@@ -146,7 +146,8 @@ class UnifiedApiClient {
       return accessToken;
     } catch (error) {
       // 대기 중인 요청들 실패 처리
-      this.failedQueue.forEach(({ reject }) => reject(error));
+      const errorInstance = error instanceof Error ? error : new Error(String(error));
+      this.failedQueue.forEach(({ reject }) => reject(errorInstance));
       this.failedQueue = [];
       
       TokenManager.clearTokens();
@@ -222,29 +223,32 @@ class UnifiedApiClient {
   ): Promise<T> {
     const url = pathParams ? buildUrl(endpoint.path, pathParams) : endpoint.path;
     
-    let response: any;
+    let response: T;
     switch (endpoint.method) {
       case 'GET':
-        response = await this.get<any>(url, queryParams);
+        response = await this.get<T>(url, queryParams);
         break;
       case 'POST':
-        response = await this.post<any>(url, data);
+        response = await this.post<T>(url, data);
         break;
       case 'PUT':
-        response = await this.put<any>(url, data);
+        response = await this.put<T>(url, data);
         break;
       case 'DELETE':
-        response = await this.delete<any>(url);
+        response = await this.delete<T>(url);
         break;
       case 'PATCH':
-        response = await this.patch<any>(url, data);
+        response = await this.patch<T>(url, data);
         break;
       default:
         throw new Error(`Unsupported HTTP method: ${endpoint.method}`);
     }
     
     // ApiResponse 래퍼 처리 - data 필드가 있으면 unwrap
-    return response.data || response;
+    if (response && typeof response === 'object' && 'data' in response) {
+      return (response as { data: T }).data;
+    }
+    return response;
   }
 
   // CRUD 헬퍼 메서드들
@@ -289,7 +293,7 @@ class UnifiedApiClient {
   // 헬스 체크
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     try {
-      const response = await this.get<any>('/health');
+      const response = await this.get<{ status: string }>('/health');
       return {
         status: 'healthy',
         timestamp: new Date().toISOString(),
