@@ -2,10 +2,14 @@
  * API 에러 처리 유틸리티
  */
 
+interface ErrorDetails {
+  [key: string]: unknown;
+}
+
 interface ApiError {
   code?: string;
   message?: string;
-  details?: any;
+  details?: ErrorDetails;
   timestamp?: string;
 }
 
@@ -16,15 +20,37 @@ interface ApiErrorResponse {
   error?: {
     code: string;
     message: string;
-    details: any;
+    details: ErrorDetails;
   };
   timestamp: string;
+}
+
+export interface NetworkError {
+  code?: string;
+  message?: string;
+  details?: {
+    error?: {
+      code?: string;
+      message?: string;
+    };
+  };
+  response?: {
+    status?: number;
+    data?: {
+      error?: {
+        code?: string;
+        message?: string;
+      };
+      message?: string;
+    };
+  };
+  stack?: string;
 }
 
 /**
  * API 에러에서 사용자 친화적인 메시지를 추출합니다.
  */
-export function getErrorMessage(error: any): string {
+export function getErrorMessage(error: NetworkError): string {
   // API 클라이언트에서 처리된 에러 구조 확인 (error.details)
   if (error?.details?.error?.message) {
     const fullMessage = error.details.error.message;
@@ -99,7 +125,7 @@ export function getErrorMessage(error: any): string {
 /**
  * 비밀번호 관련 에러인지 확인합니다.
  */
-export function isPasswordError(error: any): boolean {
+export function isPasswordError(error: NetworkError): boolean {
   const message = getErrorMessage(error);
   return message.includes('비밀번호') || message.includes('password');
 }
@@ -107,7 +133,7 @@ export function isPasswordError(error: any): boolean {
 /**
  * 권한 관련 에러인지 확인합니다.
  */
-export function isPermissionError(error: any): boolean {
+export function isPermissionError(error: NetworkError): boolean {
   const errorCode = error?.response?.data?.error?.code || error?.code;
   return errorCode === 'INVALID_REQUEST' || errorCode === 'PERMISSION_DENIED';
 }
@@ -115,20 +141,20 @@ export function isPermissionError(error: any): boolean {
 /**
  * 비속어 필터 관련 에러인지 확인합니다.
  */
-export function isProfanityError(error: any): boolean {
+export function isProfanityError(error: NetworkError): boolean {
   const errorCode = error?.response?.data?.error?.code || error?.code;
-  return errorCode === 'PROFANITY_IN_TITLE' || 
+  return !!(errorCode === 'PROFANITY_IN_TITLE' || 
          errorCode === 'PROFANITY_IN_CONTENT' || 
          errorCode === 'PROFANITY_IN_COMMENT' ||
          errorCode === 'PROFANITY_DETECTED' ||
          (errorCode === 'INVALID_REQUEST' && 
-          error?.response?.data?.error?.message?.includes('부적절한 표현'));
+          error?.response?.data?.error?.message?.includes('부적절한 표현')));
 }
 
 /**
  * 에러 상황에 따른 사용자 행동 가이드를 제공합니다.
  */
-export function getErrorActionGuide(error: any): string | null {
+export function getErrorActionGuide(error: NetworkError): string | null {
   const message = getErrorMessage(error);
   const status = error?.response?.status;
 
@@ -148,7 +174,7 @@ export function getErrorActionGuide(error: any): string | null {
     return '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.';
   }
 
-  if (status >= 500) {
+  if (status && status >= 500) {
     return '서버에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
   }
 
@@ -158,7 +184,7 @@ export function getErrorActionGuide(error: any): string | null {
 /**
  * 에러 로깅 (개발/디버깅용)
  */
-export function logError(error: any, context?: string): void {
+export function logError(error: NetworkError, context?: string): void {
   if (process.env.NODE_ENV === 'development') {
     console.group(`🚨 Error${context ? ` in ${context}` : ''}`);
     console.error('Error object:', error);

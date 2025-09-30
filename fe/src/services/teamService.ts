@@ -10,7 +10,7 @@ class TeamService {
       const teamsArray = Array.isArray(teamsResponse) ? teamsResponse : (teamsResponse as TeamPageResponse).content || [];
       return teamsArray.map((team: any) => ({
         ...team,
-        id: team.id.toString()
+        id: typeof team.id === 'number' ? team.id.toString() : team.id
       }));
     } catch (error) {
       console.error('팀 목록을 가져오는데 실패했습니다:', error);
@@ -32,7 +32,7 @@ class TeamService {
       
       return {
         ...team,
-        id: team.id.toString()
+        id: typeof team.id === 'number' ? team.id.toString() : team.id
       };
     } catch (error) {
       console.error(`팀 코드 ${code}에 대한 정보를 가져오는데 실패했습니다:`, error);
@@ -45,7 +45,7 @@ class TeamService {
       const team: Omit<Team, 'id'> & { id: number } = await Teams.public.getById(parseInt(id));
       return {
         ...team,
-        id: team.id.toString()
+        id: typeof team.id === 'number' ? team.id.toString() : team.id
       };
     } catch (error) {
       console.error(`팀 ID ${id}에 대한 정보를 가져오는데 실패했습니다:`, error);

@@ -10,8 +10,22 @@ export class PlayerService {
       
       // 서버 응답 구조: { success, data: { content: [...], page: {...} } }
       const actualData = response.success ? response.data : response;
-      const content = (actualData as any).content || [];
-      const pageInfo = (actualData as any).page || {};
+      interface ActualData {
+        content?: PlayerTransformData[];
+        page?: {
+          last?: boolean;
+          totalPages?: number;
+          totalElements?: number;
+          size?: number;
+          number?: number;
+          first?: boolean;
+          numberOfElements?: number;
+          empty?: boolean;
+        };
+      }
+      
+      const content = (actualData as ActualData).content || [];
+      const pageInfo = (actualData as ActualData).page || {};
       
       
       // 새로운 API 응답을 기존 타입으로 변환
@@ -20,7 +34,8 @@ export class PlayerService {
           ...player,
           // 서버에서 이미 teamName과 isActive를 제공하므로 그대로 사용
           teamName: player.teamName || (player.teamId ? `Team ${player.teamId}` : 'Unknown Team'),
-          isActive: player.isActive !== undefined ? player.isActive : true
+          isActive: player.isActive !== undefined ? player.isActive : true,
+          teamId: player.teamId || 0 // teamId가 undefined일 때 기본값 설정
         })),
         pageable: {
           sort: { empty: true, sorted: false, unsorted: true },
