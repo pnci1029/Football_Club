@@ -1,4 +1,4 @@
-package io.be.controller
+package io.be.controller.admin
 
 import io.be.service.AdminAuthService
 import io.be.service.LoginResponse
