@@ -77,7 +77,8 @@ class AdminNoticeController(
             authorEmail = request.authorEmail,
             authorPhone = request.authorPhone,
             authorPassword = request.authorPassword,
-            teamId = request.teamId
+            teamId = request.teamId,
+            isGlobalVisible = request.isGlobalVisible
         )
         val notice = noticeService.createNotice(serviceRequest)
         return ResponseEntity.ok(ApiResponse.success(notice))
@@ -92,7 +93,7 @@ class AdminNoticeController(
         @Valid @RequestBody request: AdminUpdateNoticeRequestDto
     ): ResponseEntity<ApiResponse<NoticeResponse>> {
         logger.info("Admin PUT /notices/$noticeId request - teamId: ${request.teamId}")
-        val notice = noticeService.adminUpdateNotice(noticeId, request.teamId, request.title, request.content)
+        val notice = noticeService.adminUpdateNotice(noticeId, request.teamId, request.title, request.content, request.isGlobalVisible)
         return ResponseEntity.ok(ApiResponse.success(notice))
     }
 

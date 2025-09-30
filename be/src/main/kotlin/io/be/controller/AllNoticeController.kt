@@ -1,6 +1,7 @@
 package io.be.controller
 
 import io.be.service.AllNoticeService
+import io.be.service.NoticeService
 import io.be.dto.*
 import io.be.util.ApiResponse
 import org.slf4j.LoggerFactory
@@ -12,7 +13,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/v1/all-notices")
 @CrossOrigin(origins = ["*"])
 class AllNoticeController(
-    private val allNoticeService: AllNoticeService
+    private val allNoticeService: AllNoticeService,
+    private val noticeService: NoticeService
 ) {
 
     private val logger = LoggerFactory.getLogger(AllNoticeController::class.java)
@@ -31,6 +33,23 @@ class AllNoticeController(
         
         val notices = allNoticeService.getAllNotices(page, size, teamId, keyword)
         logger.info("Returning ${notices.content.size} notices out of ${notices.totalElements} total from all teams")
+        
+        return ResponseEntity.ok(ApiResponse.success(notices))
+    }
+
+    /**
+     * 전체 노출 설정된 공지사항 목록 조회 (메인 페이지용)
+     */
+    @GetMapping("/global")
+    fun getGlobalNotices(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int,
+        @RequestParam(required = false) keyword: String?
+    ): ResponseEntity<ApiResponse<Page<AllNoticeResponse>>> {
+        logger.info("GET /all-notices/global request - page: $page, size: $size, keyword: $keyword")
+        
+        val notices = noticeService.getGlobalNotices(page, size, keyword)
+        logger.info("Returning ${notices.content.size} global notices out of ${notices.totalElements} total")
         
         return ResponseEntity.ok(ApiResponse.success(notices))
     }

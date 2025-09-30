@@ -40,6 +40,9 @@ data class Notice(
     @Column(name = "is_active", nullable = false)
     val isActive: Boolean = true,
     
+    @Column(name = "is_global_visible", nullable = false)
+    val isGlobalVisible: Boolean = false,
+    
     @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
     
