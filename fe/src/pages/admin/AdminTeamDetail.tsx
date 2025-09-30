@@ -36,6 +36,7 @@ const AdminTeamDetail: React.FC = () => {
     content: '',
     authorName: '관리자',
     authorPassword: '',
+    isGlobalVisible: false,
   });
   const [showNoticeForm, setShowNoticeForm] = useState(false);
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
@@ -140,10 +141,11 @@ const AdminTeamDetail: React.FC = () => {
         authorName: noticeForm.authorName,
         authorPassword: noticeForm.authorPassword,
         teamId: parseInt(teamId!),
+        isGlobalVisible: noticeForm.isGlobalVisible,
       });
       
       success('공지사항이 성공적으로 작성되었습니다.');
-      setNoticeForm({ title: '', content: '', authorName: '관리자', authorPassword: '' });
+      setNoticeForm({ title: '', content: '', authorName: '관리자', authorPassword: '', isGlobalVisible: false });
       setShowNoticeForm(false);
       loadTeamNotices();
     } catch (err) {
@@ -167,6 +169,7 @@ const AdminTeamDetail: React.FC = () => {
       content: notice.content,
       authorName: notice.authorName,
       authorPassword: '', // 관리자는 비밀번호 필요없음
+      isGlobalVisible: notice.isGlobalVisible || false,
     });
     setShowEditNoticeForm(true);
   };
@@ -183,10 +186,11 @@ const AdminTeamDetail: React.FC = () => {
         title: noticeForm.title,
         content: noticeForm.content,
         teamId: parseInt(teamId!),
+        isGlobalVisible: noticeForm.isGlobalVisible,
       });
       
       success('공지사항이 성공적으로 수정되었습니다.');
-      setNoticeForm({ title: '', content: '', authorName: '관리자', authorPassword: '' });
+      setNoticeForm({ title: '', content: '', authorName: '관리자', authorPassword: '', isGlobalVisible: false });
       setShowEditNoticeForm(false);
       setEditingNotice(null);
       loadTeamNotices();
@@ -520,6 +524,18 @@ const AdminTeamDetail: React.FC = () => {
                       required
                     />
                   </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="editIsGlobalVisible"
+                      checked={noticeForm.isGlobalVisible}
+                      onChange={(e) => setNoticeForm(prev => ({ ...prev, isGlobalVisible: e.target.checked }))}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <label htmlFor="editIsGlobalVisible" className="ml-2 text-sm font-medium text-gray-700">
+                      전체 메인 페이지에 노출
+                    </label>
+                  </div>
                   <div className="flex gap-2 justify-end">
                     <Button
                       type="button"
@@ -527,7 +543,7 @@ const AdminTeamDetail: React.FC = () => {
                       onClick={() => {
                         setShowEditNoticeForm(false);
                         setEditingNotice(null);
-                        setNoticeForm({ title: '', content: '', authorName: '관리자', authorPassword: '' });
+                        setNoticeForm({ title: '', content: '', authorName: '관리자', authorPassword: '', isGlobalVisible: false });
                       }}
                     >
                       취소
@@ -598,6 +614,18 @@ const AdminTeamDetail: React.FC = () => {
                         required
                       />
                     </div>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="isGlobalVisible"
+                      checked={noticeForm.isGlobalVisible}
+                      onChange={(e) => setNoticeForm(prev => ({ ...prev, isGlobalVisible: e.target.checked }))}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <label htmlFor="isGlobalVisible" className="ml-2 text-sm font-medium text-gray-700">
+                      전체 메인 페이지에 노출
+                    </label>
                   </div>
                   <div className="flex gap-2 justify-end">
                     <Button

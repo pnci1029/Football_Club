@@ -26,6 +26,21 @@ export const allNoticeApi = {
   },
 
   /**
+   * 전체 노출 설정된 공지사항 목록 조회 (메인 페이지용)
+   */
+  getGlobalNotices: async (params: AllNoticeParams = {}): Promise<PageResponse<AllNoticePost>> => {
+    const searchParams = new URLSearchParams();
+    
+    if (params.page !== undefined) searchParams.set('page', params.page.toString());
+    if (params.size !== undefined) searchParams.set('size', params.size.toString());
+    if (params.keyword) searchParams.set('keyword', params.keyword);
+
+    const url = `/v1/all-notices/global${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const response = await apiClient.get<ApiResponse<PageResponse<AllNoticePost>>>(url);
+    return response.data;
+  },
+
+  /**
    * 활성 팀 목록 조회
    */
   getActiveTeams: async (): Promise<TeamInfo[]> => {

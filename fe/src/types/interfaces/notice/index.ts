@@ -12,6 +12,7 @@ export interface Notice {
   teamId: number;
   teamName: string;
   teamSubdomain?: string;
+  isGlobalVisible: boolean;
 }
 
 export interface NoticeDetail extends Notice {
@@ -34,6 +35,7 @@ export interface CreateNoticeRequest {
   authorPhone?: string;
   authorPassword: string;
   teamId: number;
+  isGlobalVisible: boolean;
 }
 
 export interface UpdateNoticeRequest {
@@ -47,6 +49,7 @@ export interface AdminUpdateNoticeRequest {
   title?: string;
   content?: string;
   teamId: number;
+  isGlobalVisible: boolean;
 }
 
 export interface NoticeListResponse {
