@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { TeamProvider, useTeam } from './contexts/TeamContext';
 import { AuthProvider } from './contexts/AuthContext';
 import Navigation from './components/layout/Navigation';
+import MainNavigation from './components/layout/MainNavigation';
 import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Home from './pages/Home';
@@ -47,7 +48,7 @@ const AppContent: React.FC = () => {
     // 메인 도메인: 랜딩 페이지와 전체 커뮤니티
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navigation />
+        <MainNavigation />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/community" element={<AllCommunityPage />} />
