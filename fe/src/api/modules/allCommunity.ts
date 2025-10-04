@@ -42,7 +42,7 @@ export const allCommunityApi = {
     if (params.teamId !== undefined) searchParams.set('teamId', params.teamId.toString());
     if (params.keyword) searchParams.set('keyword', params.keyword);
 
-    const url = `/v1/all-community/posts${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const url = `/api/v1/all-community/posts${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
     const response = await apiClient.get<ApiResponse<PageResponse<AllCommunityPost>>>(url);
     return response.data;
   },
@@ -51,7 +51,7 @@ export const allCommunityApi = {
    * 활성 팀 목록 조회
    */
   getActiveTeams: async (): Promise<TeamInfo[]> => {
-    const response = await apiClient.get<ApiResponse<TeamInfo[]>>('/v1/all-community/teams');
+    const response = await apiClient.get<ApiResponse<TeamInfo[]>>('/api/v1/all-community/teams');
     return response.data;
   },
 

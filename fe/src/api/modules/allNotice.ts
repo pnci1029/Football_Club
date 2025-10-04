@@ -20,7 +20,7 @@ export const allNoticeApi = {
     if (params.teamId !== undefined) searchParams.set('teamId', params.teamId.toString());
     if (params.keyword) searchParams.set('keyword', params.keyword);
 
-    const url = `/v1/all-notices${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const url = `/api/v1/all-notices${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
     const response = await apiClient.get<ApiResponse<PageResponse<AllNoticePost>>>(url);
     return response.data;
   },
@@ -35,7 +35,7 @@ export const allNoticeApi = {
     if (params.size !== undefined) searchParams.set('size', params.size.toString());
     if (params.keyword) searchParams.set('keyword', params.keyword);
 
-    const url = `/v1/all-notices/global${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const url = `/api/v1/all-notices/global${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
     const response = await apiClient.get<ApiResponse<PageResponse<AllNoticePost>>>(url);
     return response.data;
   },
@@ -44,7 +44,7 @@ export const allNoticeApi = {
    * 활성 팀 목록 조회
    */
   getActiveTeams: async (): Promise<TeamInfo[]> => {
-    const response = await apiClient.get<ApiResponse<TeamInfo[]>>('/v1/all-notices/teams');
+    const response = await apiClient.get<ApiResponse<TeamInfo[]>>('/api/v1/all-notices/teams');
     return response.data;
   },
 
