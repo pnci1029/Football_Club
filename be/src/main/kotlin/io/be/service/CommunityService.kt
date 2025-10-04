@@ -61,15 +61,10 @@ class CommunityService(
     /**
      * 게시글 상세 조회
      */
-    @Transactional
-    fun getPost(teamId: Long, postId: Long, incrementView: Boolean = true): CommunityPostDetailResponse {
+    @Transactional(readOnly = true)
+    fun getPost(teamId: Long, postId: Long): CommunityPostDetailResponse {
         val post = postRepository.findByIdAndTeamIdAndIsActiveTrue(postId, teamId)
             ?: throw ResourceNotFoundException("게시글을 찾을 수 없습니다.")
-
-        // 조회수 증가
-        if (incrementView) {
-            postRepository.incrementViewCount(postId)
-        }
 
         // 댓글 목록 조회
         val comments = commentRepository.findByPostIdAndIsActiveTrueOrderByCreatedAtAsc(postId)

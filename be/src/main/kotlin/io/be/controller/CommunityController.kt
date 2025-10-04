@@ -1,8 +1,10 @@
 package io.be.controller
 
 import io.be.service.CommunityService
+import io.be.service.ViewCountService
 import io.be.dto.*
 import io.be.util.ApiResponse
+import io.be.enums.ContentType
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -16,7 +18,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/v1/community")
 @CrossOrigin(origins = ["*"])
 class CommunityController(
-    private val communityService: CommunityService
+    private val communityService: CommunityService,
+    private val viewCountService: ViewCountService
 ) {
 
     private val logger = LoggerFactory.getLogger(CommunityController::class.java)
@@ -51,9 +54,16 @@ class CommunityController(
     @GetMapping("/posts/{postId}")
     fun getPost(
         @PathVariable postId: Long,
-        @RequestParam teamId: Long
+        @RequestParam teamId: Long,
+        httpRequest: HttpServletRequest
     ): ResponseEntity<ApiResponse<CommunityPostDetailResponse>> {
         val post = communityService.getPost(teamId, postId)
+
+        // 조회수 자동 증가 처리
+        val clientIp = getClientIpAddress(httpRequest)
+        val userAgent = httpRequest.getHeader("User-Agent") ?: ""
+        viewCountService.increaseViewCount(ContentType.COMMUNITY, postId, clientIp, userAgent)
+
         return ResponseEntity.ok(ApiResponse.success(post))
     }
 
