@@ -43,11 +43,18 @@ interface NoticeRepository : JpaRepository<Notice, Long> {
     fun findByIdAndTeamIdAndIsActiveTrue(id: Long, teamId: Long): Notice?
     
     /**
-     * 조회수 증가
+     * 조회수 증가 (1씩)
      */
     @Modifying
     @Query("UPDATE Notice n SET n.viewCount = n.viewCount + 1 WHERE n.id = :id")
     fun incrementViewCount(@Param("id") id: Long)
+    
+    /**
+     * 조회수 증가 (지정한 값만큼)
+     */
+    @Modifying
+    @Query("UPDATE Notice n SET n.viewCount = n.viewCount + :increment WHERE n.id = :id")
+    fun incrementViewCountBy(@Param("id") id: Long, @Param("increment") increment: Long)
     
     /**
      * 특정 팀의 공지사항 수 조회

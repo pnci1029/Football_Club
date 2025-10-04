@@ -114,15 +114,10 @@ class NoticeService(
     /**
      * 공지사항 상세 조회
      */
-    @Transactional
-    fun getNotice(teamId: Long, noticeId: Long, incrementView: Boolean = true): NoticeDetailResponse {
+    @Transactional(readOnly = true)
+    fun getNotice(teamId: Long, noticeId: Long): NoticeDetailResponse {
         val notice = noticeRepository.findByIdAndTeamIdAndIsActiveTrue(noticeId, teamId)
             ?: throw ResourceNotFoundException("공지사항을 찾을 수 없습니다.")
-
-        // 조회수 증가
-        if (incrementView) {
-            noticeRepository.incrementViewCount(noticeId)
-        }
 
         // 댓글 목록 조회
         val comments = commentRepository.findByNoticeIdAndIsActiveTrueOrderByCreatedAtAsc(noticeId)
