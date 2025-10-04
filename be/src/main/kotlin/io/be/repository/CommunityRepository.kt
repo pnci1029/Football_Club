@@ -43,11 +43,18 @@ interface CommunityPostRepository : JpaRepository<CommunityPost, Long> {
     fun findByIdAndTeamIdAndIsActiveTrue(id: Long, teamId: Long): CommunityPost?
     
     /**
-     * 조회수 증가
+     * 조회수 증가 (1씩)
      */
     @Modifying
     @Query("UPDATE CommunityPost p SET p.viewCount = p.viewCount + 1 WHERE p.id = :id")
     fun incrementViewCount(@Param("id") id: Long)
+    
+    /**
+     * 조회수 증가 (지정한 값만큼)
+     */
+    @Modifying
+    @Query("UPDATE CommunityPost p SET p.viewCount = p.viewCount + :increment WHERE p.id = :id")
+    fun incrementViewCountBy(@Param("id") id: Long, @Param("increment") increment: Long)
     
     /**
      * 특정 팀의 게시글 수 조회

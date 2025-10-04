@@ -1,8 +1,10 @@
 package io.be.controller
 
 import io.be.service.NoticeService
+import io.be.service.ViewCountService
 import io.be.dto.*
 import io.be.util.ApiResponse
+import io.be.enums.ContentType
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -14,7 +16,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/v1/notices")
 @CrossOrigin(origins = ["*"])
 class NoticeController(
-    private val noticeService: NoticeService
+    private val noticeService: NoticeService,
+    private val viewCountService: ViewCountService
 ) {
 
     private val logger = LoggerFactory.getLogger(NoticeController::class.java)
@@ -49,11 +52,19 @@ class NoticeController(
     @GetMapping("/{noticeId}")
     fun getNotice(
         @PathVariable noticeId: Long,
-        @RequestParam teamId: Long
+        @RequestParam teamId: Long,
+        httpRequest: HttpServletRequest
     ): ResponseEntity<ApiResponse<NoticeDetailResponse>> {
         val notice = noticeService.getNotice(teamId, noticeId)
+        
+        // 조회수 자동 증가 처리
+        val clientIp = getClientIpAddress(httpRequest)
+        val userAgent = httpRequest.getHeader("User-Agent") ?: ""
+        viewCountService.increaseViewCount(ContentType.NOTICE, noticeId, clientIp, userAgent)
+        
         return ResponseEntity.ok(ApiResponse.success(notice))
     }
+
 
     /**
      * 공지사항 작성

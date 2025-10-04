@@ -42,6 +42,8 @@ const NoticeDetail: React.FC = () => {
       setLoading(true);
       const data = await noticeApi.getNotice(parseInt(noticeId), parseInt(currentTeam.id));
       setNotice(data);
+      
+      // 상세 조회 시 백엔드에서 자동으로 조회수 처리됨
     } catch (err) {
       error('공지사항을 불러오는데 실패했습니다.');
       console.error('Failed to load notice:', err);
