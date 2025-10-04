@@ -27,6 +27,15 @@ const GlobalNoticeDetail: React.FC = () => {
       // location.state에서 notice 데이터가 전달되었는지 확인
       if (location.state && location.state.notice) {
         setNotice(location.state.notice);
+        
+        // 조회수 증가 API 호출 (백그라운드에서 실행)
+        try {
+          await allNoticeApi.increaseViewCount(parseInt(noticeId));
+        } catch (viewCountError) {
+          // 조회수 증가 실패는 사용자에게 노출하지 않음
+          console.warn('Failed to increase view count:', viewCountError);
+        }
+        
         setLoading(false);
         return;
       }
@@ -37,6 +46,14 @@ const GlobalNoticeDetail: React.FC = () => {
       
       if (foundNotice) {
         setNotice(foundNotice);
+        
+        // 조회수 증가 API 호출 (백그라운드에서 실행)
+        try {
+          await allNoticeApi.increaseViewCount(parseInt(noticeId));
+        } catch (viewCountError) {
+          // 조회수 증가 실패는 사용자에게 노출하지 않음
+          console.warn('Failed to increase view count:', viewCountError);
+        }
       } else {
         console.error('Notice not found');
         navigate('/global-notices');

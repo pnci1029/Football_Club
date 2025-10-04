@@ -35,6 +35,8 @@ const CommunityDetail: React.FC = () => {
         const response = await communityApi.getPost(parseInt(postId), parseInt(currentTeam.id));
         setPost(response);
         
+        // 상세 조회 시 백엔드에서 자동으로 조회수 처리됨
+        
         // 성공 메시지 처리 (location state에서)
         const state = window.history.state?.usr;
         if (state?.message) {

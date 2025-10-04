@@ -49,6 +49,14 @@ export const allNoticeApi = {
   },
 
   /**
+   * 공지사항 조회수 증가 (개별 공지사항용)
+   */
+  increaseViewCount: async (noticeId: number): Promise<string> => {
+    const response = await apiClient.post<ApiResponse<string>>(`/api/v1/notices/${noticeId}/view`);
+    return response.data;
+  },
+
+  /**
    * 팀 사이트 URL 생성
    */
   getTeamUrl: (teamSubdomain: string | null): string => {

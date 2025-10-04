@@ -43,6 +43,7 @@ export const noticeApi = {
     });
   },
 
+
   // 공지사항 작성
   createNotice: (data: CreateNoticeRequest): Promise<Notice> =>
     api.callEndpoint<Notice>({
