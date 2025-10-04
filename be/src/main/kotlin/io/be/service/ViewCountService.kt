@@ -116,48 +116,38 @@ class ViewCountService(
         // IP + User-Agent의 조합으로 더 강력한 사용자 식별자 생성
         val userIdentifier = generateUserIdentifier(clientIp, userAgent)
         
-        logger.info("Increasing view count for ${contentType}:${id} by user identifier: ${userIdentifier.take(8)}...")
         val viewedKey = "${VIEWED_KEY_PREFIX}${contentType}:${id}:${userIdentifier}"
         val viewCountKey = "${VIEW_COUNT_KEY_PREFIX}${contentType}:${id}"
 
-        // 1. userIdentifier로 1분짜리 임시 유저정보 확인
         val hasViewed = redisTemplate.hasKey(viewedKey)
 
         return if (!hasViewed) {
             try {
-                // 2. Redis에서 조회수 증가 (안전한 increment)
                 val currentValue = redisTemplate.opsForValue().get(viewCountKey)
                 if (currentValue == null) {
-                    // 키가 존재하지 않으면 1로 설정
                     redisTemplate.opsForValue().set(viewCountKey, "1")
                 } else {
-                    // 기존 값이 숫자인지 확인 후 safe increment
                     val numericValue = currentValue.toString().toLongOrNull()
                     if (numericValue != null) {
                         try {
-                            // 안전한 increment 시도
                             redisTemplate.opsForValue().increment(viewCountKey)
                         } catch (e: Exception) {
-                            // increment 실패 시 현재 값 + 1로 설정
-                            logger.warn("Increment failed for key: $viewCountKey, setting to ${numericValue + 1}")
+                            logger.warn("Redis increment failed for $viewCountKey, using fallback")
                             redisTemplate.opsForValue().set(viewCountKey, (numericValue + 1).toString())
                         }
                     } else {
-                        // 기존 값이 숫자가 아니면 키를 삭제하고 1로 설정
-                        logger.warn("Non-numeric value found in view count key: $viewCountKey, resetting to 1")
+                        logger.warn("Non-numeric value in Redis key $viewCountKey, resetting")
                         redisTemplate.delete(viewCountKey)
                         redisTemplate.opsForValue().set(viewCountKey, "1")
                     }
                 }
 
-                // 1분 만료 유저정보 저장
                 redisTemplate.opsForValue().set(
                     viewedKey,
                     "1",
                     Duration.ofMinutes(USER_EXPIRATION_MINUTES)
                 )
                 
-                logger.info("View count increased for ${contentType}:${id}")
                 true
             } catch (e: Exception) {
                 logger.error("Failed to increase view count for ${contentType}:${id}", e)
@@ -174,7 +164,6 @@ class ViewCountService(
                 false
             }
         } else {
-            logger.info("User already viewed ${contentType}:${id} within the last minute")
             false
         }
     }
@@ -262,26 +251,6 @@ class ViewCountService(
         redisTemplate.opsForValue().set(viewCountKey, count.toString())
     }
 
-    /**
-     * 특정 사용자의 조회 기록 확인 (관리자용)
-     */
-    fun hasUserViewed(contentType: ContentType, id: Long, clientIp: String, userAgent: String): Boolean {
-        val userIdentifier = generateUserIdentifier(clientIp, userAgent)
-        val viewedKey = "${VIEWED_KEY_PREFIX}${contentType}:${id}:${userIdentifier}"
-        return redisTemplate.hasKey(viewedKey)
-    }
-
-    /**
-     * 특정 컨텐츠의 조회 기록 전체 삭제 (관리자용)
-     */
-    fun clearViewHistory(contentType: ContentType, id: Long) {
-        val pattern = "${VIEWED_KEY_PREFIX}${contentType}:${id}:*"
-        val keys = redisTemplate.keys(pattern)
-        if (keys.isNotEmpty()) {
-            redisTemplate.delete(keys)
-            logger.info("Cleared ${keys.size} view history records for ${contentType}:${id}")
-        }
-    }
 
     /**
      * 만료된 조회 기록 정리 (스케줄링용)
@@ -344,62 +313,5 @@ class ViewCountService(
         }
     }
 
-    /**
-     * 모든 조회수 관련 키 삭제 (긴급 복구용)
-     */
-    fun clearAllViewCountKeys() {
-        try {
-            val viewCountKeys = redisTemplate.keys("${VIEW_COUNT_KEY_PREFIX}*")
-            val viewedKeys = redisTemplate.keys("${VIEWED_KEY_PREFIX}*")
-            
-            val allKeys = viewCountKeys + viewedKeys
-            if (allKeys.isNotEmpty()) {
-                redisTemplate.delete(allKeys)
-                logger.info("Cleared ${allKeys.size} view count related keys (${viewCountKeys.size} count keys, ${viewedKeys.size} viewed keys)")
-            } else {
-                logger.info("No view count keys found to clear")
-            }
-        } catch (e: Exception) {
-            logger.error("Failed to clear view count keys", e)
-        }
-    }
 
-    /**
-     * 전체 조회수 통계 조회 (관리자용)
-     */
-    fun getViewCountStats(): Map<String, Any> {
-        return try {
-            val viewCountKeys = redisTemplate.keys("${VIEW_COUNT_KEY_PREFIX}*")
-            val viewedKeys = redisTemplate.keys("${VIEWED_KEY_PREFIX}*")
-            
-            var totalRedisViewCount = 0L
-            var corruptedKeys = 0
-            
-            for (key in viewCountKeys) {
-                try {
-                    val value = redisTemplate.opsForValue().get(key)
-                    if (value != null) {
-                        val numericValue = value.toString().toLongOrNull()
-                        if (numericValue != null) {
-                            totalRedisViewCount += numericValue
-                        } else {
-                            corruptedKeys++
-                        }
-                    }
-                } catch (e: Exception) {
-                    corruptedKeys++
-                }
-            }
-            
-            mapOf(
-                "totalViewCountKeys" to viewCountKeys.size,
-                "totalViewedKeys" to viewedKeys.size,
-                "totalRedisViewCount" to totalRedisViewCount,
-                "corruptedKeys" to corruptedKeys
-            )
-        } catch (e: Exception) {
-            logger.error("Failed to get view count stats", e)
-            mapOf("error" to (e.message ?: "Unknown error"))
-        }
-    }
 }

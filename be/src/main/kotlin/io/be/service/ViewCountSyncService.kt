@@ -24,12 +24,11 @@ class ViewCountSyncService(
     @Scheduled(fixedRate = 60000) // 1분 = 60,000ms
     @Transactional
     fun syncViewCountsToDatabase() {
-        logger.info("Starting view count synchronization to database")
-        
         try {
             val allKeys = viewCountService.getAllViewCountKeys()
-            logger.info("Found ${allKeys.size} view count keys to sync")
+            if (allKeys.isEmpty()) return
             
+            var syncedCount = 0
             for (key in allKeys) {
                 try {
                     val parsedKey = viewCountService.parseViewCountKey(key)
@@ -39,9 +38,8 @@ class ViewCountSyncService(
                         
                         if (redisViewCount > 0) {
                             updateDatabaseViewCount(contentType, contentId, redisViewCount)
-                            // Redis에서 해당 키 초기화 (다음 주기까지의 중복 처리 방지)
                             viewCountService.setViewCount(contentType, contentId, 0)
-                            logger.debug("Synced and reset view count for ${contentType}:${contentId}, synced count: $redisViewCount")
+                            syncedCount++
                         }
                     }
                 } catch (e: Exception) {
@@ -49,7 +47,9 @@ class ViewCountSyncService(
                 }
             }
             
-            logger.info("View count synchronization completed")
+            if (syncedCount > 0) {
+                logger.info("Synced $syncedCount view counts to database")
+            }
         } catch (e: Exception) {
             logger.error("Error during view count synchronization", e)
         }
@@ -62,14 +62,10 @@ class ViewCountSyncService(
         try {
             when (contentType) {
                 ContentType.NOTICE -> {
-                    // Notice의 조회수를 viewCount만큼 한 번에 증가
                     noticeRepository.incrementViewCountBy(contentId, viewCount)
-                    logger.debug("Updated Notice ID $contentId view count by $viewCount")
                 }
                 ContentType.COMMUNITY -> {
-                    // CommunityPost의 조회수를 viewCount만큼 한 번에 증가
                     communityPostRepository.incrementViewCountBy(contentId, viewCount)
-                    logger.debug("Updated CommunityPost ID $contentId view count by $viewCount")
                 }
             }
         } catch (e: Exception) {
@@ -108,10 +104,8 @@ class ViewCountSyncService(
      */
     @Scheduled(fixedRate = 600000) // 10분 = 600,000ms
     fun cleanupExpiredViewHistory() {
-        logger.debug("Starting cleanup of expired view history")
         try {
             viewCountService.cleanupExpiredViewHistory()
-            logger.debug("Cleanup of expired view history completed")
         } catch (e: Exception) {
             logger.error("Error during cleanup of expired view history", e)
         }
@@ -122,10 +116,8 @@ class ViewCountSyncService(
      */
     @Scheduled(fixedRate = 3600000) // 1시간 = 3,600,000ms
     fun repairCorruptedKeys() {
-        logger.info("Starting repair of corrupted view count keys")
         try {
             viewCountService.repairCorruptedViewCountKeys()
-            logger.info("Repair of corrupted view count keys completed")
         } catch (e: Exception) {
             logger.error("Error during repair of corrupted view count keys", e)
         }
