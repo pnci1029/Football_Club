@@ -86,37 +86,6 @@ const Landing: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white">
-      {/* 헤더 - 모바일 최적화 */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm sm:text-lg">⚽</span>
-              </div>
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Football Club</h1>
-            </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-sm px-3 py-2 sm:px-4 sm:py-2 sm:text-base"
-                onClick={() => window.location.href = '/community'}
-              >
-                커뮤니티
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                className="text-sm px-3 py-2 sm:px-4 sm:py-2 sm:text-base"
-                onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                무료 체험
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
 
       {/* 히어로 섹션 - 모바일 최적화 */}
       <section className="py-12 sm:py-16 lg:py-20">

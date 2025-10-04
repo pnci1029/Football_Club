@@ -9,9 +9,8 @@ const Navigation: React.FC = () => {
   const { currentTeam, isLoading } = useTeam();
   const location = useLocation();
 
-  // 메인 도메인과 서브도메인에 따라 다른 메뉴 구성
-  const menuItems = currentTeam ? [
-    // 서브도메인 (팀별) 메뉴
+  // 서브도메인 (팀별) 전용 메뉴
+  const menuItems = [
     { name: '선수', href: '/players' },
     { name: '구장', href: '/stadiums' },
     { name: '경기', href: '/matches', submenu: [
@@ -19,10 +18,6 @@ const Navigation: React.FC = () => {
       { name: '커뮤니티', href: '/community' },
       { name: '공지사항', href: '/notices' }
     ]},
-  ] : [
-    // 메인 도메인 메뉴
-    { name: '전체 커뮤니티', href: '/community' },
-    { name: '전체 공지사항', href: '/global-notices' },
   ];
 
   // 로딩 중이어도 기본 네비게이션을 표시하되, 팀 정보만 스켈레톤으로 처리
@@ -59,7 +54,7 @@ const Navigation: React.FC = () => {
                   )}
                   <div className="ml-2 sm:ml-3">
                     <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">
-                      {currentTeam?.name || 'Football Club'}
+                      {currentTeam?.name || '팀 정보 로딩 중...'}
                     </h1>
                     {currentTeam?.description && (
                       <p className="text-xs text-gray-500 truncate hidden sm:block">{currentTeam.description}</p>
