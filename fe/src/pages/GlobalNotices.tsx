@@ -117,6 +117,7 @@ const GlobalNotices: React.FC = () => {
                 <Link
                   key={notice.id}
                   to={`/global-notices/${notice.id}`}
+                  state={{ notice }}
                   className="block px-6 py-4 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-start justify-between">

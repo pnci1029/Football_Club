@@ -28,6 +28,7 @@ import AllCommunityPage from './pages/AllCommunityPage';
 import Notices from './pages/Notices';
 import NoticeDetail from './pages/NoticeDetail';
 import GlobalNotices from './pages/GlobalNotices';
+import GlobalNoticeDetail from './pages/GlobalNoticeDetail';
 import './App.css';
 
 import { isMainDomain } from './utils/config';
@@ -53,6 +54,7 @@ const AppContent: React.FC = () => {
           <Route path="/" element={<Landing />} />
           <Route path="/community" element={<AllCommunityPage />} />
           <Route path="/global-notices" element={<GlobalNotices />} />
+          <Route path="/global-notices/:noticeId" element={<GlobalNoticeDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
