@@ -1,3 +1,5 @@
+import io.be.shared.security.*
+import io.be.shared.exception.*
 package io.be.security
 
 import org.junit.jupiter.api.AfterEach
@@ -26,7 +28,7 @@ class TenantContextTest {
         )
 
         // when & then
-        assertTrue(context.isValid())
+        org.junit.jupiter.api.Assertions.assertTrue(context.isValid())
         assertEquals(1L, context.teamId)
         assertEquals("barcelona", context.subdomain)
         assertEquals("FC Barcelona", context.teamName)
@@ -75,7 +77,7 @@ class TenantContextTest {
         TenantContextHolder.setContext(context)
 
         // then
-        assertTrue(TenantContextHolder.hasContext())
+        org.junit.jupiter.api.Assertions.assertTrue(TenantContextHolder.hasContext())
         assertEquals(context, TenantContextHolder.getContext())
         assertEquals(1L, TenantContextHolder.getTeamId())
         assertEquals("barcelona", TenantContextHolder.getSubdomain())
@@ -142,7 +144,7 @@ class TenantContextTest {
         TenantContextHolder.setContext(context)
 
         // when & then
-        assertTrue(TenantContextHolder.hasAccessToTeam(1L))
+        org.junit.jupiter.api.Assertions.assertTrue(TenantContextHolder.hasAccessToTeam(1L))
         assertFalse(TenantContextHolder.hasAccessToTeam(2L))
     }
 
@@ -165,7 +167,7 @@ class TenantContextTest {
             host = "barcelona.football-club.kr"
         )
         TenantContextHolder.setContext(context)
-        assertTrue(TenantContextHolder.hasContext())
+        org.junit.jupiter.api.Assertions.assertTrue(TenantContextHolder.hasContext())
 
         // when
         TenantContextHolder.clear()
@@ -257,6 +259,6 @@ class TenantContextTest {
         // then
         assertEquals("admin123", retrievedContext.userId)
         assertEquals("ADMIN", retrievedContext.userRole)
-        assertTrue(retrievedContext.createdAt.isBefore(LocalDateTime.now().plusSeconds(1)))
+        org.junit.jupiter.api.Assertions.assertTrue(retrievedContext.createdAt.isBefore(LocalDateTime.now().plusSeconds(1)))
     }
 }

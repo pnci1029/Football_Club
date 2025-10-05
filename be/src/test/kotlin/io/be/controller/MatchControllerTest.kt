@@ -1,9 +1,9 @@
 package io.be.controller
 
-import io.be.controller.`public`.MatchController
-import io.be.service.MatchService
-import io.be.service.SubdomainService
-import io.be.config.SubdomainResolver
+import io.be.shared.controller.MatchController
+import io.be.match.application.MatchService
+import io.be.shared.service.SubdomainService
+import io.be.shared.config.SubdomainResolver
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired

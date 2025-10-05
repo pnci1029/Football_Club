@@ -1,9 +1,9 @@
 package io.be.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.be.dto.CreatePostRequest
-import io.be.dto.CreateCommentRequest
-import io.be.service.ProfanityFilterService
+import io.be.community.dto.CreatePostRequest
+import io.be.community.dto.CreateCommentRequest
+import io.be.shared.service.ProfanityFilterService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever

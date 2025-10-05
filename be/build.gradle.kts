@@ -66,6 +66,20 @@ allOpen {
     annotation("jakarta.persistence.Embeddable")
 }
 
+kapt {
+    arguments {
+        arg("querydsl.generatedSourcesDir", "$buildDir/generated/source/kapt/main")
+    }
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs("$buildDir/generated/source/kapt/main")
+        }
+    }
 }

@@ -1,10 +1,11 @@
-package io.be.controller.public
+package io.be.shared.controller.public
 
-import io.be.dto.PlayerDto
-import io.be.dto.TeamDto
-import io.be.service.PlayerService
-import io.be.service.SubdomainService
-import io.be.config.SubdomainResolver
+import io.be.player.dto.PlayerDto
+import io.be.team.dto.TeamDto
+import io.be.player.application.PlayerService
+import io.be.shared.service.SubdomainService
+import io.be.shared.config.SubdomainResolver
+import io.be.shared.controller.PlayerController
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.kotlin.*

@@ -1,5 +1,6 @@
 package io.be.service
 
+import io.be.shared.service.ProfanityFilterService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -34,9 +35,9 @@ class ProfanityFilterServiceTest {
         every { setOperations.members("profanity:words") } returns testWords
 
         // When & Then
-        assertTrue(profanityFilterService.containsProfanity("이 시발 뭐야"))
-        assertTrue(profanityFilterService.containsProfanity("개새끼같은"))
-        assertTrue(profanityFilterService.containsProfanity("병신아"))
+        org.junit.jupiter.api.Assertions.assertTrue(profanityFilterService.containsProfanity("이 시발 뭐야"))
+        org.junit.jupiter.api.Assertions.assertTrue(profanityFilterService.containsProfanity("개새끼같은"))
+        org.junit.jupiter.api.Assertions.assertTrue(profanityFilterService.containsProfanity("병신아"))
         assertFalse(profanityFilterService.containsProfanity("안녕하세요"))
         assertFalse(profanityFilterService.containsProfanity("좋은 하루"))
     }
@@ -82,13 +83,13 @@ class ProfanityFilterServiceTest {
 
         // Then
         assertFalse(result1.isValid)
-        assertTrue(result1.violations.contains("제목에 부적절한 표현이 포함되어 있습니다."))
+        org.junit.jupiter.api.Assertions.assertTrue(result1.violations.contains("제목에 부적절한 표현이 포함되어 있습니다."))
         
         assertFalse(result2.isValid)
-        assertTrue(result2.violations.contains("내용에 부적절한 표현이 포함되어 있습니다."))
+        org.junit.jupiter.api.Assertions.assertTrue(result2.violations.contains("내용에 부적절한 표현이 포함되어 있습니다."))
         
-        assertTrue(result3.isValid)
-        assertTrue(result3.violations.isEmpty())
+        org.junit.jupiter.api.Assertions.assertTrue(result3.isValid)
+        org.junit.jupiter.api.Assertions.assertTrue(result3.violations.isEmpty())
     }
 
     @Test
@@ -100,7 +101,7 @@ class ProfanityFilterServiceTest {
         val result = profanityFilterService.addProfanityWord("새비속어")
 
         // Then
-        assertTrue(result)
+        org.junit.jupiter.api.Assertions.assertTrue(result)
         verify { setOperations.add("profanity:words", "새비속어") }
         verify { redisTemplate.expire("profanity:words", 24L, TimeUnit.HOURS) }
     }
@@ -114,7 +115,7 @@ class ProfanityFilterServiceTest {
         val result = profanityFilterService.removeProfanityWord("제거할단어")
 
         // Then
-        assertTrue(result)
+        org.junit.jupiter.api.Assertions.assertTrue(result)
         verify { setOperations.remove("profanity:words", "제거할단어") }
     }
 
@@ -138,7 +139,7 @@ class ProfanityFilterServiceTest {
         assertEquals("", profanityFilterService.filterProfanity(""))
         
         val result = profanityFilterService.validateContent(null, null)
-        assertTrue(result.isValid)
+        org.junit.jupiter.api.Assertions.assertTrue(result.isValid)
     }
 
     @Test
@@ -148,9 +149,9 @@ class ProfanityFilterServiceTest {
         every { setOperations.members("profanity:words") } returns testWords
 
         // When & Then
-        assertTrue(profanityFilterService.containsProfanity("FUCK"))
-        assertTrue(profanityFilterService.containsProfanity("Fuck"))
-        assertTrue(profanityFilterService.containsProfanity("fuck"))
+        org.junit.jupiter.api.Assertions.assertTrue(profanityFilterService.containsProfanity("FUCK"))
+        org.junit.jupiter.api.Assertions.assertTrue(profanityFilterService.containsProfanity("Fuck"))
+        org.junit.jupiter.api.Assertions.assertTrue(profanityFilterService.containsProfanity("fuck"))
     }
 
     @Test
@@ -160,9 +161,9 @@ class ProfanityFilterServiceTest {
         every { setOperations.members("profanity:words") } returns testWords
 
         // When & Then
-        assertTrue(profanityFilterService.containsProfanity("시!@#발"))
-        assertTrue(profanityFilterService.containsProfanity("시 발"))
-        assertTrue(profanityFilterService.containsProfanity("시-발"))
+        org.junit.jupiter.api.Assertions.assertTrue(profanityFilterService.containsProfanity("시!@#발"))
+        org.junit.jupiter.api.Assertions.assertTrue(profanityFilterService.containsProfanity("시 발"))
+        org.junit.jupiter.api.Assertions.assertTrue(profanityFilterService.containsProfanity("시-발"))
     }
 
     @Test
@@ -171,8 +172,8 @@ class ProfanityFilterServiceTest {
         every { setOperations.members("profanity:words") } throws RuntimeException("Redis connection failed")
 
         // When & Then
-        assertTrue(profanityFilterService.containsProfanity("시발"))
-        assertTrue(profanityFilterService.containsProfanity("개새끼"))
+        org.junit.jupiter.api.Assertions.assertTrue(profanityFilterService.containsProfanity("시발"))
+        org.junit.jupiter.api.Assertions.assertTrue(profanityFilterService.containsProfanity("개새끼"))
         assertFalse(profanityFilterService.containsProfanity("안녕하세요"))
     }
 }

@@ -1,8 +1,10 @@
+import io.be.shared.security.*
+import io.be.shared.exception.*
 package io.be.security
 
-import io.be.dto.TeamDto
-import io.be.exception.TeamNotFoundException
-import io.be.service.SubdomainService
+import io.be.team.dto.TeamDto
+import io.be.shared.exception.TeamNotFoundException
+import io.be.shared.service.SubdomainService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.BeforeEach
@@ -87,7 +89,7 @@ class TenantSecurityInterceptorTest {
         val result = interceptor.preHandle(request, response, Any())
 
         // then
-        assertTrue(result)
+        org.junit.jupiter.api.Assertions.assertTrue(result)
         assertEquals(HttpStatus.OK.value(), response.status)
     }
 
@@ -101,7 +103,7 @@ class TenantSecurityInterceptorTest {
         val result = interceptor.preHandle(request, response, Any())
 
         // then
-        assertTrue(result)
+        org.junit.jupiter.api.Assertions.assertTrue(result)
     }
 
     @Test
@@ -137,8 +139,8 @@ class TenantSecurityInterceptorTest {
         val result = interceptor.preHandle(request, response, Any())
 
         // then
-        assertTrue(result)
-        assertTrue(TenantContextHolder.hasContext())
+        org.junit.jupiter.api.Assertions.assertTrue(result)
+        org.junit.jupiter.api.Assertions.assertTrue(TenantContextHolder.hasContext())
         assertEquals(1L, TenantContextHolder.getTeamId())
         assertEquals("barcelona", TenantContextHolder.getSubdomain())
         assertEquals("FC Barcelona", TenantContextHolder.getTeamName())
@@ -181,13 +183,13 @@ class TenantSecurityInterceptorTest {
         try {
             val result = interceptor.preHandle(request, response, Any())
             assertFalse(result) // If no exception, at least it should return false
-        } catch (e: io.be.exception.SubdomainAccessDeniedException) {
+        } catch (e: io.be.shared.exception.SubdomainAccessDeniedException) {
             exceptionThrown = true
             // This is the expected behavior
         }
 
         // then - either exception thrown or false returned
-        assertTrue(exceptionThrown || response.status != HttpStatus.OK.value())
+        org.junit.jupiter.api.Assertions.assertTrue(exceptionThrown || response.status != HttpStatus.OK.value())
         
         verify(securityEventLogger).logSecurityEvent(
             eq(SecurityEvent.TENANT_ADMIN_ACCESS_ATTEMPT),
@@ -208,7 +210,7 @@ class TenantSecurityInterceptorTest {
 
         // when
         interceptor.preHandle(request, response, Any())
-        assertTrue(TenantContextHolder.hasContext()) // 컨텍스트 설정됨
+        org.junit.jupiter.api.Assertions.assertTrue(TenantContextHolder.hasContext()) // 컨텍스트 설정됨
         
         interceptor.afterCompletion(request, response, Any(), null)
 
@@ -230,8 +232,8 @@ class TenantSecurityInterceptorTest {
         val result = interceptor.preHandle(request, response, Any())
 
         // then
-        assertTrue(result)
-        assertTrue(TenantContextHolder.hasContext())
+        org.junit.jupiter.api.Assertions.assertTrue(result)
+        org.junit.jupiter.api.Assertions.assertTrue(TenantContextHolder.hasContext())
         assertEquals("barcelona", TenantContextHolder.getSubdomain())
     }
 

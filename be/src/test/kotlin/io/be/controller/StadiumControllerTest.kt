@@ -1,11 +1,11 @@
 package io.be.controller
 
-import io.be.controller.`public`.StadiumController
-import io.be.dto.StadiumDto
-import io.be.service.StadiumService
-import io.be.service.SubdomainService
-import io.be.config.SubdomainResolver
-import io.be.util.ApiResponse
+import io.be.shared.controller.StadiumController
+import io.be.stadium.dto.StadiumDto
+import io.be.stadium.application.StadiumService
+import io.be.shared.service.SubdomainService
+import io.be.shared.config.SubdomainResolver
+import io.be.shared.util.ApiResponse
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.kotlin.*
