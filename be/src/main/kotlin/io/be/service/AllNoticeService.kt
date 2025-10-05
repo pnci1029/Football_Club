@@ -33,19 +33,15 @@ class AllNoticeService(
         val notices = when {
             teamId != null && !keyword.isNullOrBlank() -> {
                 // 특정 팀 + 키워드 검색
-                noticeRepository.findByTeamIdAndIsActiveTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
-                    teamId, keyword, keyword, pageable
-                )
+                noticeRepository.findByTeamIdAndKeyword(teamId, keyword, pageable)
             }
             teamId != null -> {
                 // 특정 팀만
                 noticeRepository.findByTeamIdAndIsActiveTrue(teamId, pageable)
             }
             !keyword.isNullOrBlank() -> {
-                // 전체 팀 + 키워드 검색
-                noticeRepository.findByIsActiveTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
-                    keyword, keyword, pageable
-                )
+                // 전체 팀 + 키워드 검색 (전체 노출용)
+                noticeRepository.findByKeywordAndGlobalVisible(keyword, pageable)
             }
             else -> {
                 // 전체 팀의 모든 공지사항

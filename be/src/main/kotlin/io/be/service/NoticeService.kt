@@ -72,9 +72,7 @@ class NoticeService(
         val notices = if (keyword.isNullOrBlank()) {
             noticeRepository.findByIsActiveTrueOrderByCreatedAtDesc(pageable)
         } else {
-            noticeRepository.findByIsActiveTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
-                keyword.trim(), keyword.trim(), pageable
-            )
+            noticeRepository.findByKeywordAndGlobalVisible(keyword.trim(), pageable)
         }
 
         logger.info("Found ${notices.totalElements} notices across all teams")
@@ -98,7 +96,7 @@ class NoticeService(
         val notices = if (keyword.isNullOrBlank()) {
             noticeRepository.findByIsActiveTrueAndIsGlobalVisibleTrueOrderByCreatedAtDesc(pageable)
         } else {
-            noticeRepository.findByIsActiveTrueAndIsGlobalVisibleTrueAndKeyword(keyword.trim(), pageable)
+            noticeRepository.findByKeywordAndGlobalVisible(keyword.trim(), pageable)
         }
 
         logger.info("Found ${notices.totalElements} global visible notices")

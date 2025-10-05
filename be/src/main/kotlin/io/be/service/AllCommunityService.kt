@@ -33,9 +33,7 @@ class AllCommunityService(
         val posts = when {
             teamId != null && !keyword.isNullOrBlank() -> {
                 // 특정 팀 + 키워드 검색
-                communityPostRepository.findByTeamIdAndIsActiveTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
-                    teamId, keyword, keyword, pageable
-                )
+                communityPostRepository.findByTeamIdAndKeyword(teamId, keyword, pageable)
             }
             teamId != null -> {
                 // 특정 팀만
@@ -43,9 +41,7 @@ class AllCommunityService(
             }
             !keyword.isNullOrBlank() -> {
                 // 전체 팀 + 키워드 검색
-                communityPostRepository.findByIsActiveTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
-                    keyword, keyword, pageable
-                )
+                communityPostRepository.findByKeyword(keyword, pageable)
             }
             else -> {
                 // 전체 팀의 모든 게시글

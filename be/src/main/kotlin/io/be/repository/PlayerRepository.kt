@@ -4,15 +4,10 @@ import io.be.entity.Player
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Modifying
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Repository
-interface PlayerRepository : JpaRepository<Player, Long> {
+interface PlayerRepository : JpaRepository<Player, Long>, PlayerRepositoryCustom {
     // 활성 선수만 조회 (소프트 딜리트 고려)
     fun findByTeamIdAndIsDeletedFalse(teamId: Long, pageable: Pageable): Page<Player>
     fun findByTeamIdAndIsDeletedFalse(teamId: Long): List<Player>
@@ -25,11 +20,6 @@ interface PlayerRepository : JpaRepository<Player, Long> {
     fun countByTeamIdAndIsDeletedFalse(teamId: Long): Long
     fun countByTeamIdAndIsActiveTrueAndIsDeletedFalse(teamId: Long): Long
     
-    // 소프트 딜리트
-    @Modifying
-    @Transactional
-    @Query("UPDATE Player p SET p.isDeleted = true, p.deletedAt = :deletedAt WHERE p.id = :id")
-    fun softDeleteById(@Param("id") id: Long, @Param("deletedAt") deletedAt: LocalDateTime)
     
     // 기존 메서드들은 호환성을 위해 유지 (deprecated)
     @Deprecated("Use findByTeamIdAndIsDeletedFalse instead")
