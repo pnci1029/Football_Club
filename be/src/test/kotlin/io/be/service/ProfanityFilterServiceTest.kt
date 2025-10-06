@@ -1,4 +1,4 @@
-package io.be.service
+package io.be.shared.service
 
 import io.be.shared.service.ProfanityFilterService
 import io.mockk.every

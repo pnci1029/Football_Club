@@ -1,4 +1,4 @@
-package io.be.controller
+package io.be.stadium.presentation
 
 import io.be.shared.controller.StadiumController
 import io.be.stadium.dto.StadiumDto

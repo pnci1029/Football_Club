@@ -1,4 +1,4 @@
-package io.be.shared.controller.public
+package io.be.player.presentation
 
 import io.be.player.dto.PlayerDto
 import io.be.team.dto.TeamDto
