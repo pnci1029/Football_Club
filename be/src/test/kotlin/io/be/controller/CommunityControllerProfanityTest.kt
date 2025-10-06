@@ -1,4 +1,4 @@
-package io.be.controller
+package io.be.community.presentation
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.be.community.dto.CreatePostRequest

@@ -1,4 +1,4 @@
-package io.be.controller
+package io.be.match.presentation
 
 import io.be.shared.controller.MatchController
 import io.be.match.application.MatchService
