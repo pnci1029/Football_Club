@@ -1,6 +1,7 @@
+package io.be.shared.security
+
 import io.be.shared.security.*
 import io.be.shared.exception.*
-package io.be.security
 
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach

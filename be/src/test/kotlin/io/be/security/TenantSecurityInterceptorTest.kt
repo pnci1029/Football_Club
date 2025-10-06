@@ -1,6 +1,7 @@
+package io.be.shared.security
+
 import io.be.shared.security.*
 import io.be.shared.exception.*
-package io.be.security
 
 import io.be.team.dto.TeamDto
 import io.be.shared.exception.TeamNotFoundException

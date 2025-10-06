@@ -1,4 +1,4 @@
-package io.be.exception
+package io.be.shared.exception
 
 import io.be.shared.exception.*
 import org.junit.jupiter.api.BeforeEach
