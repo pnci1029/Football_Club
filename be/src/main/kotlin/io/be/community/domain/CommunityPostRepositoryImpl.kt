@@ -3,8 +3,8 @@ package io.be.community.domain
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.jpa.impl.JPAQueryFactory
 import io.be.community.domain.CommunityPost
-// import io.be.community.domain.QCommunityPost.communityPost
-// import io.be.community.domain.QCommunityComment.communityComment
+import io.be.community.domain.QCommunityPost.communityPost
+import io.be.community.domain.QCommunityComment.communityComment
 import io.be.shared.base.BaseQueryRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -13,12 +13,9 @@ import org.springframework.stereotype.Repository
 @Repository
 class CommunityPostRepositoryImpl(
     queryFactory: JPAQueryFactory
-) : /* BaseQueryRepository(queryFactory), */ CommunityPostRepositoryCustom {
+) : BaseQueryRepository(queryFactory), CommunityPostRepositoryCustom {
 
     override fun findByTeamIdAndKeyword(teamId: Long, keyword: String, pageable: Pageable): Page<CommunityPost> {
-        // TODO: QueryDSL Q클래스 생성 후 활성화
-        TODO("QueryDSL Q클래스 생성 후 구현")
-        /*
         val contentQuery = queryFactory
             .selectFrom(communityPost)
             .where(
@@ -38,13 +35,9 @@ class CommunityPostRepositoryImpl(
             )
 
         return fetchPageResponse(pageable, contentQuery, countQuery)
-        */
     }
 
     override fun findByKeyword(keyword: String, pageable: Pageable): Page<CommunityPost> {
-        // TODO: QueryDSL Q클래스 생성 후 활성화
-        TODO("QueryDSL Q클래스 생성 후 구현")
-        /*
         val contentQuery = queryFactory
             .selectFrom(communityPost)
             .where(
@@ -62,37 +55,25 @@ class CommunityPostRepositoryImpl(
             )
 
         return fetchPageResponse(pageable, contentQuery, countQuery)
-        */
     }
 
     override fun incrementViewCount(id: Long) {
-        // TODO: QueryDSL Q클래스 생성 후 활성화
-        TODO("QueryDSL Q클래스 생성 후 구현")
-        /*
         queryFactory
             .update(communityPost)
             .set(communityPost.viewCount, communityPost.viewCount.add(1))
             .where(communityPost.id.eq(id))
             .execute()
-        */
     }
 
     override fun incrementViewCountBy(id: Long, increment: Long) {
-        // TODO: QueryDSL Q클래스 생성 후 활성화
-        TODO("QueryDSL Q클래스 생성 후 구현")
-        /*
         queryFactory
             .update(communityPost)
             .set(communityPost.viewCount, communityPost.viewCount.add(increment))
             .where(communityPost.id.eq(id))
             .execute()
-        */
     }
 
     override fun countCommentsByPostId(postId: Long): Long {
-        // TODO: QueryDSL Q클래스 생성 후 활성화
-        TODO("QueryDSL Q클래스 생성 후 구현")
-        /*
         return queryFactory
             .select(communityComment.count())
             .from(communityComment)
@@ -101,12 +82,9 @@ class CommunityPostRepositoryImpl(
                 communityComment.isActive.isTrue
             )
             .fetchOne() ?: 0L
-        */
     }
 
     // === Private 조건 메서드들 ===
-    // TODO: QueryDSL Q클래스 생성 후 활성화
-    /*
     private fun teamIdEq(teamId: Long?): BooleanExpression? {
         return teamId?.let { communityPost.teamId.eq(it) }
     }
@@ -121,5 +99,4 @@ class CommunityPostRepositoryImpl(
                 .or(communityPost.content.contains(it))
         }
     }
-    */
 }
