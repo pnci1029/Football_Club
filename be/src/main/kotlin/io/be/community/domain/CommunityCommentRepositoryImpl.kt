@@ -2,8 +2,8 @@ package io.be.community.domain
 
 import com.querydsl.jpa.impl.JPAQueryFactory
 import io.be.community.domain.CommunityComment
-// import io.be.community.domain.QCommunityComment.communityComment
-// import io.be.community.domain.QCommunityPost.communityPost
+import io.be.community.domain.QCommunityComment.communityComment
+import io.be.community.domain.QCommunityPost.communityPost
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -12,9 +12,6 @@ class CommunityCommentRepositoryImpl(
 ) : CommunityCommentRepositoryCustom {
 
     override fun findByIdAndTeamId(commentId: Long, teamId: Long): CommunityComment? {
-        // TODO: QueryDSL Q클래스 생성 후 활성화
-        TODO("QueryDSL Q클래스 생성 후 구현")
-        /*
         return queryFactory
             .selectFrom(communityComment)
             .innerJoin(communityComment.post, communityPost)
@@ -24,6 +21,5 @@ class CommunityCommentRepositoryImpl(
                 communityComment.isActive.isTrue
             )
             .fetchOne()
-        */
     }
 }

@@ -3,8 +3,8 @@ package io.be.notice.domain
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.jpa.impl.JPAQueryFactory
 import io.be.notice.domain.Notice
-// import io.be.notice.domain.QNotice.notice
-// import io.be.notice.domain.QNoticeComment.noticeComment
+import io.be.notice.domain.QNotice.notice
+import io.be.notice.domain.QNoticeComment.noticeComment
 import io.be.shared.base.BaseQueryRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -13,12 +13,9 @@ import org.springframework.stereotype.Repository
 @Repository
 class NoticeRepositoryImpl(
     queryFactory: JPAQueryFactory
-) : /* BaseQueryRepository(queryFactory), */ NoticeRepositoryCustom {
+) : BaseQueryRepository(queryFactory), NoticeRepositoryCustom {
 
     override fun findByTeamIdAndKeyword(teamId: Long, keyword: String, pageable: Pageable): Page<Notice> {
-        // TODO: QueryDSL Q클래스 생성 후 활성화
-        TODO("QueryDSL Q클래스 생성 후 구현")
-        /*
         val contentQuery = queryFactory
             .selectFrom(notice)
             .where(
@@ -38,13 +35,9 @@ class NoticeRepositoryImpl(
             )
 
         return fetchPageResponse(pageable, contentQuery, countQuery)
-        */
     }
 
     override fun findByKeywordAndGlobalVisible(keyword: String, pageable: Pageable): Page<Notice> {
-        // TODO: QueryDSL Q클래스 생성 후 활성화
-        TODO("QueryDSL Q클래스 생성 후 구현")
-        /*
         val contentQuery = queryFactory
             .selectFrom(notice)
             .where(
@@ -64,37 +57,25 @@ class NoticeRepositoryImpl(
             )
 
         return fetchPageResponse(pageable, contentQuery, countQuery)
-        */
     }
 
     override fun incrementViewCount(id: Long) {
-        // TODO: QueryDSL Q클래스 생성 후 활성화
-        TODO("QueryDSL Q클래스 생성 후 구현")
-        /*
         queryFactory
             .update(notice)
             .set(notice.viewCount, notice.viewCount.add(1))
             .where(notice.id.eq(id))
             .execute()
-        */
     }
 
     override fun incrementViewCountBy(id: Long, increment: Long) {
-        // TODO: QueryDSL Q클래스 생성 후 활성화
-        TODO("QueryDSL Q클래스 생성 후 구현")
-        /*
         queryFactory
             .update(notice)
             .set(notice.viewCount, notice.viewCount.add(increment))
             .where(notice.id.eq(id))
             .execute()
-        */
     }
 
     override fun countCommentsByNoticeId(noticeId: Long): Long {
-        // TODO: QueryDSL Q클래스 생성 후 활성화
-        TODO("QueryDSL Q클래스 생성 후 구현")
-        /*
         return queryFactory
             .select(noticeComment.count())
             .from(noticeComment)
@@ -103,12 +84,9 @@ class NoticeRepositoryImpl(
                 noticeComment.isActive.isTrue
             )
             .fetchOne() ?: 0L
-        */
     }
 
     // === Private 조건 메서드들 ===
-    // TODO: QueryDSL Q클래스 생성 후 활성화
-    /*
     private fun teamIdEq(teamId: Long?): BooleanExpression? {
         return teamId?.let { notice.teamId.eq(it) }
     }
@@ -127,5 +105,4 @@ class NoticeRepositoryImpl(
                 .or(notice.content.contains(it))
         }
     }
-    */
 }
