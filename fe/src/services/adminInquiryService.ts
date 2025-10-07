@@ -118,6 +118,13 @@ class AdminInquiryService {
   async getRecentInquiries(limit: number = 5): Promise<ApiResponse<InquiryDto[]>> {
     return apiClient.get<ApiResponse<InquiryDto[]>>(`${this.basePath}/recent?limit=${limit}`);
   }
+
+  /**
+   * 문의 삭제
+   */
+  async deleteInquiry(id: number): Promise<ApiResponse<void>> {
+    return apiClient.delete<ApiResponse<void>>(`${this.basePath}/${id}`);
+  }
 }
 
 export const adminInquiryService = new AdminInquiryService();

@@ -102,4 +102,12 @@ class InquiryService(
     fun existsByEmail(email: String): Boolean {
         return inquiryRepository.existsByEmail(email)
     }
+
+    @Transactional
+    fun deleteInquiry(id: Long) {
+        val inquiry = inquiryRepository.findById(id).orElseThrow {
+            InquiryNotFoundException(id)
+        }
+        inquiryRepository.delete(inquiry)
+    }
 }

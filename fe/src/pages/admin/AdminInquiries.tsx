@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminInquiryService, InquiryDto, InquirySearchRequest, UpdateInquiryStatusRequest } from '../../services/adminInquiryService';
 import { Button, Card } from '../../components/common';
+import { useToast } from '../../components/Toast';
 
 interface StatusUpdateFormProps {
   currentStatus: string;
@@ -81,6 +82,57 @@ const StatusUpdateForm: React.FC<StatusUpdateFormProps> = ({ currentStatus, onSt
   );
 };
 
+interface DeleteConfirmModalProps {
+  isOpen: boolean;
+  inquiryName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ isOpen, inquiryName, onConfirm, onCancel }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg max-w-md w-full mx-4">
+        <div className="p-6">
+          <div className="flex items-center mb-4">
+            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
+              <span className="text-red-600 text-xl">⚠️</span>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">문의 삭제 확인</h3>
+          </div>
+          
+          <div className="mb-6">
+            <p className="text-gray-600">
+              <span className="font-medium">{inquiryName}</span>님의 문의를 정말 삭제하시겠습니까?
+            </p>
+            <p className="text-sm text-red-600 mt-2">
+              ⚠️ 삭제된 문의는 복구할 수 없습니다.
+            </p>
+          </div>
+          
+          <div className="flex justify-end space-x-3">
+            <Button
+              variant="outline"
+              onClick={onCancel}
+            >
+              취소
+            </Button>
+            <Button
+              variant="primary"
+              onClick={onConfirm}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              삭제
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AdminInquiries: React.FC = () => {
   const [inquiries, setInquiries] = useState<InquiryDto[]>([]);
   const [stats, setStats] = useState({
@@ -97,6 +149,9 @@ const AdminInquiries: React.FC = () => {
   const [searchForm, setSearchForm] = useState<InquirySearchRequest>({});
   const [selectedInquiry, setSelectedInquiry] = useState<InquiryDto | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [inquiryToDelete, setInquiryToDelete] = useState<InquiryDto | null>(null);
+  const { showToast, ToastContainer } = useToast();
 
   const loadInquiries = async () => {
     try {
@@ -150,6 +205,24 @@ const AdminInquiries: React.FC = () => {
       }
     } catch (error) {
       console.error('상태 변경 실패:', error);
+    }
+  };
+
+  const handleDeleteInquiry = async () => {
+    if (!inquiryToDelete) return;
+
+    try {
+      const response = await adminInquiryService.deleteInquiry(inquiryToDelete.id);
+      if (response.success) {
+        showToast(response.message || '문의가 성공적으로 삭제되었습니다.', 'success');
+        loadInquiries();
+        loadStats();
+        setShowDeleteModal(false);
+        setInquiryToDelete(null);
+      }
+    } catch (error) {
+      console.error('문의 삭제 실패:', error);
+      showToast('문의 삭제 중 오류가 발생했습니다.', 'error');
     }
   };
 
@@ -315,16 +388,29 @@ const AdminInquiries: React.FC = () => {
                       {formatDate(inquiry.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedInquiry(inquiry);
-                          setShowDetailModal(true);
-                        }}
-                      >
-                        상세보기
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedInquiry(inquiry);
+                            setShowDetailModal(true);
+                          }}
+                        >
+                          상세보기
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setInquiryToDelete(inquiry);
+                            setShowDeleteModal(true);
+                          }}
+                          className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                        >
+                          삭제
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -440,6 +526,20 @@ const AdminInquiries: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 삭제 확인 모달 */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        inquiryName={inquiryToDelete?.name || ''}
+        onConfirm={handleDeleteInquiry}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setInquiryToDelete(null);
+        }}
+      />
+
+      {/* 토스트 컨테이너 */}
+      <ToastContainer />
     </div>
   );
 };
