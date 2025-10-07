@@ -1,19 +1,17 @@
 package io.be.match.presentation
 
-import io.be.shared.controller.MatchController
 import io.be.match.application.MatchService
-import io.be.shared.service.SubdomainService
 import io.be.shared.config.SubdomainResolver
+import io.be.shared.service.SubdomainService
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.data.domain.PageRequest
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest
 @WithMockUser
@@ -24,11 +22,11 @@ class MatchControllerTest {
 
     @MockBean
     private lateinit var matchService: MatchService
-    
+
     @MockBean
     private lateinit var subdomainService: SubdomainService
-    
-    @MockBean 
+
+    @MockBean
     private lateinit var subdomainResolver: SubdomainResolver
 
     @Test

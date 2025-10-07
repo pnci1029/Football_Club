@@ -1,8 +1,4 @@
 package io.be.shared.security
-
-import io.be.shared.security.*
-import io.be.shared.exception.*
-
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -213,21 +209,21 @@ class TenantContextTest {
                     teamName = "Team $i",
                     host = "team$i.football-club.kr"
                 )
-                
+
                 TenantContextHolder.setContext(context)
-                
+
                 // Simulate some work
                 Thread.sleep(10)
-                
+
                 // Each thread should have its own context
                 val retrievedContext = TenantContextHolder.getContext()
                 synchronized(contexts) {
                     contexts.add(retrievedContext)
                 }
-                
+
                 TenantContextHolder.clear()
             }
-            
+
             threads.add(thread)
             thread.start()
         }
