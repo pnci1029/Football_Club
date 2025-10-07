@@ -147,4 +147,18 @@ class AdminInquiryController(
             )
         )
     }
+
+    /**
+     * 문의 삭제
+     */
+    @DeleteMapping("/{id}")
+    fun deleteInquiry(@PathVariable id: Long): ResponseEntity<ApiResponse<Unit>> {
+        inquiryService.deleteInquiry(id)
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                data = Unit,
+                message = "문의가 성공적으로 삭제되었습니다"
+            )
+        )
+    }
 }
