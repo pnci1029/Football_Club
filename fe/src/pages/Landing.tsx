@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Card } from '../components/common';
 import { inquiryService, CreateInquiryRequest } from '../services/inquiryService';
 import { getTeamUrl } from '../utils/config';
+import { useToast } from '../components/Toast';
 
 const Landing: React.FC = () => {
   const [contactForm, setContactForm] = useState({
@@ -13,6 +14,7 @@ const Landing: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const { showToast, ToastContainer } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,18 +39,26 @@ const Landing: React.FC = () => {
       const response = await inquiryService.createInquiry(request);
 
       if (response.success) {
-        setSubmitMessage({
-          type: 'success',
-          text: response.message || '문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.'
-        });
+        // 성공 토스트 표시
+        showToast(response.message || '문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.', 'success');
+        
+        // 폼 초기화
         setContactForm({ name: '', email: '', phone: '', teamName: '', message: '' });
+        
+        // 기존 메시지 초기화
+        setSubmitMessage(null);
       } else {
         throw new Error(response.error?.message || '문의 접수에 실패했습니다.');
       }
     } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '문의 접수 중 오류가 발생했습니다. 다시 시도해주세요.';
+      
+      // 에러 토스트 표시
+      showToast(errorMessage, 'error');
+      
       setSubmitMessage({
         type: 'error',
-        text: error instanceof Error ? error.message : '문의 접수 중 오류가 발생했습니다. 다시 시도해주세요.'
+        text: errorMessage
       });
     } finally {
       setIsSubmitting(false);
@@ -310,6 +320,9 @@ const Landing: React.FC = () => {
           </p>
         </div>
       </footer>
+      
+      {/* 토스트 컨테이너 */}
+      <ToastContainer />
     </div>
   );
 };

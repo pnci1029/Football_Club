@@ -7,7 +7,7 @@ export interface ToastProps {
   onClose: () => void;
 }
 
-export const Toast: React.FC<ToastProps> = ({ message, type, duration = 3000, onClose }) => {
+export const Toast: React.FC<ToastProps> = ({ message, type, duration = 5000, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -23,15 +23,15 @@ export const Toast: React.FC<ToastProps> = ({ message, type, duration = 3000, on
   const getTypeStyles = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-50 border-green-200 text-green-800';
+        return 'bg-green-100 border-green-300 text-green-900 ring-green-500/20 ring-2';
       case 'error':
-        return 'bg-red-50 border-red-200 text-red-800';
+        return 'bg-red-100 border-red-300 text-red-900 ring-red-500/20 ring-2';
       case 'warning':
-        return 'bg-yellow-50 border-yellow-200 text-yellow-800';
+        return 'bg-yellow-100 border-yellow-300 text-yellow-900 ring-yellow-500/20 ring-2';
       case 'info':
-        return 'bg-blue-50 border-blue-200 text-blue-800';
+        return 'bg-blue-100 border-blue-300 text-blue-900 ring-blue-500/20 ring-2';
       default:
-        return 'bg-gray-50 border-gray-200 text-gray-800';
+        return 'bg-gray-100 border-gray-300 text-gray-900 ring-gray-500/20 ring-2';
     }
   };
 
@@ -52,14 +52,17 @@ export const Toast: React.FC<ToastProps> = ({ message, type, duration = 3000, on
 
   return (
     <div
-      className={`fixed top-4 right-4 z-50 max-w-sm w-full p-4 border rounded-lg shadow-lg transition-all duration-300 transform ${
-        isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+      className={`fixed top-4 right-4 z-[9999] max-w-sm w-full p-4 border-2 rounded-xl shadow-2xl backdrop-blur-sm transition-all duration-500 ease-in-out transform ${
+        isVisible ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-full opacity-0 scale-95'
       } ${getTypeStyles()}`}
+      style={{
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+      }}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <span className="mr-2 text-lg">{getIcon()}</span>
-          <span className="text-sm font-medium">{message}</span>
+          <span className="mr-3 text-xl flex-shrink-0">{getIcon()}</span>
+          <span className="text-base font-semibold leading-tight">{message}</span>
         </div>
         <button
           onClick={() => {
@@ -91,14 +94,15 @@ export const useToast = () => {
   };
 
   const ToastContainer = () => (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
+    <div className="fixed top-4 right-4 z-[9999] space-y-3 max-w-sm w-full pointer-events-none">
       {toasts.map(toast => (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          type={toast.type}
-          onClose={() => removeToast(toast.id)}
-        />
+        <div key={toast.id} className="pointer-events-auto">
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => removeToast(toast.id)}
+          />
+        </div>
       ))}
     </div>
   );
