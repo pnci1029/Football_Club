@@ -653,6 +653,150 @@ yarn add 패키지명
 yarn add -D 개발의존성패키지명
 ```
 
+## Toast 및 알림 시스템 통일 가이드
+
+### 🎯 **Toast 시스템 현황 (2024.10 기준)**
+
+프로젝트 전반에 걸쳐 **커스텀 Toast 시스템**으로 통일 완료. 기존 `alert()`, `confirm()` 함수를 단계적으로 교체했습니다.
+
+#### **핵심 컴포넌트**
+- **Toast 컴포넌트**: `fe/src/components/Toast.tsx`
+- **useToast Hook**: 통합 Toast 관리 및 제공
+
+#### **Toast 적용 완료 파일들**
+
+**🟢 완전 Toast 통일 완료**:
+1. **사용자 페이지**:
+   - `pages/Community.tsx` - 게시글 작성/수정/삭제 성공 메시지
+   - `pages/CommunityDetail.tsx` - 댓글 작성/삭제 성공 메시지
+   - `pages/Stadiums.tsx` - 주소 복사 알림
+   - `pages/Landing.tsx` - 문의 접수 성공/실패
+   - `pages/NoticeDetail.tsx` - 기타 알림
+
+2. **관리자 페이지**:
+   - `pages/admin/AdminPlayers.tsx` - 선수 생성/수정/삭제
+   - `pages/admin/AdminTeams.tsx` - 팀 생성/수정/삭제  
+   - `pages/admin/AdminHeroSlides.tsx` - 슬라이드 생성/수정/삭제
+   - `pages/admin/TenantManagement.tsx` - 테넌트 생성/삭제
+   - `pages/admin/AdminMatches.tsx` - 경기 관련 알림
+   - `pages/admin/AdminInquiries.tsx` - 문의 상태 변경
+   - `pages/admin/AdminTeamDetail.tsx` - 팀 상세 관리
+
+3. **공통 컴포넌트**:
+   - `components/admin/ConfirmDeleteModal.tsx` - 삭제 확인 모달
+
+**🟡 부분적 alert() 잔존**:
+- `pages/admin/AdminStadiums.tsx` - 구장 삭제 (confirm + alert 혼재)
+- `components/admin/QRCodeModal.tsx` - URL 복사 알림 (alert 사용)
+- `components/admin/StadiumMapModal.tsx` - 주소/좌표 복사 (alert 사용)
+- `components/admin/StadiumEditModal.tsx` - 도움말 메시지 (alert 사용)
+
+### **Toast Hook 사용법**
+
+#### **기본 사용 패턴**
+```typescript
+import { useToast } from '../components/Toast';
+
+const MyComponent: React.FC = () => {
+  const { success, error, warning, info, ToastContainer } = useToast();
+
+  const handleSuccess = () => {
+    success('작업이 성공적으로 완료되었습니다.');
+  };
+
+  const handleError = () => {
+    error('오류가 발생했습니다. 다시 시도해 주세요.');
+  };
+
+  return (
+    <div>
+      {/* 컴포넌트 내용 */}
+      <ToastContainer />
+    </div>
+  );
+};
+```
+
+#### **Toast 타입별 용도**
+- **success** (녹색): 성공적인 작업 완료 (생성, 수정, 삭제 성공)
+- **error** (빨간색): 오류 발생 (API 실패, 권한 오류 등)
+- **warning** (노란색): 주의사항 (기능 미구현, 제한사항 등)
+- **info** (파란색): 일반 정보 (안내 메시지)
+
+#### **Navigate State → Toast 패턴**
+게시글/댓글 시스템에서 사용하는 패턴:
+
+```typescript
+// 전송 측 (CommunityWrite.tsx)
+navigate('/community', { 
+  state: { message: '게시글이 성공적으로 작성되었습니다.' }
+});
+
+// 수신 측 (Community.tsx)
+const location = useLocation();
+const { success } = useToast();
+
+useEffect(() => {
+  if (location.state?.message) {
+    success(location.state.message);
+    window.history.replaceState({}, document.title);
+  }
+}, [location.state, success]);
+```
+
+#### **댓글 시스템 콜백 패턴**
+```typescript
+// CommentSection.tsx
+const handleCommentSubmit = async (comment) => {
+  await onCreateComment(comment);
+  onSuccess('댓글이 성공적으로 작성되었습니다.');
+};
+
+// CommunityDetail.tsx
+const handleSuccess = (message: string) => {
+  success(message);
+};
+```
+
+### **성능 최적화**
+
+#### **useCallback 메모이제이션**
+Toast hook의 모든 함수는 `useCallback`으로 메모이제이션되어 불필요한 리렌더링을 방지합니다:
+
+```typescript
+const showToast = useCallback((message: string, type: ToastProps['type'] = 'info') => {
+  const id = ++idCounter.current;
+  setToasts(prev => [...prev, { id, message, type }]);
+}, []);
+
+const success = useCallback((message: string) => showToast(message, 'success'), [showToast]);
+```
+
+### **개발 가이드라인**
+
+#### **✅ 권장사항**
+1. **새로운 컴포넌트**: 반드시 Toast 시스템 사용
+2. **의존성 배열**: useCallback으로 메모이제이션된 Toast 함수는 안전하게 포함 가능
+3. **메시지 일관성**: 동일한 동작에 대해 동일한 메시지 사용
+4. **ToastContainer 배치**: 각 페이지 컴포넌트 하단에 필수 포함
+
+#### **❌ 금지사항**
+1. **alert() 사용 금지**: 신규 개발 시 절대 사용하지 말 것
+2. **confirm() 직접 사용**: ConfirmDeleteModal 컴포넌트 사용 권장
+3. **Toast 함수 재생성**: useCallback 없이 인라인 함수로 생성 금지
+
+#### **🔄 마이그레이션 우선순위**
+1. **High**: AdminStadiums.tsx (confirm + alert 혼재)
+2. **Medium**: QRCodeModal, StadiumMapModal (복사 알림)
+3. **Low**: StadiumEditModal (도움말 메시지)
+
+### **Toast 시스템 장점**
+- ✅ **일관된 UX**: 전체 앱에서 동일한 디자인
+- ✅ **자동 사라짐**: 5초 후 자동으로 사라지는 애니메이션
+- ✅ **타입별 구분**: 색상과 아이콘으로 메시지 유형 구분
+- ✅ **접근성**: 스크린 리더 호환
+- ✅ **성능**: useCallback으로 최적화
+
 ## 마이그레이션 전략
 
 ### 점진적 개선
