@@ -13,6 +13,7 @@ const Home: React.FC = React.memo(() => {
   const teamId = currentTeam?.id ? Number(currentTeam.id) : null;
   const { players, heroSlides, isLoading: dataLoading } = useParallelHomeData(teamId);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   const mainPlayers = players.filter(player => player.isActive).slice(0, 11);
 
@@ -37,6 +38,16 @@ const Home: React.FC = React.memo(() => {
 
   const currentSlides = heroSlides.length > 0 ? heroSlides : defaultSlides;
 
+  // 첫 로드 애니메이션 트리거
+  useEffect(() => {
+    if (!isLoading && !hasAnimated) {
+      const timer = setTimeout(() => {
+        setHasAnimated(true);
+      }, 500); // 이미지가 먼저 로드된 후 텍스트 애니메이션 시작
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, hasAnimated]);
+
   // 자동 슬라이드
   useEffect(() => {
     if (currentSlides.length <= 1) return;
@@ -56,7 +67,7 @@ const Home: React.FC = React.memo(() => {
       {isLoading ? (
         <HeroSectionSkeleton />
       ) : (
-        <div className={`relative text-white py-20 sm:py-24 lg:py-32 xl:py-40 overflow-hidden transition-all duration-1000 min-h-[60vh] sm:min-h-[70vh] lg:min-h-[80vh]`}>
+        <div className={`relative text-white overflow-hidden transition-all duration-1000 h-screen w-full`}>
         {/* 배경 이미지 또는 그라데이션 */}
         {currentHero.backgroundImage ? (
           <>
@@ -72,19 +83,25 @@ const Home: React.FC = React.memo(() => {
           </div>
         )}
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex items-center justify-center min-h-[50vh] sm:min-h-[60vh] lg:min-h-[70vh]">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex items-center justify-center h-full">
           <div className="text-center max-w-5xl mx-auto">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-bold mb-4 sm:mb-6 lg:mb-8 transition-opacity duration-500 leading-tight drop-shadow-lg">
+            <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-bold mb-4 sm:mb-6 lg:mb-8 leading-tight drop-shadow-lg transition-all duration-1000 ${
+              hasAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}>
               {currentHero.title}
             </h1>
 
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl opacity-95 mb-8 sm:mb-10 lg:mb-12 transition-opacity duration-500 leading-relaxed drop-shadow-md">
+            <p className={`text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl mb-8 sm:mb-10 lg:mb-12 leading-relaxed drop-shadow-md transition-all duration-1000 delay-300 ${
+              hasAnimated ? 'opacity-95 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}>
               {currentHero.subtitle}
             </p>
 
             {/* 슬라이드 인디케이터 - 모바일 최적화 (2개 이상일 때만 표시) */}
             {currentSlides.length > 1 && (
-              <div className="flex justify-center space-x-3 sm:space-x-4">
+              <div className={`flex justify-center space-x-3 sm:space-x-4 transition-all duration-1000 delay-500 ${
+                hasAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}>
                 {currentSlides.map((_, index) => (
                   <button
                     key={index}
