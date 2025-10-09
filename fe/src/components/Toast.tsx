@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 
 export interface ToastProps {
   message: string;
@@ -83,15 +83,16 @@ export const Toast: React.FC<ToastProps> = ({ message, type, duration = 5000, on
 
 export const useToast = () => {
   const [toasts, setToasts] = useState<Array<{ id: number; message: string; type: ToastProps['type'] }>>([]);
+  const idCounter = useRef(0);
 
-  const showToast = (message: string, type: ToastProps['type'] = 'info') => {
-    const id = Date.now();
+  const showToast = useCallback((message: string, type: ToastProps['type'] = 'info') => {
+    const id = ++idCounter.current;
     setToasts(prev => [...prev, { id, message, type }]);
-  };
+  }, []);
 
-  const removeToast = (id: number) => {
+  const removeToast = useCallback((id: number) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
-  };
+  }, []);
 
   const ToastContainer = () => (
     <div className="fixed top-4 right-4 z-[9999] space-y-3 max-w-sm w-full pointer-events-none">
@@ -107,12 +108,17 @@ export const useToast = () => {
     </div>
   );
 
+  const success = useCallback((message: string) => showToast(message, 'success'), [showToast]);
+  const error = useCallback((message: string) => showToast(message, 'error'), [showToast]);
+  const warning = useCallback((message: string) => showToast(message, 'warning'), [showToast]);
+  const info = useCallback((message: string) => showToast(message, 'info'), [showToast]);
+
   return {
     showToast,
     ToastContainer,
-    success: (message: string) => showToast(message, 'success'),
-    error: (message: string) => showToast(message, 'error'),
-    warning: (message: string) => showToast(message, 'warning'),
-    info: (message: string) => showToast(message, 'info'),
+    success,
+    error,
+    warning,
+    info,
   };
 };

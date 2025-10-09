@@ -4,10 +4,12 @@ import {Button, Card, LoadingSpinner} from '../../components/common';
 import MatchCreateModal from '../../components/admin/MatchCreateModal';
 import { adminMatchService, AdminMatch } from '../../services/adminMatchService';
 import { adminTeamService, AdminTeam } from '../../services/adminTeamService';
+import { useToast } from '../../components/Toast';
 
 
 const AdminMatches: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { warning, ToastContainer } = useToast();
   const [matches, setMatches] = useState<AdminMatch[]>([]);
   const [teams, setTeams] = useState<AdminTeam[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<AdminTeam | null>(null);
@@ -23,7 +25,7 @@ const AdminMatches: React.FC = () => {
   };
 
   const handleImportSchedule = () => {
-    alert('경기 일정 가져오기 기능이 구현되지 않았습니다.');
+    warning('경기 일정 가져오기 기능이 구현되지 않았습니다.');
   };
 
   const handlePageChange = (newPage: number) => {
@@ -427,6 +429,8 @@ const AdminMatches: React.FC = () => {
         onClose={() => setShowCreateModal(false)}
         onMatchCreated={handleMatchCreated}
       />
+
+      <ToastContainer />
     </div>
   );
 };

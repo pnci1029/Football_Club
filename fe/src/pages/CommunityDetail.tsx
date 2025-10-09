@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTeam } from '../contexts/TeamContext';
 import { communityApi } from '../api/modules/community';
 import type { CommunityPostDetail } from '../api/types';
@@ -7,11 +7,14 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import AuthModal from '../components/community/AuthModal';
 import CommentSection from '../components/community/CommentSection';
 import { communityAuthManager } from '../utils/communityAuth';
+import { useToast } from '../components/Toast';
 
 const CommunityDetail: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentTeam } = useTeam();
+  const { success, ToastContainer } = useToast();
   
   const [post, setPost] = useState<CommunityPostDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,7 +22,6 @@ const CommunityDetail: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [modalAction, setModalAction] = useState<'edit' | 'delete'>('delete');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -36,16 +38,6 @@ const CommunityDetail: React.FC = () => {
         setPost(response);
         
         // 상세 조회 시 백엔드에서 자동으로 조회수 처리됨
-        
-        // 성공 메시지 처리 (location state에서)
-        const state = window.history.state?.usr;
-        if (state?.message) {
-          setSuccessMessage(state.message);
-          // 5초 후 메시지 자동 제거
-          setTimeout(() => setSuccessMessage(null), 5000);
-          // 메시지 표시 후 state 클리어
-          window.history.replaceState({}, document.title);
-        }
       } catch (err) {
         setError('게시글을 불러오는데 실패했습니다.');
       } finally {
@@ -55,6 +47,15 @@ const CommunityDetail: React.FC = () => {
 
     loadPost();
   }, [currentTeam, postId]);
+
+  // navigate state로 전달된 메시지를 Toast로 표시
+  useEffect(() => {
+    if (location.state?.message) {
+      success(location.state.message);
+      // state 정리하여 새로고침 시 중복 표시 방지
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, success]); // useCallback으로 메모이제이션된 success 함수
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -162,8 +163,7 @@ const CommunityDetail: React.FC = () => {
   };
 
   const handleSuccess = (message: string) => {
-    setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(null), 3000);
+    success(message);
   };
 
   if (loading) {
@@ -197,25 +197,6 @@ const CommunityDetail: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 성공 메시지 */}
-        {successMessage && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-green-800 font-medium">{successMessage}</span>
-            </div>
-            <button
-              onClick={() => setSuccessMessage(null)}
-              className="text-green-600 hover:text-green-800 transition-colors duration-200"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
         {/* 게시글 상세 */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           {/* 헤더 */}
@@ -327,6 +308,8 @@ const CommunityDetail: React.FC = () => {
           actionType={modalAction}
           isLoading={isProcessing}
         />
+
+        <ToastContainer />
       </div>
     </div>
   );

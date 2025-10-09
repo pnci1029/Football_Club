@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTeam } from '../contexts/TeamContext';
 import { communityApi } from '../api/modules/community';
 import type { CommunityPost } from '../api/types';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useToast } from '../components/Toast';
 
 const Community: React.FC = () => {
   const { currentTeam } = useTeam();
+  const location = useLocation();
+  const { success, ToastContainer } = useToast();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +45,15 @@ const Community: React.FC = () => {
       loadPosts(0, searchKeyword);
     }
   }, [currentTeam, searchKeyword, loadPosts]);
+
+  // navigate state로 전달된 메시지를 Toast로 표시
+  useEffect(() => {
+    if (location.state?.message) {
+      success(location.state.message);
+      // state 정리하여 새로고침 시 중복 표시 방지
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, success]); // useCallback으로 메모이제이션된 success 함수
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,6 +262,8 @@ const Community: React.FC = () => {
           </div>
         )}
       </div>
+
+      <ToastContainer />
     </div>
   );
 };

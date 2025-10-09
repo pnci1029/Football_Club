@@ -22,7 +22,8 @@ const StatusUpdateForm: React.FC<StatusUpdateFormProps> = ({ currentStatus, onSt
 
   const handleSubmit = () => {
     if (selectedStatus === currentStatus && !adminNote.trim()) {
-      alert('변경사항이 없습니다.');
+      // useToast는 컴포넌트 내부에서만 사용 가능하므로 부모에서 처리하도록 전달
+      onCancel(); // 모달 닫기
       return;
     }
     onStatusUpdate(selectedStatus, adminNote.trim());

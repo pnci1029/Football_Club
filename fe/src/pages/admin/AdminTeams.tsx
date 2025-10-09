@@ -6,9 +6,11 @@ import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import TeamEditModal from '../../components/admin/TeamEditModal';
 import TeamCreateModal from '../../components/admin/TeamCreateModal';
 import QRCodeModal from '../../components/admin/QRCodeModal';
+import { useToast } from '../../components/Toast';
 
 const AdminTeams: React.FC = () => {
   const navigate = useNavigate();
+  const { success, error: showError, ToastContainer } = useToast();
   const [teams, setTeams] = useState<AdminTeam[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [page] = useState(0);
@@ -48,15 +50,16 @@ const AdminTeams: React.FC = () => {
     try {
       const response = await adminTeamService.deleteTeam(deletingTeam.id);
       if (response.success) {
+        success('팀이 삭제되었습니다.');
         loadTeams();
         setShowDeleteModal(false);
         setDeletingTeam(null);
       } else {
-        alert('삭제에 실패했습니다. 다시 시도해 주세요.');
+        showError('삭제에 실패했습니다. 다시 시도해 주세요.');
       }
     } catch (error) {
       console.error('Failed to delete team:', error);
-      alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      showError('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       setDeleteLoading(false);
     }
@@ -325,6 +328,8 @@ const AdminTeams: React.FC = () => {
         teamName={qrTeam?.name || ''}
         teamCode={qrTeam?.code || ''}
       />
+
+      <ToastContainer />
     </div>
   );
 };
