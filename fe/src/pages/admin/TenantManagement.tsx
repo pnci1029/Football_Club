@@ -5,8 +5,10 @@ import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import QRCodeModal from '../../components/admin/QRCodeModal';
 import { adminTeamService } from '../../services/adminTeamService';
 import { getProductionDomain, getTeamUrl } from '../../utils/config';
+import { useToast } from '../../components/Toast';
 
 const TenantManagement: React.FC = () => {
+  const { success, error: showError, ToastContainer } = useToast();
   const [tenants, setTenants] = useState<TeamStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTenant, setSelectedTenant] = useState<TeamStats | null>(null);
@@ -55,12 +57,12 @@ const TenantManagement: React.FC = () => {
         stadiumCount: 0
       }]);
       
-      // 성공 메시지 표시 (toast나 alert 추가 가능)
-      alert(`새 서브도메인 "${teamData.code}"이 성공적으로 생성되었습니다!`);
+      // 성공 메시지 표시
+      success(`새 서브도메인 "${teamData.code}"이 성공적으로 생성되었습니다!`);
       
     } catch (error: unknown) {
       console.error('팀 생성 실패:', error);
-      alert(`팀 생성에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+      showError(`팀 생성에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       throw error; // 모달에서 에러 처리
     } finally {
       setIsCreating(false);
@@ -95,11 +97,11 @@ const TenantManagement: React.FC = () => {
         setShowDeleteModal(false);
         setDeletingTenant(null);
       } else {
-        alert('삭제에 실패했습니다. 다시 시도해 주세요.');
+        showError('삭제에 실패했습니다. 다시 시도해 주세요.');
       }
     } catch (error) {
       console.error('Failed to delete tenant:', error);
-      alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      showError('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       setDeleteLoading(false);
     }
@@ -285,7 +287,7 @@ const TenantManagement: React.FC = () => {
                       📱 QR 코드 생성
                     </button>
                     <button 
-                      onClick={() => alert('테넌트 설정 기능은 아직 구현 중입니다.')}
+                      onClick={() => showError('테넌트 설정 기능은 아직 구현 중입니다.')}
                       className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
                     >
                       ⚙️ 테넌트 설정
@@ -355,6 +357,8 @@ const TenantManagement: React.FC = () => {
         teamName={qrTenant?.name || ''}
         teamCode={qrTenant?.code || ''}
       />
+
+      <ToastContainer />
     </div>
   );
 };

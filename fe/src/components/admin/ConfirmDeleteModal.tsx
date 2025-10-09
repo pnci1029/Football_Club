@@ -2,6 +2,7 @@ import React from 'react';
 import Modal from '../common/Modal';
 import { Button } from '../common';
 import { getApiBaseUrl } from '../../utils/config';
+import { useToast } from '../Toast';
 
 interface ConfirmDeleteModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
   stadiumId,
   onSuccess
 }) => {
+  const { success, error: showError } = useToast();
   return (
     <Modal
       isOpen={isOpen}
@@ -105,17 +107,17 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
                   const result = await response.json();
 
                   if (result.success) {
-                    alert('삭제 성공!');
+                    success('삭제되었습니다.');
                     if (onSuccess) {
                       onSuccess();
                     }
                     onClose();
                   } else {
-                    alert('삭제 실패: ' + (result.message || '알 수 없는 오류'));
+                    showError('삭제 실패: ' + (result.message || '알 수 없는 오류'));
                   }
                 } catch (error) {
                   console.error('DELETE error:', error);
-                  alert('삭제 중 오류가 발생했습니다.');
+                  showError('삭제 중 오류가 발생했습니다.');
                 }
               } else if (onConfirm) {
                 try {

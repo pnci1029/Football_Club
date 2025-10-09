@@ -5,6 +5,7 @@ import { Card, LoadingSpinner } from '../components/common';
 import StadiumMapModal from '../components/admin/StadiumMapModal';
 import StadiumsMapView from '../components/stadiums/StadiumsMapView';
 import KakaoMap from '../components/map/KakaoMap';
+import { useToast } from '../components/Toast';
 
 const formatPrice = (price?: number) => {
   return price ? `${price.toLocaleString()}원/시간` : '문의';
@@ -46,6 +47,7 @@ const formatDayName = (day: string): string => {
 };
 
 const Stadiums: React.FC = () => {
+  const { success, ToastContainer } = useToast();
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [showMapModal, setShowMapModal] = useState(false);
   const [mapStadium, setMapStadium] = useState<StadiumDto | null>(null);
@@ -194,7 +196,7 @@ const Stadiums: React.FC = () => {
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(stadium.address);
-                              alert('주소가 복사되었습니다!');
+                              success('주소가 복사되었습니다!');
                             }}
                             className="ml-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
                             title="주소 복사"
@@ -350,6 +352,8 @@ const Stadiums: React.FC = () => {
           }}
         />
       )}
+
+      <ToastContainer />
     </div>
   );
 };

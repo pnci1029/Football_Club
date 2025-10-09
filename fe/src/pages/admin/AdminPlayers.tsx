@@ -7,9 +7,11 @@ import PlayerCreateModal from '../../components/admin/PlayerCreateModal';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import { useSearchParams } from 'react-router-dom';
 import { ImageUtil } from '../../utils/image';
+import { useToast } from '../../components/Toast';
 
 const AdminPlayers: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const { success, error: showError, ToastContainer } = useToast();
   const [players, setPlayers] = useState<AdminPlayer[]>([]);
   const [teams, setTeams] = useState<AdminTeam[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
@@ -99,15 +101,16 @@ const AdminPlayers: React.FC = () => {
     try {
       const response = await adminPlayerService.deletePlayer(deletingPlayer.id);
       if (response.success) {
+        success('선수가 삭제되었습니다.');
         loadPlayers();
         setShowDeleteModal(false);
         setDeletingPlayer(null);
       } else {
-        alert('삭제에 실패했습니다. 다시 시도해 주세요.');
+        showError('삭제에 실패했습니다. 다시 시도해 주세요.');
       }
     } catch (error) {
       console.error('Failed to delete player:', error);
-      alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      showError('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       setDeleteLoading(false);
     }
@@ -123,10 +126,12 @@ const AdminPlayers: React.FC = () => {
   };
 
   const handlePlayerUpdated = () => {
+    success('선수 정보가 수정되었습니다.');
     loadPlayers();
   };
 
   const handlePlayerCreated = () => {
+    success('새 선수가 추가되었습니다.');
     loadPlayers();
   };
 
@@ -341,6 +346,8 @@ const AdminPlayers: React.FC = () => {
         itemType="선수"
         loading={deleteLoading}
       />
+
+      <ToastContainer />
     </div>
   );
 };

@@ -5,13 +5,18 @@ import { HeroSlide, CreateHeroSlideRequest, GRADIENT_OPTIONS } from '../../types
 import { HeroService } from '../../services/heroService';
 import { Button, Card, LoadingSpinner, Modal } from '../../components/common';
 import ImageUpload from '../../components/common/ImageUpload';
+import { useToast } from '../../components/Toast';
+import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 
 const AdminHeroSlides: React.FC = () => {
   const { teamId } = useParams<{ teamId: string }>();
   const teamIdNumber = Number(teamId);
   const { slides, loading, error, refetch } = useHeroSlides(teamIdNumber, false);
+  const { success, error: showError, ToastContainer } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingSlide, setDeletingSlide] = useState<HeroSlide | null>(null);
   const [formData, setFormData] = useState<CreateHeroSlideRequest>({
     title: '',
     subtitle: '',
@@ -60,7 +65,7 @@ const AdminHeroSlides: React.FC = () => {
     e.preventDefault();
     
     if (slides.length >= 5 && !editingSlide) {
-      alert('최대 5개의 슬라이드만 생성할 수 있습니다.');
+      showError('최대 5개의 슬라이드만 생성할 수 있습니다.');
       return;
     }
 
@@ -68,34 +73,43 @@ const AdminHeroSlides: React.FC = () => {
     try {
       if (editingSlide) {
         await HeroService.updateSlide(editingSlide.id, formData);
+        success('슬라이드가 수정되었습니다.');
       } else {
         await HeroService.createSlide(teamIdNumber, formData);
+        success('슬라이드가 생성되었습니다.');
       }
       
       await refetch();
       setShowModal(false);
     } catch (err) {
       console.error('슬라이드 저장 실패:', err);
-      alert('슬라이드 저장에 실패했습니다.');
+      showError('슬라이드 저장에 실패했습니다.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('이 슬라이드를 삭제하시겠습니까?')) return;
-    
+  const handleDeleteClick = (slide: HeroSlide) => {
     if (slides.length <= 1) {
-      alert('최소 1개의 슬라이드는 유지해야 합니다.');
+      showError('최소 1개의 슬라이드는 유지해야 합니다.');
       return;
     }
+    setDeletingSlide(slide);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingSlide) return;
 
     try {
-      await HeroService.deleteSlide(id);
+      await HeroService.deleteSlide(deletingSlide.id);
       await refetch();
+      success('슬라이드가 삭제되었습니다.');
+      setShowDeleteModal(false);
+      setDeletingSlide(null);
     } catch (err) {
       console.error('슬라이드 삭제 실패:', err);
-      alert('슬라이드 삭제에 실패했습니다.');
+      showError('슬라이드 삭제에 실패했습니다.');
     }
   };
 
@@ -105,9 +119,10 @@ const AdminHeroSlides: React.FC = () => {
         isActive: !slide.isActive
       });
       await refetch();
+      success(`슬라이드가 ${!slide.isActive ? '활성화' : '비활성화'}되었습니다.`);
     } catch (err) {
       console.error('슬라이드 상태 변경 실패:', err);
-      alert('슬라이드 상태 변경에 실패했습니다.');
+      showError('슬라이드 상태 변경에 실패했습니다.');
     }
   };
 
@@ -208,7 +223,7 @@ const AdminHeroSlides: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleDelete(slide.id)}
+                  onClick={() => handleDeleteClick(slide)}
                   className="text-red-600 hover:text-red-700"
                   disabled={slides.length <= 1}
                 >
@@ -331,6 +346,21 @@ const AdminHeroSlides: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeletingSlide(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="슬라이드 삭제"
+        itemName={deletingSlide?.title || ''}
+        itemType="슬라이드"
+      />
+
+      <ToastContainer />
     </div>
   );
 };
