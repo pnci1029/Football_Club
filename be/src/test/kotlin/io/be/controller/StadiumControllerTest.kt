@@ -15,12 +15,17 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@WebMvcTest
+@WebMvcTest(StadiumController::class)
 @WithMockUser
+@TestPropertySource(properties = [
+    "spring.jpa.hibernate.ddl-auto=none",
+    "spring.datasource.url=jdbc:h2:mem:testdb"
+])
 class StadiumControllerTest {
 
     @Autowired
