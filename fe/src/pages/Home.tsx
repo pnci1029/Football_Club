@@ -56,40 +56,40 @@ const Home: React.FC = React.memo(() => {
       {isLoading ? (
         <HeroSectionSkeleton />
       ) : (
-        <div className={`relative text-white py-16 sm:py-20 lg:py-24 overflow-hidden transition-all duration-1000`}>
+        <div className={`relative text-white py-20 sm:py-24 lg:py-32 xl:py-40 overflow-hidden transition-all duration-1000 min-h-[60vh] sm:min-h-[70vh] lg:min-h-[80vh]`}>
         {/* 배경 이미지 또는 그라데이션 */}
         {currentHero.backgroundImage ? (
           <>
             <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transition-transform duration-700"
               style={{ backgroundImage: `url(${currentHero.backgroundImage})` }}
             />
-            <div className="absolute inset-0 bg-black opacity-50"></div>
+            <div className="absolute inset-0 bg-black opacity-30"></div>
           </>
         ) : (
           <div className={`absolute inset-0 bg-gradient-to-r ${gradientClass}`}>
-            <div className="absolute inset-0 bg-black opacity-20"></div>
+            <div className="absolute inset-0 bg-black opacity-15"></div>
           </div>
         )}
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4 lg:mb-6 transition-opacity duration-500 leading-tight">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex items-center justify-center min-h-[50vh] sm:min-h-[60vh] lg:min-h-[70vh]">
+          <div className="text-center max-w-5xl mx-auto">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-bold mb-4 sm:mb-6 lg:mb-8 transition-opacity duration-500 leading-tight drop-shadow-lg">
               {currentHero.title}
             </h1>
 
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl opacity-90 mb-6 sm:mb-8 transition-opacity duration-500 leading-relaxed">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl opacity-95 mb-8 sm:mb-10 lg:mb-12 transition-opacity duration-500 leading-relaxed drop-shadow-md">
               {currentHero.subtitle}
             </p>
 
             {/* 슬라이드 인디케이터 - 모바일 최적화 (2개 이상일 때만 표시) */}
             {currentSlides.length > 1 && (
-              <div className="flex justify-center space-x-2 sm:space-x-3">
+              <div className="flex justify-center space-x-3 sm:space-x-4">
                 {currentSlides.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentSlide(index)}
-                    className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-300 touch-manipulation ${
+                    className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-full transition-all duration-300 touch-manipulation ${
                       index === currentSlide ? 'bg-white scale-125' : 'bg-white bg-opacity-50'
                     }`}
                   />
