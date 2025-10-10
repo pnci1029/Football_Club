@@ -27,4 +27,29 @@ interface AdminRepository : JpaRepository<Admin, Long>, AdminRepositoryCustom {
      */
     fun findByIsActiveOrderByCreatedAtDesc(isActive: Boolean): List<Admin>
     
+    /**
+     * 서브도메인별 관리자 조회 (서브도메인 로그인용)
+     */
+    fun findByUsernameAndTeamSubdomainAndIsActive(username: String, teamSubdomain: String, isActive: Boolean): Admin?
+    
+    /**
+     * 마스터 관리자 조회 (모든 서브도메인 접근 가능)
+     */
+    fun findByUsernameAndAdminLevelAndIsActive(username: String, adminLevel: AdminLevel, isActive: Boolean): Admin?
+    
+    /**
+     * 특정 서브도메인의 관리자 목록 조회
+     */
+    fun findByTeamSubdomainAndIsActiveOrderByCreatedAtDesc(teamSubdomain: String, isActive: Boolean): List<Admin>
+    
+    /**
+     * 마스터 관리자 목록 조회
+     */
+    fun findByAdminLevelAndIsActiveOrderByCreatedAtDesc(adminLevel: AdminLevel, isActive: Boolean): List<Admin>
+    
+    /**
+     * 활성 관리자 수 조회
+     */
+    fun countByIsActive(isActive: Boolean): Long
+    
 }

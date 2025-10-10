@@ -102,7 +102,7 @@ const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
             축구 동호회를 위한<br />
-            <span className="text-primary-600">올인원 관리플랫폼</span>
+            <span className="text-primary-600">올인원 관리 플랫폼</span>
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl lg:max-w-3xl mx-auto leading-relaxed">
             선수 관리부터 경기 일정, 구장 정보까지 한 곳에서 관리하세요.<br className="hidden sm:block" />

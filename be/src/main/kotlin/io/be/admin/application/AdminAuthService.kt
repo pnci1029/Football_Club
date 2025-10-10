@@ -1,14 +1,17 @@
 package io.be.admin.application
 
 import io.be.admin.domain.Admin
+import io.be.admin.domain.AdminLevel
 import io.be.shared.exception.UnauthorizedAccessException
 import io.be.shared.exception.InvalidRequestException
 import io.be.admin.domain.AdminRepository
 import io.be.shared.security.JwtTokenProvider
+import io.be.shared.util.TeamSubdomainExtractor
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import jakarta.servlet.http.HttpServletRequest
 import java.time.LocalDateTime
 
 @Service
@@ -16,36 +19,46 @@ import java.time.LocalDateTime
 class AdminAuthService(
     private val adminRepository: AdminRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val teamSubdomainExtractor: TeamSubdomainExtractor
 ) {
     
     private val logger = LoggerFactory.getLogger(AdminAuthService::class.java)
     
     /**
-     * 관리자 로그인
+     * 관리자 로그인 (서브도메인 제한 포함)
      */
-    fun login(username: String, password: String, clientIp: String = "unknown"): LoginResponse {
+    fun login(username: String, password: String, request: HttpServletRequest, clientIp: String = "unknown"): LoginResponse {
         
         // 입력 검증
         if (username.isBlank() || password.isBlank()) {
             throw InvalidRequestException("username", username, "Username and password are required")
         }
         
-        // 관리자 조회
-        val admin = adminRepository.findByUsernameAndIsActive(username, true)
+        // 현재 서브도메인 추출 (마스터 관리자는 서브도메인 제한 없음)
+        val currentSubdomain = try {
+            teamSubdomainExtractor.extractFromRequest(request)
+        } catch (e: Exception) {
+            null // 서브도메인이 없는 경우 (마스터 관리자만 접근 가능)
+        }
+        
+        // 관리자 조회 (서브도메인별 분기)
+        val admin = findAdminBySubdomain(username, currentSubdomain)
             ?: run {
-                logger.warn("Login attempt with invalid username: $username from IP: $clientIp")
-                // 보안상 사용자명이 틀렸는지 비밀번호가 틀렸는지 구분하지 않음
+                logger.warn("Login attempt with invalid username: $username from subdomain: $currentSubdomain, IP: $clientIp")
                 throw UnauthorizedAccessException("Invalid username or password")
             }
         
+        // 서브도메인 접근 권한 검증
+        validateSubdomainAccess(admin, currentSubdomain, clientIp)
+        
         // 비밀번호 검증
         if (!passwordEncoder.matches(password, admin.password)) {
-            logger.warn("Login attempt with invalid password for user: $username from IP: $clientIp")
+            logger.warn("Login attempt with invalid password for user: $username from subdomain: $currentSubdomain, IP: $clientIp")
             throw UnauthorizedAccessException("Invalid username or password")
         }
         
-        // 토큰 생성
+        // 토큰 생성 (서브도메인 정보 포함)
         val accessToken = jwtTokenProvider.createAccessToken(admin.id, admin.username, admin.role)
         val refreshToken = jwtTokenProvider.createRefreshToken(admin.id)
         
@@ -53,13 +66,74 @@ class AdminAuthService(
         adminRepository.updateLastLoginTime(admin.id, LocalDateTime.now())
         
         // 성공 로그
-        logger.info("Successful admin login: $username from IP: $clientIp")
+        logger.info("Successful admin login: $username from subdomain: $currentSubdomain, IP: $clientIp")
         
         return LoginResponse(
             accessToken = accessToken,
             refreshToken = refreshToken,
             admin = AdminInfo.from(admin)
         )
+    }
+    
+    /**
+     * 하위 호환성을 위한 기존 login 메서드 (Deprecated)
+     */
+    @Deprecated("Use login with HttpServletRequest parameter")
+    fun login(username: String, password: String, clientIp: String = "unknown"): LoginResponse {
+        // 마스터 관리자만 조회 (하위 호환성)
+        val admin = adminRepository.findByUsernameAndAdminLevelAndIsActive(username, AdminLevel.MASTER, true)
+            ?: throw UnauthorizedAccessException("Invalid username or password")
+            
+        if (!passwordEncoder.matches(password, admin.password)) {
+            throw UnauthorizedAccessException("Invalid username or password")
+        }
+        
+        val accessToken = jwtTokenProvider.createAccessToken(admin.id, admin.username, admin.role)
+        val refreshToken = jwtTokenProvider.createRefreshToken(admin.id)
+        
+        adminRepository.updateLastLoginTime(admin.id, LocalDateTime.now())
+        
+        return LoginResponse(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+            admin = AdminInfo.from(admin)
+        )
+    }
+    
+    /**
+     * 서브도메인에 따른 관리자 조회
+     */
+    private fun findAdminBySubdomain(username: String, currentSubdomain: String?): Admin? {
+        return when (currentSubdomain) {
+            null -> {
+                // 서브도메인이 없는 경우: 마스터 관리자만 로그인 가능
+                adminRepository.findByUsernameAndAdminLevelAndIsActive(username, AdminLevel.MASTER, true)
+            }
+            else -> {
+                // 서브도메인이 있는 경우: 해당 서브도메인 관리자 또는 마스터 관리자
+                adminRepository.findByUsernameAndTeamSubdomainAndIsActive(username, currentSubdomain, true)
+                    ?: adminRepository.findByUsernameAndAdminLevelAndIsActive(username, AdminLevel.MASTER, true)
+            }
+        }
+    }
+    
+    /**
+     * 서브도메인 접근 권한 검증
+     */
+    private fun validateSubdomainAccess(admin: Admin, currentSubdomain: String?, clientIp: String) {
+        when (admin.adminLevel) {
+            AdminLevel.MASTER -> {
+                // 마스터 관리자는 모든 서브도메인 접근 가능
+                logger.debug("Master admin ${admin.username} accessing subdomain: $currentSubdomain")
+            }
+            AdminLevel.SUBDOMAIN -> {
+                // 서브도메인 관리자는 해당 서브도메인에서만 접근 가능
+                if (admin.teamSubdomain != currentSubdomain) {
+                    logger.warn("Subdomain admin ${admin.username} attempted to access wrong subdomain. Expected: ${admin.teamSubdomain}, Actual: $currentSubdomain, IP: $clientIp")
+                    throw UnauthorizedAccessException("Access denied for this subdomain")
+                }
+            }
+        }
     }
     
     /**
@@ -147,6 +221,8 @@ data class AdminInfo(
     val role: String,
     val email: String?,
     val name: String?,
+    val teamSubdomain: String?,
+    val adminLevel: AdminLevel,
     val createdAt: LocalDateTime,
     val lastLoginAt: LocalDateTime?
 ) {
@@ -158,6 +234,8 @@ data class AdminInfo(
                 role = admin.role,
                 email = admin.email,
                 name = admin.name,
+                teamSubdomain = admin.teamSubdomain,
+                adminLevel = admin.adminLevel,
                 createdAt = admin.createdAt,
                 lastLoginAt = admin.lastLoginAt
             )

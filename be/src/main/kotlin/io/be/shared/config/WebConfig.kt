@@ -1,6 +1,7 @@
 package io.be.shared.config
 
 import io.be.shared.security.TenantSecurityInterceptor
+import io.be.shared.security.AdminPermissionInterceptor
 import io.be.shared.service.SubdomainService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -15,6 +16,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 class WebConfig(
     private val subdomainService: SubdomainService,
     private val tenantSecurityInterceptor: TenantSecurityInterceptor,
+    private val adminPermissionInterceptor: AdminPermissionInterceptor,
     @Value("\${spring.profiles.active:dev}") private val activeProfile: String
 ) : WebMvcConfigurer {
 
@@ -82,6 +84,11 @@ class WebConfig(
                 "/api/swagger-ui/**", // Swagger UI 제외
                 "/api/api-docs/**",   // API 문서 제외
             )
+
+        // 관리자 권한 인터셉터 - 관리자 API에만 적용
+        registry.addInterceptor(adminPermissionInterceptor)
+            .addPathPatterns("/v1/admin/**", "/api/v1/admin/**")
+            .excludePathPatterns("/v1/admin/auth/**", "/api/v1/admin/auth/**") // 로그인/로그아웃 제외
 
         // 기존 서브도메인 인터셉터 - 특정 경로에만 적용
         registry.addInterceptor(SubdomainInterceptor(subdomainService))

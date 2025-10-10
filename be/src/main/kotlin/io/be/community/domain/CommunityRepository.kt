@@ -20,6 +20,12 @@ interface CommunityPostRepository : JpaRepository<CommunityPost, Long>, Communit
     fun countByTeamIdAndIsActiveTrue(teamId: Long): Long
     fun findByIsActiveTrueOrderByCreatedAtDesc(pageable: Pageable): Page<CommunityPost>
     fun findByTeamIdAndIsActiveTrue(teamId: Long, pageable: Pageable): Page<CommunityPost>
+    
+    // 통계용 메서드들
+    fun countByIsActive(isActive: Boolean): Long
+    fun countByTeamIdAndIsActive(teamId: Long, isActive: Boolean): Long
+    fun findByIsActiveOrderByCreatedAtDesc(isActive: Boolean): List<CommunityPost>
+    fun countByIsActiveAndCreatedAtAfter(isActive: Boolean, date: java.time.LocalDateTime): Long
 }
 
 @Repository
@@ -28,4 +34,10 @@ interface CommunityCommentRepository : JpaRepository<CommunityComment, Long>, Co
     // 간단한 조회 메서드들 (Spring Data JPA 기본 기능 사용)
     fun findByPostIdAndIsActiveTrueOrderByCreatedAtAsc(postId: Long): List<CommunityComment>
     fun countByPostIdAndIsActiveTrue(postId: Long): Long
+    
+    // 통계용 메서드들
+    fun countByIsActive(isActive: Boolean): Long
+    
+    @Query("SELECT COUNT(c) FROM CommunityComment c JOIN c.post p WHERE p.teamId = :teamId AND c.isActive = :isActive")
+    fun countByTeamIdAndIsActive(@Param("teamId") teamId: Long, @Param("isActive") isActive: Boolean): Long
 }
