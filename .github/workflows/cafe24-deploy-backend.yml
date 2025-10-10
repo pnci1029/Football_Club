@@ -3,7 +3,7 @@ name: Deploy Backend to Cafe24
 on:
   push:
     branches: [ main ]
-    paths: ['be/**']
+#    paths: ['be/**']
   workflow_dispatch:
 
 jobs:
@@ -57,47 +57,72 @@ jobs:
         run: |
           scp -i ~/.ssh/id_rsa docker-compose.yml root@${{ secrets.CAFE24_HOST }}:/opt/football-club/
 
-      - name: Deploy backend on server with Blue-Green
+      - name: Setup environment variables
         run: |
           ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             cd /opt/football-club &&
             echo 'MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}' > .env &&
             echo 'MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}' >> .env &&
             echo 'MYSQL_USER=${{ secrets.MYSQL_USER }}' >> .env &&
-            echo 'MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}' >> .env &&
-          
+            echo 'MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}' >> .env
+          "
+
+      - name: Pull and tag Docker image
+        run: |
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             docker pull ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} &&
-            docker tag ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} football-club-backend:latest &&
-          
-            # Blue-Green 포트 결정
+            docker tag ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} football-club-backend:latest
+          "
+
+      - name: Determine Blue-Green deployment ports
+        run: |
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             if docker ps --format \"table {{.Names}}\" | grep -q \"backend-blue\"; then
-              NEW_COLOR=\"green\" && NEW_PORT=8083 && OLD_COLOR=\"blue\"
+              echo \"NEW_COLOR=green\" >> /tmp/deploy_vars
+              echo \"NEW_PORT=8083\" >> /tmp/deploy_vars
+              echo \"OLD_COLOR=blue\" >> /tmp/deploy_vars
             else
-              NEW_COLOR=\"blue\" && NEW_PORT=8082 && OLD_COLOR=\"green\"
+              echo \"NEW_COLOR=blue\" >> /tmp/deploy_vars
+              echo \"NEW_PORT=8082\" >> /tmp/deploy_vars
+              echo \"OLD_COLOR=green\" >> /tmp/deploy_vars
             fi
-          
-            # 포트 충돌 방지 - 기존 컨테이너들 정리
+            source /tmp/deploy_vars
+            echo \"Selected deployment: backend-\$NEW_COLOR on port \$NEW_PORT\"
+          "
+
+      - name: Clean up existing containers and ports
+        run: |
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+            source /tmp/deploy_vars
             docker stop backend-\$NEW_COLOR 2>/dev/null || true
             docker rm backend-\$NEW_COLOR 2>/dev/null || true
-          
-            # 포트 사용 중인 프로세스 확인 및 정리
             lsof -ti:\$NEW_PORT | xargs kill -9 2>/dev/null || true
-          
-            # Redis 컨테이너 실행
+          "
+
+      - name: Setup Redis container
+        run: |
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             docker run -d --name redis-container -p 6379:6379 redis:7-alpine 2>/dev/null || echo \"Redis already running\"
-            
-            # 새 컨테이너 시작
+          "
+
+      - name: Start new backend container
+        run: |
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+            cd /opt/football-club &&
+            source /tmp/deploy_vars
             echo \"Starting backend-\$NEW_COLOR on port \$NEW_PORT\"
             docker run -d --name backend-\$NEW_COLOR -p \$NEW_PORT:8082 --env-file .env -e SPRING_PROFILES_ACTIVE=prod -e REDIS_HOST=localhost football-club-backend:latest
-          
-            # 컨테이너 상태 확인
             sleep 5
             echo \"Container status:\"
             docker ps | grep backend-\$NEW_COLOR || echo \"Container not running\"
             echo \"Container logs:\"
             docker logs backend-\$NEW_COLOR | tail -20
-          
-            # 헬스체크 대기
+          "
+
+      - name: Health check
+        run: |
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+            source /tmp/deploy_vars
             echo \"Starting health check on port \$NEW_PORT\"
             for i in {1..30}; do
               echo \"Health check attempt \$i/30\"
@@ -114,29 +139,37 @@ jobs:
               fi
               sleep 10
             done
-          
-            # Nginx 업데이트
+          "
+
+      - name: Update Nginx configuration
+        run: |
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+            source /tmp/deploy_vars
             echo \"Updating Nginx to use port \$NEW_PORT\"
             sudo sed -i \"s/proxy_pass http:\/\/localhost:[0-9]*\/api\//proxy_pass http:\/\/localhost:\$NEW_PORT\/api\//g\" /etc/nginx/sites-enabled/nginx.conf
             echo \"Nginx configuration updated:\"
             grep \"proxy_pass.*localhost:\" /etc/nginx/sites-enabled/nginx.conf
             sudo nginx -t && sudo systemctl reload nginx
             echo \"Nginx reloaded successfully\"
-          
-            # 기존 컨테이너 제거
+          "
+
+      - name: Clean up old containers and finalize
+        run: |
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+            source /tmp/deploy_vars
             docker stop backend-\$OLD_COLOR 2>/dev/null || true
             docker rm backend-\$OLD_COLOR 2>/dev/null || true
             docker stop backend 2>/dev/null && docker rm backend 2>/dev/null || true
-          
-            # Redis 컨테이너 상태 최종 확인
+            
             echo \"Redis container final status:\"
             docker ps | grep redis-container || echo \"Redis not running\"
             docker logs redis-container | tail -5 2>/dev/null || echo \"No Redis logs\"
             
             echo \"Backend-Redis connection test:\"
             curl -f http://localhost:\$NEW_PORT/api/test/51 2>/dev/null && echo \"Backend responding\" || echo \"Backend not responding\"
-          
+            
             docker image prune -f
+            rm -f /tmp/deploy_vars
           "
 
       - name: Deployment notification
