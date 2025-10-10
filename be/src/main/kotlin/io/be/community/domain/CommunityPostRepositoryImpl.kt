@@ -37,6 +37,30 @@ class CommunityPostRepositoryImpl(
         return fetchPageResponse(pageable, contentQuery, countQuery)
     }
 
+    override fun findByTeamIdAndCategoryAndKeyword(teamId: Long, category: CommunityCategory, keyword: String, pageable: Pageable): Page<CommunityPost> {
+        val contentQuery = queryFactory
+            .selectFrom(communityPost)
+            .where(
+                teamIdEq(teamId),
+                categoryEq(category),
+                isActiveTrue(),
+                titleOrContentContains(keyword)
+            )
+            .orderBy(communityPost.createdAt.desc())
+
+        val countQuery = queryFactory
+            .select(communityPost.count())
+            .from(communityPost)
+            .where(
+                teamIdEq(teamId),
+                categoryEq(category),
+                isActiveTrue(),
+                titleOrContentContains(keyword)
+            )
+
+        return fetchPageResponse(pageable, contentQuery, countQuery)
+    }
+
     override fun findByKeyword(keyword: String, pageable: Pageable): Page<CommunityPost> {
         val contentQuery = queryFactory
             .selectFrom(communityPost)
@@ -91,6 +115,10 @@ class CommunityPostRepositoryImpl(
 
     private fun isActiveTrue(): BooleanExpression {
         return communityPost.isActive.isTrue
+    }
+
+    private fun categoryEq(category: CommunityCategory?): BooleanExpression? {
+        return category?.let { communityPost.category.eq(it) }
     }
 
     private fun titleOrContentContains(keyword: String?): BooleanExpression? {

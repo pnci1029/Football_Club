@@ -2,6 +2,7 @@ package io.be.community.dto
 
 import io.be.community.domain.CommunityPost
 import io.be.community.domain.CommunityComment
+import io.be.community.domain.CommunityCategory
 import io.be.team.domain.Team
 import java.time.LocalDateTime
 
@@ -13,6 +14,7 @@ data class CommunityPostResponse(
     val authorName: String,
     val viewCount: Int,
     val commentCount: Long,
+    val category: CommunityCategory,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 ) {
@@ -25,6 +27,7 @@ data class CommunityPostResponse(
                 authorName = post.authorName,
                 viewCount = post.viewCount,
                 commentCount = commentCount,
+                category = post.category,
                 createdAt = post.createdAt,
                 updatedAt = post.updatedAt
             )
@@ -40,6 +43,7 @@ data class CommunityPostDetailResponse(
     val authorEmail: String?,
     val authorPhone: String?,
     val viewCount: Int,
+    val category: CommunityCategory,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val comments: List<CommunityCommentResponse>
@@ -54,6 +58,7 @@ data class CommunityPostDetailResponse(
                 authorEmail = post.authorEmail,
                 authorPhone = post.authorPhone,
                 viewCount = post.viewCount,
+                category = post.category,
                 createdAt = post.createdAt,
                 updatedAt = post.updatedAt,
                 comments = comments
@@ -96,6 +101,7 @@ data class AllCommunityPostResponse(
     val authorName: String,
     val viewCount: Int,
     val commentCount: Long,
+    val category: CommunityCategory,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val teamId: Long,
@@ -111,6 +117,7 @@ data class AllCommunityPostResponse(
                 authorName = post.authorName,
                 viewCount = post.viewCount,
                 commentCount = commentCount,
+                category = post.category,
                 createdAt = post.createdAt,
                 updatedAt = post.updatedAt,
                 teamId = post.teamId,

@@ -9,6 +9,9 @@ interface CommunityPostRepositoryCustom {
     // 팀별 게시글 검색 (키워드)
     fun findByTeamIdAndKeyword(teamId: Long, keyword: String, pageable: Pageable): Page<CommunityPost>
     
+    // 팀별 카테고리 게시글 검색 (키워드)
+    fun findByTeamIdAndCategoryAndKeyword(teamId: Long, category: CommunityCategory, keyword: String, pageable: Pageable): Page<CommunityPost>
+    
     // 전체 팀 게시글 검색 (키워드)
     fun findByKeyword(keyword: String, pageable: Pageable): Page<CommunityPost>
     

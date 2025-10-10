@@ -1,5 +1,6 @@
 package io.be.community.dto
 
+import io.be.community.domain.CommunityCategory
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
@@ -25,6 +26,8 @@ data class CreatePostRequest(
     
     @field:NotBlank(message = "비밀번호를 입력해주세요.")
     val authorPassword: String,
+
+    val category: CommunityCategory = CommunityCategory.FREE_BOARD,
 
     val teamId: Long
 )
@@ -75,6 +78,7 @@ data class CreateCommunityPostRequest(
     val authorEmail: String? = null,
     val authorPhone: String? = null,
     val authorPassword: String,
+    val category: CommunityCategory = CommunityCategory.FREE_BOARD,
     val teamId: Long
 )
 
