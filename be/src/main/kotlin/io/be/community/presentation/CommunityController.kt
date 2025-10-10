@@ -3,6 +3,7 @@ package io.be.community.presentation
 import io.be.community.application.CommunityService
 import io.be.shared.service.ViewCountService
 import io.be.community.dto.*
+import io.be.community.domain.CommunityCategory
 import io.be.shared.dto.ViewCount
 import io.be.shared.dto.IncreaseViewCountRequest
 import io.be.shared.util.ApiResponse
@@ -35,6 +36,20 @@ class CommunityController(
     }
 
     /**
+     * 커뮤니티 카테고리 목록 조회
+     */
+    @GetMapping("/categories")
+    fun getCategories(): ResponseEntity<ApiResponse<List<Map<String, String>>>> {
+        val categories = CommunityCategory.getActiveCategories().map { 
+            mapOf(
+                "value" to it.name,
+                "displayName" to it.displayName
+            )
+        }
+        return ResponseEntity.ok(ApiResponse.success(categories))
+    }
+
+    /**
      * 커뮤니티 게시글 목록 조회
      */
     @GetMapping("/posts")
@@ -42,10 +57,11 @@ class CommunityController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
         @RequestParam(required = false) keyword: String?,
+        @RequestParam(required = false) category: String?,
         @RequestParam teamId: Long
     ): ResponseEntity<ApiResponse<Page<CommunityPostResponse>>> {
-        logger.info("GET /posts request - teamId: $teamId, page: $page, size: $size, keyword: $keyword")
-        val posts = communityService.getPosts(teamId, page, size, keyword)
+        logger.info("GET /posts request - teamId: $teamId, page: $page, size: $size, keyword: $keyword, category: $category")
+        val posts = communityService.getPosts(teamId, page, size, keyword, category)
         logger.info("Returning ${posts.content.size} posts out of ${posts.totalElements} total")
         return ResponseEntity.ok(ApiResponse.success(posts))
     }
@@ -83,6 +99,7 @@ class CommunityController(
             authorEmail = request.authorEmail,
             authorPhone = request.authorPhone,
             authorPassword = request.authorPassword,
+            category = request.category,
             teamId = request.teamId
         )
         val post = communityService.createPost(serviceRequest)

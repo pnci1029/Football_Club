@@ -41,6 +41,9 @@ data class CommunityPost(
     @Column(name = "view_count", nullable = false)
     val viewCount: Int = 0,
     
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    val category: CommunityCategory = CommunityCategory.FREE_BOARD,
     
     @Column(name = "is_active", nullable = false)
     val isActive: Boolean = true, // 활성화 여부 (삭제 대신 비활성화)
@@ -60,7 +63,8 @@ data class CommunityPost(
         authorName = "",
         teamId = 0L,
         teamSubdomain = null,
-        authorPasswordHash = ""
+        authorPasswordHash = "",
+        category = CommunityCategory.FREE_BOARD
     )
 }
 

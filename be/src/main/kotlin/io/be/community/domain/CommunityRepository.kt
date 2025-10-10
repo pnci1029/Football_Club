@@ -15,6 +15,7 @@ interface CommunityPostRepository : JpaRepository<CommunityPost, Long>, Communit
     
     // 간단한 조회 메서드들 (Spring Data JPA 기본 기능 사용)
     fun findByTeamIdAndIsActiveTrueOrderByCreatedAtDesc(teamId: Long, pageable: Pageable): Page<CommunityPost>
+    fun findByTeamIdAndCategoryAndIsActiveTrueOrderByCreatedAtDesc(teamId: Long, category: CommunityCategory, pageable: Pageable): Page<CommunityPost>
     fun findByIdAndTeamIdAndIsActiveTrue(id: Long, teamId: Long): CommunityPost?
     fun countByTeamIdAndIsActiveTrue(teamId: Long): Long
     fun findByIsActiveTrueOrderByCreatedAtDesc(pageable: Pageable): Page<CommunityPost>
