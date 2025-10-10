@@ -2,7 +2,7 @@ name: Deploy Backend to Cafe24
 
 on:
   push:
-    branches: [ main ]
+    branches: [ ㅁㅁㅁaaa ]
     paths: ['be/**']
   workflow_dispatch:
 
