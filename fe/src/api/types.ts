@@ -306,6 +306,7 @@ export interface CommunityPost {
   authorName: string;
   viewCount: number;
   commentCount: number;
+  category: string;
   isNotice: boolean;
   createdAt: string;
   updatedAt: string;
@@ -319,6 +320,7 @@ export interface CommunityPostDetail {
   authorEmail?: string;
   authorPhone?: string;
   viewCount: number;
+  category: string;
   isNotice: boolean;
   createdAt: string;
   updatedAt: string;
@@ -340,6 +342,7 @@ export interface CreateCommunityPostRequest {
   authorEmail?: string;
   authorPhone?: string;
   authorPassword: string;
+  category: string;
   teamId: number;
 }
 

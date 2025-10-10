@@ -17,8 +17,10 @@ const Community: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [categories, setCategories] = useState<{value: string, displayName: string}[]>([]);
 
-  const loadPosts = useCallback(async (page: number = 0, keyword?: string) => {
+  const loadPosts = useCallback(async (page: number = 0, keyword?: string, category?: string) => {
     if (!currentTeam) {
       setError('팀 정보를 찾을 수 없습니다.');
       setLoading(false);
@@ -27,7 +29,7 @@ const Community: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await communityApi.getPosts(parseInt(currentTeam.id), page, 20, keyword);
+      const response = await communityApi.getPosts(parseInt(currentTeam.id), page, 20, keyword, category);
       setPosts(response.content);
       setTotalPages(response.totalPages);
       setCurrentPage(response.number);
@@ -41,10 +43,23 @@ const Community: React.FC = () => {
   }, [currentTeam]);
 
   useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const categoriesData = await communityApi.getCategories();
+        setCategories(categoriesData);
+      } catch (err) {
+        console.error('Failed to load categories:', err);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
     if (currentTeam) {
-      loadPosts(0, searchKeyword);
+      loadPosts(0, searchKeyword, selectedCategory);
     }
-  }, [currentTeam, searchKeyword, loadPosts]);
+  }, [currentTeam, searchKeyword, selectedCategory, loadPosts]);
 
   // navigate state로 전달된 메시지를 Toast로 표시
   useEffect(() => {
@@ -62,7 +77,12 @@ const Community: React.FC = () => {
   };
 
   const handlePageChange = (page: number) => {
-    loadPosts(page, searchKeyword);
+    loadPosts(page, searchKeyword, selectedCategory);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(0);
   };
 
   const formatDate = (dateString: string) => {
@@ -118,15 +138,44 @@ const Community: React.FC = () => {
           </div>
 
 
-          {/* 검색 */}
-          <form onSubmit={handleSearch} className="mt-4">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="제목, 내용으로 검색..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          {/* 카테고리 필터 및 검색 */}
+          <div className="mt-4 space-y-4">
+            {/* 카테고리 필터 */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => handleCategoryChange('')}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                  selectedCategory === '' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                전체
+              </button>
+              {categories.map((category) => (
+                <button
+                  key={category.value}
+                  onClick={() => handleCategoryChange(category.displayName)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                    selectedCategory === category.displayName 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {category.displayName}
+                </button>
+              ))}
+            </div>
+
+            {/* 검색 */}
+            <form onSubmit={handleSearch}>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="제목, 내용으로 검색..."
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <button
                 type="submit"
@@ -136,6 +185,7 @@ const Community: React.FC = () => {
               </button>
             </div>
           </form>
+          </div>
         </div>
 
         {/* 게시글 목록 */}
@@ -143,7 +193,7 @@ const Community: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
             <p className="text-red-600">{error}</p>
             <button
-              onClick={() => loadPosts(currentPage, searchKeyword)}
+              onClick={() => loadPosts(currentPage, searchKeyword, selectedCategory)}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
             >
               다시 시도
@@ -181,6 +231,11 @@ const Community: React.FC = () => {
                           {post.isNotice && (
                             <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded">
                               공지
+                            </span>
+                          )}
+                          {post.category && (
+                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+                              {categories.find(cat => cat.value === post.category)?.displayName || post.category}
                             </span>
                           )}
                           <h3 className="text-lg font-semibold text-gray-900 truncate">

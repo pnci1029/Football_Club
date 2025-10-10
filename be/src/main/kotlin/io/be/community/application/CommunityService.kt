@@ -4,6 +4,7 @@ import io.be.community.domain.CommunityPost
 import io.be.community.domain.CommunityComment
 import io.be.community.domain.CommunityPostRepository
 import io.be.community.domain.CommunityCommentRepository
+import io.be.community.domain.CommunityCategory
 import io.be.shared.exception.ResourceNotFoundException
 import io.be.shared.exception.InvalidRequestException
 import io.be.community.dto.*
@@ -40,13 +41,21 @@ class CommunityService(
      * 게시글 목록 조회 (페이징)
      */
     @Transactional(readOnly = true)
-    fun getPosts(teamId: Long, page: Int, size: Int, keyword: String? = null): Page<CommunityPostResponse> {
-        logger.info("Fetching posts for teamId: $teamId, page: $page, size: $size, keyword: $keyword")
+    fun getPosts(teamId: Long, page: Int, size: Int, keyword: String? = null, category: String? = null): Page<CommunityPostResponse> {
+        logger.info("Fetching posts for teamId: $teamId, page: $page, size: $size, keyword: $keyword, category: $category")
         val pageable: Pageable = PageRequest.of(page, size)
 
         val posts = when {
+            !keyword.isNullOrBlank() && !category.isNullOrBlank() -> {
+                val categoryEnum = CommunityCategory.fromDisplayName(category.trim()) ?: CommunityCategory.FREE_BOARD
+                postRepository.findByTeamIdAndCategoryAndKeyword(teamId, categoryEnum, keyword.trim(), pageable)
+            }
             !keyword.isNullOrBlank() -> 
                 postRepository.findByTeamIdAndKeyword(teamId, keyword.trim(), pageable)
+            !category.isNullOrBlank() -> {
+                val categoryEnum = CommunityCategory.fromDisplayName(category.trim()) ?: CommunityCategory.FREE_BOARD
+                postRepository.findByTeamIdAndCategoryAndIsActiveTrueOrderByCreatedAtDesc(teamId, categoryEnum, pageable)
+            }
             else -> 
                 postRepository.findByTeamIdAndIsActiveTrueOrderByCreatedAtDesc(teamId, pageable)
         }
@@ -94,6 +103,7 @@ class CommunityService(
             authorEmail = request.authorEmail?.trim(),
             authorPhone = request.authorPhone?.trim(),
             authorPasswordHash = passwordEncoder.encode(request.authorPassword),
+            category = request.category,
             teamId = request.teamId,
             teamSubdomain = "${request.teamId}" // 임시로 팀ID 기반 서브도메인 생성
         )

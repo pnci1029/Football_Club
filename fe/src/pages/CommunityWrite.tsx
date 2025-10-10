@@ -5,6 +5,11 @@ import { communityApi } from '../api/modules/community';
 import { communityAuthManager } from '../utils/communityAuth';
 import { getErrorMessage, NetworkError } from '../utils/errorHandler';
 
+interface Category {
+  value: string;
+  displayName: string;
+}
+
 const CommunityWrite: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -18,11 +23,26 @@ const CommunityWrite: React.FC = () => {
     authorName: '',
     authorEmail: '',
     authorPhone: '',
-    authorPassword: ''
+    authorPassword: '',
+    category: 'FREE_BOARD'
   });
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const categoriesData = await communityApi.getCategories();
+        setCategories(categoriesData);
+      } catch (err) {
+        console.error('Failed to load categories:', err);
+      }
+    };
+
+    loadCategories();
+  }, []);
 
   useEffect(() => {
     const loadPostForEdit = async () => {
@@ -54,7 +74,8 @@ const CommunityWrite: React.FC = () => {
           authorName: post.authorName,
           authorEmail: post.authorEmail || '',
           authorPhone: post.authorPhone || '',
-          authorPassword: '' // 보안상 비밀번호는 초기화
+          authorPassword: '', // 보안상 비밀번호는 초기화
+          category: post.category || 'FREE_BOARD'
         });
       } catch (err) {
         const errorMessage = getErrorMessage(err as NetworkError);
@@ -68,7 +89,7 @@ const CommunityWrite: React.FC = () => {
     loadPostForEdit();
   }, [isEditing, editPostId, currentTeam, navigate]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -118,6 +139,7 @@ const CommunityWrite: React.FC = () => {
           authorEmail: formData.authorEmail.trim() || undefined,
           authorPhone: formData.authorPhone.trim() || undefined,
           authorPassword: passwordToUse,
+          category: formData.category,
           teamId: parseInt(currentTeam.id)
         });
         
@@ -156,6 +178,26 @@ const CommunityWrite: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+              카테고리 <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            >
+              {categories.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.displayName}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
               제목 <span className="text-red-500">*</span>

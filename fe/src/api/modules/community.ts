@@ -17,8 +17,15 @@ import type {
 } from '../types';
 
 export const communityApi = {
+  // 카테고리 목록 조회
+  getCategories: (): Promise<{value: string, displayName: string}[]> =>
+    api.callEndpoint<{value: string, displayName: string}[]>({
+      method: 'GET',
+      path: '/api/v1/community/categories'
+    }),
+
   // 게시글 목록 조회
-  getPosts: (teamId: number, page: number = 0, size: number = 20, keyword?: string, isNotice?: boolean): Promise<CommunityPostsResponse> => {
+  getPosts: (teamId: number, page: number = 0, size: number = 20, keyword?: string, category?: string, isNotice?: boolean): Promise<CommunityPostsResponse> => {
     const params = new URLSearchParams({
       teamId: teamId.toString(),
       page: page.toString(),
@@ -26,6 +33,9 @@ export const communityApi = {
     });
     if (keyword) {
       params.append('keyword', keyword);
+    }
+    if (category) {
+      params.append('category', category);
     }
     if (isNotice !== undefined) {
       params.append('isNotice', isNotice.toString());

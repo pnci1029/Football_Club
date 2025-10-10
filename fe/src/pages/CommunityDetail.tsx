@@ -211,11 +211,18 @@ const CommunityDetail: React.FC = () => {
                 </svg>
                 목록으로
               </Link>
-              {post.isNotice && (
-                <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-red-100 text-red-800 rounded-full">
-                  공지사항
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {post.isNotice && (
+                  <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-red-100 text-red-800 rounded-full">
+                    공지사항
+                  </span>
+                )}
+                {post.category && (
+                  <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full">
+                    {post.category}
+                  </span>
+                )}
+              </div>
             </div>
             
             <h1 className="text-2xl font-bold text-gray-900 mb-4">{post.title}</h1>
