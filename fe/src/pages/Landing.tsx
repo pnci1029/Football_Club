@@ -41,10 +41,10 @@ const Landing: React.FC = () => {
       if (response.success) {
         // 성공 토스트 표시
         showToast(response.message || '문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.', 'success');
-        
+
         // 폼 초기화
         setContactForm({ name: '', email: '', phone: '', teamName: '', message: '' });
-        
+
         // 기존 메시지 초기화
         setSubmitMessage(null);
       } else {
@@ -52,10 +52,10 @@ const Landing: React.FC = () => {
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '문의 접수 중 오류가 발생했습니다. 다시 시도해주세요.';
-      
+
       // 에러 토스트 표시
       showToast(errorMessage, 'error');
-      
+
       setSubmitMessage({
         type: 'error',
         text: errorMessage
@@ -102,7 +102,7 @@ const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
             축구 동호회를 위한<br />
-            <span className="text-primary-600">올인원 관리 플랫폼</span>
+            <span className="text-primary-600">올인원 관리플랫폼</span>
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl lg:max-w-3xl mx-auto leading-relaxed">
             선수 관리부터 경기 일정, 구장 정보까지 한 곳에서 관리하세요.<br className="hidden sm:block" />
@@ -320,7 +320,7 @@ const Landing: React.FC = () => {
           </p>
         </div>
       </footer>
-      
+
       {/* 토스트 컨테이너 */}
       <ToastContainer />
     </div>

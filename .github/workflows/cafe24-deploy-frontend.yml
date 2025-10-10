@@ -3,7 +3,7 @@ name: Deploy Frontend to Cafe24
 on:
   push:
     branches: [ main ]
-    paths: ['fe/**']
+#    paths: ['fe/**']
   workflow_dispatch:
 
 jobs:
@@ -57,17 +57,34 @@ jobs:
       run: |
         scp -i ~/.ssh/id_rsa docker-compose.yml root@${{ secrets.CAFE24_HOST }}:/opt/football-club/
 
-    - name: Deploy frontend on server
+    - name: Pull and tag frontend Docker image
       run: |
         ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
           cd /opt/football-club &&
           docker pull ${{ secrets.DOCKER_USERNAME }}/football-club-frontend:${{ github.sha }} &&
-          docker tag ${{ secrets.DOCKER_USERNAME }}/football-club-frontend:${{ github.sha }} football-club-frontend:latest &&
-          
-          # 프론트엔드만 교체 (Nginx를 통해 백엔드 통신하므로 직접 네트워킹 불필요)
+          docker tag ${{ secrets.DOCKER_USERNAME }}/football-club-frontend:${{ github.sha }} football-club-frontend:latest
+        "
+
+    - name: Stop and remove existing frontend container
+      run: |
+        ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
           docker stop frontend 2>/dev/null || true &&
-          docker rm frontend 2>/dev/null || true &&
+          docker rm frontend 2>/dev/null || true
+        "
+
+    - name: Start new frontend container
+      run: |
+        ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
           docker run -d --name frontend -p 3000:3000 football-club-frontend:latest
+        "
+
+    - name: Verify frontend deployment
+      run: |
+        ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+          echo \"Frontend container status:\"
+          docker ps | grep frontend || echo \"Frontend container not running\"
+          echo \"Frontend container logs:\"
+          docker logs frontend | tail -10
         "
 
     - name: Deployment notification
