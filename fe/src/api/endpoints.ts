@@ -16,10 +16,17 @@ export const API_ENDPOINTS = {
     VALIDATE: { method: 'GET', path: '/api/admin/auth/validate', requiresAuth: true } as ApiEndpoint,
   },
 
-  // Admin - Dashboard
+  // Admin - Dashboard & Auth
   ADMIN: {
     DASHBOARD: { method: 'GET', path: '/api/v1/admin/dashboard', requiresAuth: true, isAdmin: true } as ApiEndpoint,
     TEAM_STATS: { method: 'GET', path: '/api/v1/admin/teams/{id}/stats', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    
+    // 새로운 관리자 인증 API
+    AUTH: {
+      LOGIN: { method: 'POST', path: '/api/v1/admin/auth/login', requiresAuth: false } as ApiEndpoint,
+      LOGOUT: { method: 'POST', path: '/api/v1/admin/auth/logout', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+      VERIFY: { method: 'GET', path: '/api/v1/admin/auth/verify', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    },
   },
 
   // Admin - Teams
@@ -138,6 +145,29 @@ export const API_ENDPOINTS = {
     DELETE_POST: { method: 'DELETE', path: '/api/v1/community/posts/{postId}', requiresAuth: false } as ApiEndpoint,
     CREATE_COMMENT: { method: 'POST', path: '/api/v1/community/posts/{postId}/comments', requiresAuth: false } as ApiEndpoint,
     DELETE_COMMENT: { method: 'DELETE', path: '/api/v1/community/comments/{commentId}', requiresAuth: false } as ApiEndpoint,
+  },
+
+  // Admin Community Management 
+  ADMIN_COMMUNITY: {
+    POSTS: { method: 'GET', path: '/api/v1/admin/community/posts', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    POST: { method: 'GET', path: '/api/v1/admin/community/posts/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    ACTIVATE_POST: { method: 'PUT', path: '/api/v1/admin/community/posts/{id}/activate', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    DEACTIVATE_POST: { method: 'PUT', path: '/api/v1/admin/community/posts/{id}/deactivate', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    DELETE_POST: { method: 'DELETE', path: '/api/v1/admin/community/posts/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    ACTIVATE_COMMENT: { method: 'PUT', path: '/api/v1/admin/community/comments/{id}/activate', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    DEACTIVATE_COMMENT: { method: 'PUT', path: '/api/v1/admin/community/comments/{id}/deactivate', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    DELETE_COMMENT: { method: 'DELETE', path: '/api/v1/admin/community/comments/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+  },
+
+  // Admin Management (Master only)
+  ADMIN_MANAGEMENT: {
+    LIST: { method: 'GET', path: '/api/v1/admin/management/admins', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    GET: { method: 'GET', path: '/api/v1/admin/management/admins/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    CREATE: { method: 'POST', path: '/api/v1/admin/management/admins', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    UPDATE: { method: 'PUT', path: '/api/v1/admin/management/admins/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    DELETE: { method: 'DELETE', path: '/api/v1/admin/management/admins/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    ACTIVATE: { method: 'PUT', path: '/api/v1/admin/management/admins/{id}/activate', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    DEACTIVATE: { method: 'PUT', path: '/api/v1/admin/management/admins/{id}/deactivate', requiresAuth: true, isAdmin: true } as ApiEndpoint,
   },
 
   // Tenants (Multi-tenant)

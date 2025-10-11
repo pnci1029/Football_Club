@@ -1,11 +1,17 @@
 package io.be.admin.presentation
 
+import io.be.admin.application.AdminInfo
+import io.be.admin.domain.AdminLevel
 import io.be.stadium.dto.CreateStadiumRequest
 import io.be.stadium.dto.StadiumDto
 import io.be.stadium.dto.UpdateStadiumRequest
 import io.be.stadium.application.StadiumService
+import io.be.shared.exception.MissingRequiredFieldException
+import io.be.shared.exception.UnauthorizedAdminAccessException
+import io.be.shared.security.AdminPermissionRequired
 import io.be.shared.service.SubdomainService
 import io.be.shared.util.ApiResponse
+import io.be.team.application.TeamService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
@@ -19,19 +25,37 @@ import org.springframework.web.bind.annotation.*
 @CrossOrigin(origins = ["*"])
 class AdminStadiumController(
     private val stadiumService: StadiumService,
-    private val subdomainService: SubdomainService
+    private val subdomainService: SubdomainService,
+    private val teamService: TeamService
 ) {
     
+    @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @GetMapping
     fun getAllStadiums(
+        adminInfo: AdminInfo,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
         @RequestParam(required = false) teamId: Long?
     ): ResponseEntity<ApiResponse<Page<StadiumDto>>> {
-        val stadiums = if (teamId != null) {
-            stadiumService.findStadiumsByTeam(teamId, PageRequest.of(page, size))
-        } else {
-            stadiumService.findAllStadiums(PageRequest.of(page, size))
+        val stadiums = when (adminInfo.adminLevel) {
+            AdminLevel.MASTER -> {
+                if (teamId != null) {
+                    stadiumService.findStadiumsByTeam(teamId, PageRequest.of(page, size))
+                } else {
+                    stadiumService.findAllStadiums(PageRequest.of(page, size))
+                }
+            }
+            AdminLevel.SUBDOMAIN -> {
+                // 서브도메인 관리자는 자신의 팀 구장만 조회
+                val team = teamService.findByCode(adminInfo.teamSubdomain!!)
+                    ?: throw UnauthorizedAdminAccessException("Invalid team subdomain")
+                
+                if (teamId != null && teamId != team.id) {
+                    throw UnauthorizedAdminAccessException("Subdomain admin can only access their own team stadiums")
+                }
+                
+                stadiumService.findStadiumsByTeam(team.id, PageRequest.of(page, size))
+            }
         }
         return ResponseEntity.ok(ApiResponse.success(stadiums))
     }
