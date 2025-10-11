@@ -44,6 +44,7 @@ class HeroSlideControllerTest {
         val teamDto = TeamDto(1L, "test-team", "Test Team", "Test Description", "logo.jpg")
         val heroSlideDto = HeroSlideDto(
             id = 1L,
+            teamId = 1L,
             title = "Test Slide",
             subtitle = "Test Subtitle", 
             backgroundImage = "test-image.jpg",

@@ -53,8 +53,12 @@ const TenantManagement: React.FC = () => {
         id: newTeam.id,
         name: newTeam.name,
         code: newTeam.code,
+        description: '',
         playerCount: 0,
-        stadiumCount: 0
+        stadiumCount: 0,
+        matchCount: 0,
+        winRate: 0,
+        createdAt: new Date().toISOString()
       }]);
       
       // 성공 메시지 표시

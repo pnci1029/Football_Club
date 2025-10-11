@@ -11,12 +11,12 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/admin/auth")
+@RequestMapping("/v1/admin/auth")
 @CrossOrigin(origins = ["*"])
 class AdminAuthController(
     private val adminAuthService: AdminAuthService
 ) {
-    
+
     /**
      * 관리자 로그인
      */
@@ -26,16 +26,16 @@ class AdminAuthController(
         httpRequest: HttpServletRequest
     ): ResponseEntity<ApiResponse<LoginResponse>> {
         val clientIp = getClientIpAddress(httpRequest)
-        
+
         val response = adminAuthService.login(
             username = request.username,
             password = request.password,
-            clientIp = clientIp
+            request = httpRequest
         )
-        
+
         return ResponseEntity.ok(ApiResponse.success(response))
     }
-    
+
     /**
      * 토큰 갱신
      */
@@ -46,7 +46,7 @@ class AdminAuthController(
         val response = adminAuthService.refreshToken(request.refreshToken)
         return ResponseEntity.ok(ApiResponse.success(response))
     }
-    
+
     /**
      * 현재 로그인한 관리자 정보 조회
      */
@@ -58,10 +58,10 @@ class AdminAuthController(
         val adminInfo = adminAuthService.getAdminByToken(token)
             ?: return ResponseEntity.status(401)
                 .body(ApiResponse.error("UNAUTHORIZED", "Invalid or expired token"))
-        
+
         return ResponseEntity.ok(ApiResponse.success(adminInfo))
     }
-    
+
     /**
      * 로그아웃
      */
@@ -71,15 +71,15 @@ class AdminAuthController(
         httpRequest: HttpServletRequest
     ): ResponseEntity<ApiResponse<String>> {
         val clientIp = getClientIpAddress(httpRequest)
-        
+
         adminAuthService.logout(
             username = request.username,
             clientIp = clientIp
         )
-        
+
         return ResponseEntity.ok(ApiResponse.success("Logout successful"))
     }
-    
+
     /**
      * 토큰 검증
      */
@@ -88,21 +88,21 @@ class AdminAuthController(
         @RequestBody request: ValidateTokenRequest
     ): ResponseEntity<ApiResponse<TokenValidationResponse>> {
         val adminInfo = adminAuthService.getAdminByToken(request.token)
-        
+
         val response = if (adminInfo != null) {
             TokenValidationResponse(valid = true, admin = adminInfo)
         } else {
             TokenValidationResponse(valid = false, admin = null)
         }
-        
+
         return ResponseEntity.ok(ApiResponse.success(response))
     }
-    
+
     private fun getClientIpAddress(request: HttpServletRequest): String {
         val xForwardedFor = request.getHeader("X-Forwarded-For")
         val xRealIp = request.getHeader("X-Real-IP")
         val xOriginalForwardedFor = request.getHeader("X-Original-Forwarded-For")
-        
+
         return when {
             !xForwardedFor.isNullOrBlank() -> xForwardedFor.split(",")[0].trim()
             !xRealIp.isNullOrBlank() -> xRealIp
@@ -118,7 +118,7 @@ class AdminAuthController(
 data class LoginRequest(
     @field:NotBlank(message = "Username is required")
     val username: String,
-    
+
     @field:NotBlank(message = "Password is required")
     val password: String
 )
