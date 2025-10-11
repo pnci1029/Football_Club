@@ -1,3 +1,5 @@
+import { AdminLevel } from '../../enums';
+
 export interface AdminInfo {
   id: string;
   name: string;
@@ -6,6 +8,38 @@ export interface AdminInfo {
   permissions?: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AdminAccountDto {
+  id: number;
+  username: string;
+  email: string;
+  name: string;
+  role: string;
+  adminLevel: AdminLevel;
+  teamSubdomain?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt?: string;
+}
+
+export interface CreateAdminRequest {
+  username: string;
+  password: string;
+  email: string;
+  name: string;
+  role: string;
+  adminLevel: AdminLevel;
+  teamSubdomain?: string;
+}
+
+export interface UpdateAdminRequest {
+  email?: string;
+  name?: string;
+  role?: string;
+  teamSubdomain?: string;
+  isActive?: boolean;
 }
 
 export interface DashboardStats {
@@ -20,8 +54,12 @@ export interface TeamStats {
   id: number;
   name: string;
   code: string;
+  description?: string;
   playerCount: number;
   stadiumCount: number;
+  matchCount?: number;
+  winRate?: number;
+  createdAt: string;
 }
 
 export interface PlayerDto {
@@ -107,4 +145,36 @@ export interface InquiryStats {
   pendingInquiries: number;
   resolvedInquiries: number;
   averageResponseTime: number;
+}
+
+export interface AdminCommunityPost {
+  id: number;
+  title: string;
+  content: string;
+  authorName: string;
+  category: string;
+  isNotice: boolean;
+  isActive: boolean;
+  viewCount: number;
+  commentCount: number;
+  teamName: string;
+  teamCode: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminCommunityComment {
+  id: number;
+  content: string;
+  authorName: string;
+  isActive: boolean;
+  postId: number;
+  postTitle: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminCommunityPostDetail {
+  post: AdminCommunityPost;
+  comments: AdminCommunityComment[];
 }

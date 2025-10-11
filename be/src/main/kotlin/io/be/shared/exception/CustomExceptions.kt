@@ -17,6 +17,8 @@ class StadiumNotFoundException(id: Long) : RuntimeException("Stadium not found w
 class MatchNotFoundException(id: Long) : RuntimeException("Match not found with id: $id")
 class InquiryNotFoundException(id: Long) : RuntimeException("Inquiry not found with id: $id")
 class ResourceNotFoundException(message: String) : RuntimeException(message)
+class NotFoundException(message: String) : RuntimeException(message)
+class ConflictException(message: String) : RuntimeException(message)
 
 // ========================================================================================
 // Business Rule Violations
@@ -34,6 +36,7 @@ class SubdomainAccessDeniedException(subdomain: String, resource: String) : Runt
 class UnauthorizedTeamAccessException(requestedTeamId: Long, userTeamId: Long) : RuntimeException("Unauthorized access to team $requestedTeamId by user from team $userTeamId")
 class InvalidTenantConfigurationException(teamId: Long, issue: String) : RuntimeException("Invalid tenant configuration for team $teamId: $issue")
 class UnauthorizedAccessException(message: String = "Unauthorized access") : RuntimeException(message)
+class UnauthorizedAdminAccessException(message: String = "Unauthorized admin access") : RuntimeException(message)
 class InvalidTokenException(message: String = "Invalid token") : RuntimeException(message)
 
 // ========================================================================================

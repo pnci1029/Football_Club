@@ -26,6 +26,9 @@ interface CommunityPostRepository : JpaRepository<CommunityPost, Long>, Communit
     fun countByTeamIdAndIsActive(teamId: Long, isActive: Boolean): Long
     fun findByIsActiveOrderByCreatedAtDesc(isActive: Boolean): List<CommunityPost>
     fun countByIsActiveAndCreatedAtAfter(isActive: Boolean, date: java.time.LocalDateTime): Long
+    
+    // 관리자용 메서드들
+    fun findByTeamIdOrderByCreatedAtDesc(teamId: Long, pageable: org.springframework.data.domain.Pageable): Page<CommunityPost>
 }
 
 @Repository
@@ -40,4 +43,7 @@ interface CommunityCommentRepository : JpaRepository<CommunityComment, Long>, Co
     
     @Query("SELECT COUNT(c) FROM CommunityComment c JOIN c.post p WHERE p.teamId = :teamId AND c.isActive = :isActive")
     fun countByTeamIdAndIsActive(@Param("teamId") teamId: Long, @Param("isActive") isActive: Boolean): Long
+    
+    // 관리자용 메서드들
+    fun findByPostIdOrderByCreatedAtAsc(postId: Long): List<CommunityComment>
 }

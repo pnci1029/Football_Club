@@ -1,8 +1,12 @@
+import { AdminLevel } from '../../enums';
+
 export interface AdminInfo {
   id: string;
   name: string;
   email: string;
   role: string;
+  adminLevel?: AdminLevel;
+  teamSubdomain?: string;
   permissions?: string[];
   createdAt: string;
   updatedAt: string;
