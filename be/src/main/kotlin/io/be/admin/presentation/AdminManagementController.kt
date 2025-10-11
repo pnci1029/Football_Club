@@ -5,7 +5,7 @@ import io.be.admin.application.CreateSubdomainAdminRequest
 import io.be.admin.application.UpdateSubdomainAdminRequest
 import io.be.admin.application.AdminInfo
 import io.be.admin.domain.AdminLevel
-import io.be.shared.dto.ApiResponse
+import io.be.shared.util.ApiResponse
 import io.be.shared.security.AdminPermissionRequired
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page

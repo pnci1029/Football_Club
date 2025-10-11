@@ -2,7 +2,7 @@ name: Deploy Frontend to Cafe24
 
 on:
   push:
-    branches: [ main ]
+    branches: [ aaaa ]
     paths: ['fe/**']
   workflow_dispatch:
 

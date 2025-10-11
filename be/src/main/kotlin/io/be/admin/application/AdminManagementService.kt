@@ -127,8 +127,15 @@ class AdminManagementService(
      */
     @Transactional(readOnly = true)
     fun getAllAdmins(pageable: Pageable): Page<AdminInfo> {
-        return adminRepository.findByIsActiveOrderByCreatedAtDesc(true, pageable)
+        val allAdmins = adminRepository.findByIsActiveOrderByCreatedAtDesc(true)
             .map { AdminInfo.from(it) }
+        
+        // List를 Page로 변환
+        val start = (pageable.pageNumber * pageable.pageSize).coerceAtMost(allAdmins.size)
+        val end = (start + pageable.pageSize).coerceAtMost(allAdmins.size)
+        val pageContent = if (start < allAdmins.size) allAdmins.subList(start, end) else emptyList()
+        
+        return org.springframework.data.domain.PageImpl(pageContent, pageable, allAdmins.size.toLong())
     }
     
     /**
