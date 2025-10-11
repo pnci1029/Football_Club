@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 import { Button, Card } from '../../components/common';
+import { Auth } from '../../api';
+import { LoginRequest } from '../../api/types';
+import { AdminLevel } from '../../types/enums';
+import { TokenManager } from '../../utils/tokenManager';
 
 const AdminLogin: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -10,16 +13,35 @@ const AdminLogin: React.FC = () => {
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentSubdomain, setCurrentSubdomain] = useState<string | null>(null);
 
-  const { login, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  // 이미 로그인한 경우 관리자 대시보드로 리다이렉트
+  // 현재 서브도메인 추출 및 기존 로그인 확인
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      navigate('/admin/dashboard', { replace: true });
+    // 서브도메인 추출
+    const hostname = window.location.hostname;
+    const parts = hostname.split('.');
+    
+    if (parts.length >= 2 && parts[0] !== 'www') {
+      setCurrentSubdomain(parts[0]);
     }
-  }, [isAuthenticated, isLoading, navigate]);
+
+    // 이미 로그인한 경우 관리자 대시보드로 리다이렉트
+    if (Auth.isAdminAuthenticated()) {
+      const adminInfo = localStorage.getItem('adminInfo');
+      if (adminInfo) {
+        const admin = JSON.parse(adminInfo);
+        if (admin.adminLevel === AdminLevel.MASTER) {
+          navigate('/admin/master/dashboard', { replace: true });
+        } else {
+          navigate('/admin/dashboard', { replace: true });
+        }
+      } else {
+        navigate('/admin/dashboard', { replace: true });
+      }
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,10 +55,33 @@ const AdminLogin: React.FC = () => {
     setError('');
 
     try {
-      await login(formData.username, formData.password);
-      // 로그인 성공 시 navigate는 useEffect에서 처리됨
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : '로그인에 실패했습니다. 사용자명과 비밀번호를 확인해주세요.');
+      const credentials: LoginRequest = {
+        username: formData.username,
+        password: formData.password
+      };
+      
+      const response = await Auth.loginAdmin(credentials);
+      
+      // 토큰 저장
+      TokenManager.setTokens(response.accessToken, response.refreshToken);
+      
+      // 관리자 정보 저장
+      localStorage.setItem('adminInfo', JSON.stringify(response.admin));
+      
+      // 관리자 레벨에 따라 리다이렉트
+      if (response.admin.adminLevel === AdminLevel.MASTER) {
+        navigate('/admin/master/dashboard', { replace: true });
+      } else {
+        navigate('/admin/dashboard', { replace: true });
+      }
+      
+    } catch (err: any) {
+      console.error('Admin login error:', err);
+      setError(
+        err.response?.data?.error?.message || 
+        err.message || 
+        '로그인에 실패했습니다. 사용자명과 비밀번호를 확인해주세요.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -48,13 +93,13 @@ const AdminLogin: React.FC = () => {
     if (error) setError('');
   };
 
-  // 로딩 중이거나 이미 인증된 경우 로딩 화면 표시
-  if (isLoading || isAuthenticated) {
+  // 로딩 중인 경우 로딩 화면 표시
+  if (isSubmitting && !error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">로딩 중...</p>
+          <p className="text-gray-600">로그인 중...</p>
         </div>
       </div>
     );
@@ -74,6 +119,13 @@ const AdminLogin: React.FC = () => {
           <p className="mt-2 text-sm text-gray-600">
             Football Club 관리자 시스템에 로그인하세요
           </p>
+          {currentSubdomain && (
+            <div className="mt-3 px-3 py-2 bg-primary-50 border border-primary-200 rounded-md">
+              <p className="text-sm text-primary-700">
+                <span className="font-medium">{currentSubdomain}</span> 팀 관리자 로그인
+              </p>
+            </div>
+          )}
         </div>
 
         {/* 로그인 폼 */}

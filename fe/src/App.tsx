@@ -98,6 +98,13 @@ const AppContent: React.FC = () => {
           </ProtectedRoute>
         } />
         {/* Legacy routes - redirect to /admin */}
+        <Route path="/admin-accounts" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <AdminAccountManagement />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
         <Route path="/tenants" element={
           <ProtectedRoute>
             <AdminLayout>

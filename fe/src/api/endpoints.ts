@@ -6,27 +6,20 @@ import { ApiEndpoint } from './types';
 
 // API 엔드포인트 정의
 export const API_ENDPOINTS = {
-  // Auth
+  // Admin Auth
   AUTH: {
-    LOGIN: { method: 'POST', path: '/api/admin/auth/login', requiresAuth: false } as ApiEndpoint,
-    REGISTER: { method: 'POST', path: '/api/admin/auth/register', requiresAuth: false } as ApiEndpoint,
-    LOGOUT: { method: 'POST', path: '/api/admin/auth/logout', requiresAuth: true } as ApiEndpoint,
-    REFRESH: { method: 'POST', path: '/api/admin/auth/refresh', requiresAuth: true } as ApiEndpoint,
-    ME: { method: 'GET', path: '/api/admin/auth/me', requiresAuth: true, isAdmin: true } as ApiEndpoint,
-    VALIDATE: { method: 'GET', path: '/api/admin/auth/validate', requiresAuth: true } as ApiEndpoint,
+    LOGIN: { method: 'POST', path: '/api/v1/admin/auth/login', requiresAuth: false } as ApiEndpoint,
+    REGISTER: { method: 'POST', path: '/api/v1/admin/auth/register', requiresAuth: false } as ApiEndpoint,
+    LOGOUT: { method: 'POST', path: '/api/v1/admin/auth/logout', requiresAuth: true } as ApiEndpoint,
+    REFRESH: { method: 'POST', path: '/api/v1/admin/auth/refresh', requiresAuth: true } as ApiEndpoint,
+    ME: { method: 'GET', path: '/api/v1/admin/auth/me', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    VALIDATE: { method: 'POST', path: '/api/v1/admin/auth/validate', requiresAuth: true } as ApiEndpoint,
   },
 
-  // Admin - Dashboard & Auth
+  // Admin - Dashboard
   ADMIN: {
     DASHBOARD: { method: 'GET', path: '/api/v1/admin/dashboard', requiresAuth: true, isAdmin: true } as ApiEndpoint,
     TEAM_STATS: { method: 'GET', path: '/api/v1/admin/teams/{id}/stats', requiresAuth: true, isAdmin: true } as ApiEndpoint,
-    
-    // 새로운 관리자 인증 API
-    AUTH: {
-      LOGIN: { method: 'POST', path: '/api/v1/admin/auth/login', requiresAuth: false } as ApiEndpoint,
-      LOGOUT: { method: 'POST', path: '/api/v1/admin/auth/logout', requiresAuth: true, isAdmin: true } as ApiEndpoint,
-      VERIFY: { method: 'GET', path: '/api/v1/admin/auth/verify', requiresAuth: true, isAdmin: true } as ApiEndpoint,
-    },
   },
 
   // Admin - Teams
@@ -147,7 +140,7 @@ export const API_ENDPOINTS = {
     DELETE_COMMENT: { method: 'DELETE', path: '/api/v1/community/comments/{commentId}', requiresAuth: false } as ApiEndpoint,
   },
 
-  // Admin Community Management 
+  // Admin Community Management
   ADMIN_COMMUNITY: {
     POSTS: { method: 'GET', path: '/api/v1/admin/community/posts', requiresAuth: true, isAdmin: true } as ApiEndpoint,
     POST: { method: 'GET', path: '/api/v1/admin/community/posts/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
@@ -194,7 +187,7 @@ export function buildUrl(template: string, params: Record<string, string | numbe
 // 모든 엔드포인트 플래튼 (테스트용)
 export function getAllEndpoints(): Array<{ name: string; endpoint: ApiEndpoint }> {
   const result: Array<{ name: string; endpoint: ApiEndpoint }> = [];
-  
+
   function flatten(obj: Record<string, unknown>, prefix = '') {
     for (const [key, value] of Object.entries(obj)) {
       const name = prefix ? `${prefix}.${key}` : key;
@@ -205,7 +198,7 @@ export function getAllEndpoints(): Array<{ name: string; endpoint: ApiEndpoint }
       }
     }
   }
-  
+
   flatten(API_ENDPOINTS);
   return result;
 }

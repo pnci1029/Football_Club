@@ -49,9 +49,9 @@ class UnifiedApiClient {
           await this.refreshTokenIfNeeded();
         }
 
-        // 유효한 액세스 토큰 첨부
+        // 액세스 토큰 첨부 (만료 여부와 관계없이)
         const token = TokenManager.getAccessToken();
-        if (token && TokenManager.isAccessTokenValid()) {
+        if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
 

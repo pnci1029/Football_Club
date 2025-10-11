@@ -1,10 +1,13 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { AdminLevel, AdminRole } from '../../types/enums';
 
 interface SidebarMenuItem {
   path: string;
   label: string;
   icon: string;
+  adminOnly?: boolean; // MASTER 관리자 전용 메뉴
 }
 
 interface AdminSidebarProps {
@@ -14,15 +17,27 @@ interface AdminSidebarProps {
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
+  const { admin } = useAuth();
 
   const menuItems: SidebarMenuItem[] = [
     { path: '/', label: '대시보드', icon: '📊' },
-    { path: '/tenants', label: '서브도메인 관리', icon: '🏢' },
+    { path: '/admin-accounts', label: '관리자 계정 관리', icon: '👨‍💼', adminOnly: true },
+    { path: '/tenants', label: '서브도메인 관리', icon: '🏢', adminOnly: true },
     { path: '/teams', label: '팀 관리', icon: '👥' },
     { path: '/players', label: '선수 관리', icon: '👤' },
     { path: '/matches', label: '경기 관리', icon: '⚽' },
     { path: '/inquiries', label: '문의 관리', icon: '📝' },
   ];
+
+  // 현재 관리자가 MASTER인지 확인 (adminLevel 우선, role로 fallback)
+  const isMasterAdmin = admin?.adminLevel === AdminLevel.MASTER || 
+                       admin?.role === AdminRole.SUPER_ADMIN || 
+                       admin?.role === AdminRole.MASTER;
+
+  // 메뉴 필터링: MASTER 관리자가 아니면 adminOnly 메뉴 제외
+  const filteredMenuItems = menuItems.filter(item => 
+    !item.adminOnly || isMasterAdmin
+  );
 
   const isActive = (path: string) => {
     if (path === '/') {
@@ -72,7 +87,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
         {/* 메뉴 - 모바일 최적화 */}
         <nav className="flex-1 p-3 sm:p-4 overflow-y-auto">
           <ul className="space-y-1 sm:space-y-2">
-            {menuItems.map((item) => (
+            {filteredMenuItems.map((item) => (
               <li key={item.path}>
                 <Link
                   to={item.path}
