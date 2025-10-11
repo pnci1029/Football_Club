@@ -41,12 +41,12 @@ class MasterDashboardService(
         val totalComments = communityCommentRepository.countByIsActive(true)
         
         // 공지사항 통계
-        val totalNotices = noticeRepository.countByIsDeletedFalse()
+        val totalNotices = noticeRepository.countByIsActiveTrue()
         
         // 최근 활동 통계 (30일 기준)
         val thirtyDaysAgo = LocalDateTime.now().minusDays(30)
         val recentPosts = communityPostRepository.countByIsActiveAndCreatedAtAfter(true, thirtyDaysAgo)
-        val recentNotices = noticeRepository.countByIsDeletedFalseAndCreatedAtAfter(thirtyDaysAgo)
+        val recentNotices = noticeRepository.countByIsActiveTrueAndCreatedAtAfter(thirtyDaysAgo)
         
         return SystemOverviewResponse(
             // 팀 통계
@@ -90,7 +90,7 @@ class MasterDashboardService(
             val teamComments = communityCommentRepository.countByTeamIdAndIsActive(teamId, true)
             
             // 해당 팀의 공지사항
-            val teamNotices = noticeRepository.countByTeamIdAndIsDeletedFalse(teamId)
+            val teamNotices = noticeRepository.countByTeamIdAndIsActiveTrue(teamId)
             
             SubdomainStatsResponse(
                 teamCode = teamCode,
@@ -135,7 +135,7 @@ class MasterDashboardService(
             }
         
         // 최근 공지사항
-        val recentNotices = noticeRepository.findByIsDeletedFalseOrderByCreatedAtDesc()
+        val recentNotices = noticeRepository.findByIsActiveTrueOrderByCreatedAtDesc()
             .take(5)
             .map { notice ->
                 RecentActivityResponse(

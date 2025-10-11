@@ -56,6 +56,13 @@ class TeamService(
     fun findTeamByCode(code: String): TeamDto? {
         return teamRepository.findByCodeAndIsDeletedFalse(code)?.let { TeamDto.from(it) }
     }
+    
+    /**
+     * Admin에서 사용할 TeamDto를 반환하는 메서드 (findByCode 별칭)
+     */
+    fun findByCode(code: String): TeamDto? {
+        return findTeamByCode(code)
+    }
 
     @Transactional
     // @CacheEvict(value = ["teams"], allEntries = true)

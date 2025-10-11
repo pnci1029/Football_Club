@@ -45,13 +45,15 @@ interface NoticeRepository : JpaRepository<Notice, Long>, NoticeRepositoryCustom
      */
     fun findByTeamIdAndIsActiveTrue(teamId: Long, pageable: Pageable): Page<Notice>
     
-    
-    
-    
     /**
      * 전체 노출 설정된 활성화된 공지사항 목록 조회 (메인 페이지용)
      */
     fun findByIsActiveTrueAndIsGlobalVisibleTrueOrderByCreatedAtDesc(pageable: Pageable): Page<Notice>
+    
+    // 통계용 메서드들
+    fun countByIsActiveTrue(): Long
+    fun countByIsActiveTrueAndCreatedAtAfter(date: java.time.LocalDateTime): Long
+    fun findByIsActiveTrueOrderByCreatedAtDesc(): List<Notice>
     
 }
 
