@@ -10,7 +10,7 @@ import io.be.admin.domain.AdminLevel
 @Retention(AnnotationRetention.RUNTIME)
 annotation class AdminPermissionRequired(
     /**
-     * 필요한 관리자 레벨
+     * 필요한 관리자 레벨 (최소 요구 레벨)
      */
     val level: AdminLevel = AdminLevel.SUBDOMAIN,
     

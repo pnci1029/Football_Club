@@ -9,7 +9,12 @@ import {
   TenantSettings, 
   CreateTenantData,
   AdminApiResponse,
-  AdminPageResponse
+  AdminPageResponse,
+  AdminAccountDto,
+  CreateAdminRequest,
+  UpdateAdminRequest,
+  AdminCommunityPost,
+  AdminCommunityPostDetail
 } from '../types/interfaces/admin/index';
 
 // Re-export types that are needed elsewhere  
@@ -113,6 +118,94 @@ class AdminService {
   // 새 팀 생성
   async createTeam(teamData: CreateTeamData): Promise<TeamStats> {
     const response = await apiClient.post<AdminApiResponse<TeamStats>>('/api/v1/admin/teams', teamData);
+    return response.data;
+  }
+
+  // 관리자 계정 관리 (마스터 전용)
+  async getAllAdmins(page: number = 0, size: number = 20): Promise<AdminPageResponse<AdminAccountDto>> {
+    const response = await apiClient.get<AdminApiResponse<AdminPageResponse<AdminAccountDto>>>(`/api/v1/admin/management/admins?page=${page}&size=${size}`);
+    return response.data;
+  }
+
+  async getAdminById(adminId: number): Promise<AdminAccountDto> {
+    const response = await apiClient.get<AdminApiResponse<AdminAccountDto>>(`/api/v1/admin/management/admins/${adminId}`);
+    return response.data;
+  }
+
+  async createAdmin(adminData: CreateAdminRequest): Promise<AdminAccountDto> {
+    const response = await apiClient.post<AdminApiResponse<AdminAccountDto>>('/api/v1/admin/management/admins', adminData);
+    return response.data;
+  }
+
+  async updateAdmin(adminId: number, adminData: UpdateAdminRequest): Promise<AdminAccountDto> {
+    const response = await apiClient.put<AdminApiResponse<AdminAccountDto>>(`/api/v1/admin/management/admins/${adminId}`, adminData);
+    return response.data;
+  }
+
+  async deleteAdmin(adminId: number): Promise<string> {
+    const response = await apiClient.delete<AdminApiResponse<string>>(`/api/v1/admin/management/admins/${adminId}`);
+    return response.data;
+  }
+
+  async activateAdmin(adminId: number): Promise<string> {
+    const response = await apiClient.put<AdminApiResponse<string>>(`/api/v1/admin/management/admins/${adminId}/activate`, {});
+    return response.data;
+  }
+
+  async deactivateAdmin(adminId: number): Promise<string> {
+    const response = await apiClient.put<AdminApiResponse<string>>(`/api/v1/admin/management/admins/${adminId}/deactivate`, {});
+    return response.data;
+  }
+
+  // 커뮤니티 관리 (관리자용)
+  async getCommunityPosts(
+    page: number = 0, 
+    size: number = 20,
+    teamCode?: string,
+    category?: string,
+    isActive?: boolean
+  ): Promise<AdminPageResponse<AdminCommunityPost>> {
+    let url = `/api/v1/admin/community/posts?page=${page}&size=${size}`;
+    if (teamCode) url += `&teamCode=${teamCode}`;
+    if (category) url += `&category=${category}`;
+    if (isActive !== undefined) url += `&isActive=${isActive}`;
+    
+    const response = await apiClient.get<AdminApiResponse<AdminPageResponse<AdminCommunityPost>>>(url);
+    return response.data;
+  }
+
+  async getCommunityPostDetail(postId: number): Promise<AdminCommunityPostDetail> {
+    const response = await apiClient.get<AdminApiResponse<AdminCommunityPostDetail>>(`/api/v1/admin/community/posts/${postId}`);
+    return response.data;
+  }
+
+  async activateCommunityPost(postId: number): Promise<string> {
+    const response = await apiClient.put<AdminApiResponse<string>>(`/api/v1/admin/community/posts/${postId}/activate`, {});
+    return response.data;
+  }
+
+  async deactivateCommunityPost(postId: number): Promise<string> {
+    const response = await apiClient.put<AdminApiResponse<string>>(`/api/v1/admin/community/posts/${postId}/deactivate`, {});
+    return response.data;
+  }
+
+  async deleteCommunityPost(postId: number): Promise<string> {
+    const response = await apiClient.delete<AdminApiResponse<string>>(`/api/v1/admin/community/posts/${postId}`);
+    return response.data;
+  }
+
+  async activateCommunityComment(commentId: number): Promise<string> {
+    const response = await apiClient.put<AdminApiResponse<string>>(`/api/v1/admin/community/comments/${commentId}/activate`, {});
+    return response.data;
+  }
+
+  async deactivateCommunityComment(commentId: number): Promise<string> {
+    const response = await apiClient.put<AdminApiResponse<string>>(`/api/v1/admin/community/comments/${commentId}/deactivate`, {});
+    return response.data;
+  }
+
+  async deleteCommunityComment(commentId: number): Promise<string> {
+    const response = await apiClient.delete<AdminApiResponse<string>>(`/api/v1/admin/community/comments/${commentId}`);
     return response.data;
   }
 }

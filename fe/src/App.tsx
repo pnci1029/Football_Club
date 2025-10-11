@@ -15,6 +15,9 @@ import CommunityWrite from './pages/CommunityWrite';
 import CommunityDetail from './pages/CommunityDetail';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import SubdomainDashboard from './pages/admin/SubdomainDashboard';
+import AdminAccountManagement from './pages/admin/AdminAccountManagement';
+import AdminCommunityManagement from './pages/admin/AdminCommunityManagement';
 import AdminPlayers from './pages/admin/AdminPlayers';
 import AdminTeams from './pages/admin/AdminTeams';
 import AdminTeamDetail from './pages/admin/AdminTeamDetail';
@@ -71,6 +74,10 @@ const AppContent: React.FC = () => {
             <AdminLayout>
               <Routes>
                 <Route path="/dashboard" element={<AdminDashboard />} />
+                <Route path="/subdomain/dashboard" element={<SubdomainDashboard />} />
+                <Route path="/master/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin-accounts" element={<AdminAccountManagement />} />
+                <Route path="/community" element={<AdminCommunityManagement />} />
                 <Route path="/tenants" element={<TenantManagement />} />
                 <Route path="/hero-slides" element={<AdminHeroSlides />} />
                 <Route path="/players" element={<AdminPlayers />} />
@@ -86,7 +93,7 @@ const AppContent: React.FC = () => {
         <Route path="/" element={
           <ProtectedRoute>
             <AdminLayout>
-              <AdminDashboard />
+              <SubdomainDashboard />
             </AdminLayout>
           </ProtectedRoute>
         } />
