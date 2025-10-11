@@ -52,9 +52,6 @@ export class AdminTeamService {
     return apiClient.get(`/api/v1/admin/teams/${id}`);
   }
 
-  async getTeamByCode(code: string): Promise<ApiResponse<AdminTeam>> {
-    return apiClient.get(`/api/v1/admin/teams/code/${code}`);
-  }
 
   async updateTeam(id: number, request: UpdateTeamRequest): Promise<ApiResponse<AdminTeam>> {
     return apiClient.put(`/api/v1/admin/teams/${id}`, request);

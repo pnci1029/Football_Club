@@ -67,10 +67,6 @@ export class AdminStadiumService {
     return apiClient.post(url, request);
   }
 
-  async getStadium(id: number): Promise<ApiResponse<AdminStadium>> {
-    return apiClient.get(`/api/v1/admin/stadiums/${id}`);
-  }
-
   async updateStadium(id: number, request: UpdateStadiumRequest): Promise<ApiResponse<AdminStadium>> {
     return apiClient.put(`/api/v1/admin/stadiums/${id}`, request);
   }
@@ -87,10 +83,6 @@ export class AdminStadiumService {
 
   async searchStadiumsByName(name: string): Promise<ApiResponse<AdminStadium[]>> {
     return apiClient.get(`/api/v1/admin/stadiums/search?name=${encodeURIComponent(name)}`);
-  }
-
-  async searchStadiumsByAddress(address: string): Promise<ApiResponse<AdminStadium[]>> {
-    return apiClient.get(`/api/v1/admin/stadiums/search?address=${encodeURIComponent(address)}`);
   }
 }
 

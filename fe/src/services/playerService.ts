@@ -90,34 +90,6 @@ export class PlayerService {
     }
   }
 
-  // 새로운 편의 메서드들
-  async searchPlayersByName(name: string, teamId?: number): Promise<PlayerDto[]> {
-    try {
-      const players = await Players.searchByName(name, teamId);
-      return players.map(player => ({
-        ...player,
-        teamName: player.teamId ? `Team ${player.teamId}` : 'Unknown Team',
-        isActive: true
-      }));
-    } catch (error) {
-      console.error(`선수 검색에 실패했습니다 (이름: ${name}):`, error);
-      return [];
-    }
-  }
-
-  async getPlayersByPosition(position: string, teamId?: number): Promise<PlayerDto[]> {
-    try {
-      const players = await Players.getByPosition(position, teamId);
-      return players.map(player => ({
-        ...player,
-        teamName: player.teamId ? `Team ${player.teamId}` : 'Unknown Team',
-        isActive: true
-      }));
-    } catch (error) {
-      console.error(`포지션별 선수 조회에 실패했습니다 (포지션: ${position}):`, error);
-      return [];
-    }
-  }
 }
 
 export const playerService = new PlayerService();

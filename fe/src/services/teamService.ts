@@ -53,28 +53,6 @@ class TeamService {
     }
   }
 
-  // 새로운 편의 메서드들 (기존 API에서는 제공되지 않았음)
-  async searchTeams(query: string): Promise<Team[]> {
-    try {
-      const teams: (Omit<Team, 'id'> & { id: number })[] = await Teams.search(query);
-      return teams.map((team: Omit<Team, 'id'> & { id: number }) => ({
-        ...team,
-        id: team.id.toString()
-      }));
-    } catch (error) {
-      console.error(`팀 검색에 실패했습니다 (검색어: ${query}):`, error);
-      return [];
-    }
-  }
-
-  async teamExists(code: string): Promise<boolean> {
-    try {
-      return await Teams.exists(code);
-    } catch (error) {
-      console.error(`팀 존재 여부 확인에 실패했습니다 (코드: ${code}):`, error);
-      return false;
-    }
-  }
 }
 
 export const teamService = new TeamService();

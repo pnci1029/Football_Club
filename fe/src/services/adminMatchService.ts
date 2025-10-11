@@ -67,21 +67,6 @@ export class AdminMatchService {
     return apiClient.get(`/api/v1/admin/matches/team/${teamId}?page=${page}&size=${size}`);
   }
 
-  async createMatch(request: CreateMatchRequest): Promise<ApiResponse<AdminMatch>> {
-    return apiClient.post(`/api/v1/admin/matches`, request);
-  }
-
-  async getMatch(id: number): Promise<ApiResponse<AdminMatch>> {
-    return apiClient.get(`/api/v1/admin/matches/${id}`);
-  }
-
-  async updateMatch(id: number, request: UpdateMatchRequest): Promise<ApiResponse<AdminMatch>> {
-    return apiClient.put(`/api/v1/admin/matches/${id}`, request);
-  }
-
-  async deleteMatch(id: number): Promise<ApiResponse<string>> {
-    return apiClient.delete(`/api/v1/admin/matches/${id}`);
-  }
 }
 
 export const adminMatchService = new AdminMatchService();

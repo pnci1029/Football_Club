@@ -5,14 +5,10 @@ import {
   PlayerDto, 
   StadiumDto, 
   TenantInfo, 
-  TenantDashboard, 
-  TenantSettings, 
-  CreateTenantData,
   AdminApiResponse,
   AdminPageResponse,
   AdminAccountDto,
   CreateAdminRequest,
-  UpdateAdminRequest,
   AdminCommunityPost,
   AdminCommunityPostDetail
 } from '../types/interfaces/admin/index';
@@ -34,17 +30,6 @@ class AdminService {
     return response.data;
   }
 
-  // 특정 팀 통계 조회
-  async getTeamStats(teamId: number): Promise<TeamStats> {
-    const response = await apiClient.get<AdminApiResponse<TeamStats>>(`/api/v1/admin/teams/${teamId}/stats`);
-    return response.data;
-  }
-
-  // 팀별 선수 목록 조회
-  async getPlayersByTeam(teamId: number, page: number = 0, size: number = 10): Promise<AdminPageResponse<PlayerDto>> {
-    const response = await apiClient.get<AdminApiResponse<AdminPageResponse<PlayerDto>>>(`/api/v1/admin/players?teamId=${teamId}&page=${page}&size=${size}`);
-    return response.data;
-  }
 
   // 팀별 구장 목록 조회
   async getStadiumsByTeam(teamId: number, page: number = 0, size: number = 10): Promise<AdminPageResponse<StadiumDto>> {
@@ -70,48 +55,9 @@ class AdminService {
     return response.data;
   }
 
-  // 편의 메소드들 - 테스트에서 사용
-  async getTeams(): Promise<AdminPageResponse<TeamStats>> {
-    return this.getAllTeams();
-  }
-
-  async getPlayers(): Promise<AdminPageResponse<PlayerDto>> {
-    return this.getAllPlayers();
-  }
-
   // 테넌트 관리 API
   async getAllTenants(): Promise<TenantInfo[]> {
     const response = await apiClient.get<AdminApiResponse<TenantInfo[]>>('/api/v1/admin/tenants');
-    return response.data;
-  }
-
-  async getTenantByCode(teamCode: string): Promise<TenantInfo> {
-    const response = await apiClient.get<AdminApiResponse<TenantInfo>>(`/api/v1/admin/tenants/${teamCode}`);
-    return response.data;
-  }
-
-  async getTenantDashboard(teamCode: string): Promise<TenantDashboard> {
-    const response = await apiClient.get<AdminApiResponse<TenantDashboard>>(`/api/v1/admin/tenants/${teamCode}/dashboard`);
-    return response.data;
-  }
-
-  async getTenantPlayers(teamCode: string, page: number = 0, size: number = 10): Promise<AdminPageResponse<PlayerDto>> {
-    const response = await apiClient.get<AdminApiResponse<AdminPageResponse<PlayerDto>>>(`/api/v1/admin/tenants/${teamCode}/players?page=${page}&size=${size}`);
-    return response.data;
-  }
-
-  async getTenantStadiums(teamCode: string, page: number = 0, size: number = 10): Promise<AdminPageResponse<StadiumDto>> {
-    const response = await apiClient.get<AdminApiResponse<AdminPageResponse<StadiumDto>>>(`/api/v1/admin/tenants/${teamCode}/stadiums?page=${page}&size=${size}`);
-    return response.data;
-  }
-
-  async updateTenantSettings(teamCode: string, settings: TenantSettings): Promise<string> {
-    const response = await apiClient.put<AdminApiResponse<string>>(`/api/v1/admin/tenants/${teamCode}/settings`, settings);
-    return response.data;
-  }
-
-  async createTenant(tenantData: CreateTenantData): Promise<string> {
-    const response = await apiClient.post<AdminApiResponse<string>>('/api/v1/admin/tenants', tenantData);
     return response.data;
   }
 
@@ -127,18 +73,8 @@ class AdminService {
     return response.data;
   }
 
-  async getAdminById(adminId: number): Promise<AdminAccountDto> {
-    const response = await apiClient.get<AdminApiResponse<AdminAccountDto>>(`/api/v1/admin/management/admins/${adminId}`);
-    return response.data;
-  }
-
   async createAdmin(adminData: CreateAdminRequest): Promise<AdminAccountDto> {
     const response = await apiClient.post<AdminApiResponse<AdminAccountDto>>('/api/v1/admin/management/admins', adminData);
-    return response.data;
-  }
-
-  async updateAdmin(adminId: number, adminData: UpdateAdminRequest): Promise<AdminAccountDto> {
-    const response = await apiClient.put<AdminApiResponse<AdminAccountDto>>(`/api/v1/admin/management/admins/${adminId}`, adminData);
     return response.data;
   }
 

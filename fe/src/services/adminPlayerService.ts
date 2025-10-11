@@ -58,9 +58,6 @@ export class AdminPlayerService {
     return apiClient.post(`/api/v1/admin/players?teamId=${teamId}`, request);
   }
 
-  async getPlayer(id: number): Promise<ApiResponse<AdminPlayer>> {
-    return apiClient.get(`/api/v1/admin/players/${id}`);
-  }
 
   async updatePlayer(id: number, request: UpdatePlayerRequest): Promise<ApiResponse<AdminPlayer>> {
     return apiClient.put(`/api/v1/admin/players/${id}`, request);
