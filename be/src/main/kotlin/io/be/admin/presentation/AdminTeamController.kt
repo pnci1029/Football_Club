@@ -29,7 +29,7 @@ class AdminTeamController(
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @GetMapping
     fun getAllTeams(
-        adminInfo: AdminInfo,
+        @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
         @RequestParam(required = false) search: String?
@@ -69,7 +69,7 @@ class AdminTeamController(
     @AdminPermissionRequired(level = AdminLevel.MASTER) // 마스터만 팀 생성 가능
     @PostMapping
     fun createTeam(
-        adminInfo: AdminInfo,
+        @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @Valid @RequestBody request: CreateTeamRequest
     ): ResponseEntity<ApiResponse<TeamDto>> {
         val team = teamService.createTeam(request)

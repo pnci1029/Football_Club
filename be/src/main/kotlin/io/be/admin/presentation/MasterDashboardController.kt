@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServletRequest
  * 마스터 관리자 전용: 전체 시스템 대시보드 컨트롤러
  */
 @RestController
-@RequestMapping("/api/v1/admin/master/dashboard")
+@RequestMapping("/v1/admin/master/dashboard")
 @AdminPermissionRequired(level = AdminLevel.MASTER, enforceSubdomainRestriction = false)
 class MasterDashboardController(
     private val masterDashboardService: MasterDashboardService

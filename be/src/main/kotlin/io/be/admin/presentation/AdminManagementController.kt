@@ -19,8 +19,7 @@ import jakarta.servlet.http.HttpServletRequest
  * 마스터 관리자 전용: 서브도메인 관리자 관리 컨트롤러
  */
 @RestController
-@RequestMapping("/api/v1/admin/management")
-@AdminPermissionRequired(level = AdminLevel.MASTER, enforceSubdomainRestriction = false)
+@RequestMapping("/v1/admin/management")  
 class AdminManagementController(
     private val adminManagementService: AdminManagementService
 ) {
@@ -30,6 +29,7 @@ class AdminManagementController(
     /**
      * 전체 관리자 목록 조회 (페이징)
      */
+    @AdminPermissionRequired(level = AdminLevel.MASTER, enforceSubdomainRestriction = false)
     @GetMapping("/admins")
     fun getAllAdmins(
         @PageableDefault(size = 20) pageable: Pageable,
@@ -46,6 +46,7 @@ class AdminManagementController(
     /**
      * 마스터 관리자 목록 조회
      */
+    @AdminPermissionRequired(level = AdminLevel.MASTER, enforceSubdomainRestriction = false)
     @GetMapping("/admins/masters")
     fun getMasterAdmins(request: HttpServletRequest): ResponseEntity<ApiResponse<List<AdminInfo>>> {
         
@@ -59,6 +60,7 @@ class AdminManagementController(
     /**
      * 서브도메인별 관리자 목록 조회
      */
+    @AdminPermissionRequired(level = AdminLevel.MASTER, enforceSubdomainRestriction = false)
     @GetMapping("/admins/subdomain/{teamSubdomain}")
     fun getAdminsBySubdomain(
         @PathVariable teamSubdomain: String,
@@ -75,6 +77,7 @@ class AdminManagementController(
     /**
      * 관리자 상세 조회
      */
+    @AdminPermissionRequired(level = AdminLevel.MASTER, enforceSubdomainRestriction = false)
     @GetMapping("/admins/{adminId}")
     fun getAdminById(
         @PathVariable adminId: Long,
@@ -91,6 +94,7 @@ class AdminManagementController(
     /**
      * 서브도메인 관리자 생성
      */
+    @AdminPermissionRequired(level = AdminLevel.MASTER, enforceSubdomainRestriction = false)
     @PostMapping("/admins/subdomain")
     fun createSubdomainAdmin(
         @RequestBody request: CreateSubdomainAdminRequest,
@@ -107,6 +111,7 @@ class AdminManagementController(
     /**
      * 서브도메인 관리자 수정
      */
+    @AdminPermissionRequired(level = AdminLevel.MASTER, enforceSubdomainRestriction = false)
     @PutMapping("/admins/{adminId}")
     fun updateSubdomainAdmin(
         @PathVariable adminId: Long,
@@ -124,6 +129,7 @@ class AdminManagementController(
     /**
      * 서브도메인 관리자 삭제 (비활성화)
      */
+    @AdminPermissionRequired(level = AdminLevel.MASTER, enforceSubdomainRestriction = false)
     @DeleteMapping("/admins/{adminId}")
     fun deleteSubdomainAdmin(
         @PathVariable adminId: Long,
@@ -140,6 +146,7 @@ class AdminManagementController(
     /**
      * 서브도메인 목록 조회 (관리자 생성용)
      */
+    @AdminPermissionRequired(level = AdminLevel.MASTER, enforceSubdomainRestriction = false)
     @GetMapping("/subdomains")
     fun getAvailableSubdomains(request: HttpServletRequest): ResponseEntity<ApiResponse<List<String>>> {
         
@@ -157,8 +164,17 @@ class AdminManagementController(
     }
     
     /**
+     * 테스트 엔드포인트 (임시)
+     */
+    @GetMapping("/test")
+    fun test(): ResponseEntity<String> {
+        return ResponseEntity.ok("AdminManagementController is working!")
+    }
+    
+    /**
      * 관리자 통계 조회
      */
+    @AdminPermissionRequired(level = AdminLevel.MASTER, enforceSubdomainRestriction = false)
     @GetMapping("/stats")
     fun getAdminStats(request: HttpServletRequest): ResponseEntity<ApiResponse<AdminStatsResponse>> {
         
