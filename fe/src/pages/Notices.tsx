@@ -2,11 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTeam } from '../contexts/TeamContext';
 import { noticeApi } from '../api/modules/notice';
+import { adminNoticeApi } from '../api/modules/adminNotice';
 import type { Notice } from '../api/types';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useAuth } from '../contexts/AuthContext';
+import NoticeCreateModal from '../components/admin/NoticeCreateModal';
+import NoticeEditModal from '../components/admin/NoticeEditModal';
+import { useToast } from '../components/Toast';
 
 const Notices: React.FC = () => {
   const { currentTeam } = useTeam();
+  const { admin, isAuthenticated } = useAuth();
+  const { success, ToastContainer } = useToast();
   const [posts, setPosts] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,6 +21,11 @@ const Notices: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingNotice, setDeletingNotice] = useState<Notice | null>(null);
 
   const loadPosts = useCallback(async (page: number = 0, keyword?: string) => {
     if (!currentTeam) {
@@ -77,6 +89,43 @@ const Notices: React.FC = () => {
     }
   };
 
+  const handleCreateSuccess = () => {
+    success('공지사항이 작성되었습니다.');
+    loadPosts(currentPage, searchKeyword);
+  };
+
+  const handleEditNotice = (notice: Notice) => {
+    setEditingNotice(notice);
+    setShowEditModal(true);
+  };
+
+  const handleEditSuccess = () => {
+    success('공지사항이 수정되었습니다.');
+    loadPosts(currentPage, searchKeyword);
+    setEditingNotice(null);
+  };
+
+  const handleDeleteNotice = (notice: Notice) => {
+    setDeletingNotice(notice);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingNotice || !currentTeam) return;
+
+    try {
+      await adminNoticeApi.deleteNotice(deletingNotice.id, parseInt(currentTeam.id));
+      success('공지사항이 삭제되었습니다.');
+      loadPosts(currentPage, searchKeyword);
+    } catch (error) {
+      console.error('공지사항 삭제 실패:', error);
+      success('공지사항 삭제에 실패했습니다.');
+    } finally {
+      setShowDeleteModal(false);
+      setDeletingNotice(null);
+    }
+  };
+
   if (loading && posts.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -95,6 +144,16 @@ const Notices: React.FC = () => {
               <h1 className="text-2xl font-bold text-gray-900">공지사항</h1>
               <p className="text-gray-600 mt-1">팀 운영진이 작성한 공지사항을 확인하세요</p>
             </div>
+
+            {/* 관리자 기능 */}
+            {isAuthenticated && admin && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+              >
+                공지사항 작성
+              </button>
+            )}
           </div>
 
           {/* 검색 */}
@@ -182,6 +241,32 @@ const Notices: React.FC = () => {
                           </div>
                         </div>
                       </div>
+
+                      {/* 관리자 기능 */}
+                      {isAuthenticated && admin && (
+                        <div className="flex items-center space-x-2 ml-4">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleEditNotice(post);
+                            }}
+                            className="px-3 py-1.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+                          >
+                            수정
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDeleteNotice(post);
+                            }}
+                            className="px-3 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Link>
@@ -233,6 +318,51 @@ const Notices: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* 관리자 모달들 */}
+      <NoticeCreateModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleCreateSuccess}
+      />
+
+      <NoticeEditModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={handleEditSuccess}
+        notice={editingNotice}
+      />
+
+      {/* 삭제 확인 모달 */}
+      {showDeleteModal && deletingNotice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">공지사항 삭제</h3>
+            <p className="text-gray-600 mb-6">
+              "{deletingNotice.title}" 공지사항을 삭제하시겠습니까?
+              <span className="block text-sm text-gray-500 mt-2">
+                삭제된 공지사항은 복구할 수 없습니다.
+              </span>
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ToastContainer />
     </div>
   );
 };

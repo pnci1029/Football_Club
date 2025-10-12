@@ -2,14 +2,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTeam } from '../contexts/TeamContext';
 import { communityApi } from '../api/modules/community';
+import { adminCommunityApi } from '../api/modules/adminCommunity';
 import type { CommunityPost } from '../api/types';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useToast } from '../components/Toast';
+import { useAuth } from '../contexts/AuthContext';
 
 const Community: React.FC = () => {
   const { currentTeam } = useTeam();
   const location = useLocation();
   const { success, ToastContainer } = useToast();
+  const { admin, isAuthenticated } = useAuth();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,6 +22,9 @@ const Community: React.FC = () => {
   const [searchInput, setSearchInput] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [categories, setCategories] = useState<{value: string, displayName: string}[]>([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
+  const [actionType, setActionType] = useState<'hide' | 'delete'>('hide');
 
   const loadPosts = useCallback(async (page: number = 0, keyword?: string, category?: string) => {
     if (!currentTeam) {
@@ -105,6 +111,42 @@ const Community: React.FC = () => {
         month: '2-digit',
         day: '2-digit'
       });
+    }
+  };
+
+  const handleHidePost = (post: CommunityPost) => {
+    setSelectedPost(post);
+    setActionType('hide');
+    setShowConfirmModal(true);
+  };
+
+  const handleDeletePost = (post: CommunityPost) => {
+    setSelectedPost(post);
+    setActionType('delete');
+    setShowConfirmModal(true);
+  };
+
+  const confirmAction = async () => {
+    if (!selectedPost) return;
+
+    try {
+      if (actionType === 'hide') {
+        await adminCommunityApi.deactivatePost(selectedPost.id, '관리자에 의한 숨김 처리');
+        success('게시글이 숨김 처리되었습니다.');
+      } else {
+        // 실제로는 deactivate를 사용 (완전 삭제가 아닌 비활성화)
+        await adminCommunityApi.deactivatePost(selectedPost.id, '관리자에 의한 삭제 처리');
+        success('게시글이 삭제되었습니다.');
+      }
+      
+      // 게시글 목록 새로고침
+      loadPosts(currentPage, searchKeyword, selectedCategory);
+    } catch (error) {
+      console.error('게시글 처리 실패:', error);
+      success(`게시글 ${actionType === 'hide' ? '숨김' : '삭제'} 처리에 실패했습니다.`);
+    } finally {
+      setShowConfirmModal(false);
+      setSelectedPost(null);
     }
   };
 
@@ -266,6 +308,32 @@ const Community: React.FC = () => {
                           </div>
                         </div>
                       </div>
+
+                      {/* 관리자 기능 */}
+                      {isAuthenticated && admin && (
+                        <div className="flex items-center space-x-2 ml-4">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleHidePost(post);
+                            }}
+                            className="px-3 py-1.5 text-xs text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-md transition-colors"
+                          >
+                            숨김
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDeletePost(post);
+                            }}
+                            className="px-3 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Link>
@@ -317,6 +385,43 @@ const Community: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* 확인 모달 */}
+      {showConfirmModal && selectedPost && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              {actionType === 'hide' ? '게시글 숨김' : '게시글 삭제'}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              "{selectedPost.title}" 게시글을 {actionType === 'hide' ? '숨김 처리' : '삭제'}하시겠습니까?
+              {actionType === 'hide' && (
+                <span className="block text-sm text-gray-500 mt-2">
+                  숨김 처리된 게시글은 일반 사용자에게 보이지 않습니다.
+                </span>
+              )}
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={confirmAction}
+                className={`flex-1 px-4 py-2 text-white rounded-md transition-colors ${
+                  actionType === 'hide' 
+                    ? 'bg-orange-600 hover:bg-orange-700' 
+                    : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {actionType === 'hide' ? '숨김' : '삭제'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastContainer />
     </div>

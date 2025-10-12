@@ -6,6 +6,7 @@ import StadiumMapModal from '../components/admin/StadiumMapModal';
 import StadiumsMapView from '../components/stadiums/StadiumsMapView';
 import KakaoMap from '../components/map/KakaoMap';
 import { useToast } from '../components/Toast';
+import { useAuth } from '../contexts/AuthContext';
 
 const formatPrice = (price?: number) => {
   return price ? `${price.toLocaleString()}원/시간` : '문의';
@@ -51,7 +52,8 @@ const Stadiums: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [showMapModal, setShowMapModal] = useState(false);
   const [mapStadium, setMapStadium] = useState<StadiumDto | null>(null);
-  const { data: stadiumsData, loading, error } = useStadiums();
+  const { data: stadiumsData, loading, error, refetch } = useStadiums();
+  const { admin, isAuthenticated } = useAuth();
   const stadiums = stadiumsData?.content || [];
 
   const handleViewMap = (stadium: StadiumDto) => {
@@ -94,35 +96,47 @@ const Stadiums: React.FC = () => {
             </p>
           </div>
 
-          {/* 뷰 모드 토글 */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'grid' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-              <span className="hidden sm:inline">목록</span>
-            </button>
-            <button
-              onClick={() => setViewMode('map')}
-              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'map' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="hidden sm:inline">지도</span>
-            </button>
+          <div className="flex items-center space-x-3">
+            {/* 관리자 기능 */}
+            {isAuthenticated && admin && (
+              <button
+                onClick={() => {/* TODO: 구장 추가 모달 */}}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+              >
+                구장 추가
+              </button>
+            )}
+
+            {/* 뷰 모드 토글 */}
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'grid' 
+                    ? 'bg-white text-gray-900 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                <span className="hidden sm:inline">목록</span>
+              </button>
+              <button
+                onClick={() => setViewMode('map')}
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'map' 
+                    ? 'bg-white text-gray-900 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="hidden sm:inline">지도</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -288,7 +302,7 @@ const Stadiums: React.FC = () => {
                     )}
 
                     {/* 액션 버튼들 */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className={`grid gap-3 ${isAuthenticated && admin ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2'}`}>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -315,6 +329,30 @@ const Stadiums: React.FC = () => {
                       >
                         🚗 길찾기
                       </button>
+
+                      {/* 관리자 기능 */}
+                      {isAuthenticated && admin && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              /* TODO: 구장 수정 모달 */
+                            }}
+                            className="px-4 py-3 text-sm font-semibold text-blue-700 bg-gradient-to-r from-blue-100 to-blue-200 border border-blue-300 rounded-xl hover:from-blue-200 hover:to-blue-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                          >
+                            ✏️ 수정
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              /* TODO: 구장 삭제 확인 */
+                            }}
+                            className="px-4 py-3 text-sm font-semibold text-red-700 bg-gradient-to-r from-red-100 to-red-200 border border-red-300 rounded-xl hover:from-red-200 hover:to-red-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                          >
+                            🗑️ 삭제
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

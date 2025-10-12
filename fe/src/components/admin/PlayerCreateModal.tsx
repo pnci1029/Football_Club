@@ -1,195 +1,186 @@
-import React from 'react';
-import Modal from '../common/Modal';
-import { Button } from '../common';
-import ImageUpload from '../common/ImageUpload';
-import { CreatePlayerRequest, adminPlayerService } from '../../services/adminPlayerService';
-import { useFormState } from '../../utils/form';
-import { FORM_STYLES, ALERT_STYLES } from '../../constants/styles';
-import { ERROR_MESSAGES, LOADING_MESSAGES } from '../../constants/messages';
-import { Logger } from '../../utils/logger';
+import React, { useState } from 'react';
+import { Modal } from '../common';
+import { useTeam } from '../../contexts/TeamContext';
+import { adminPlayerApi, CreatePlayerRequest } from '../../api/modules/adminPlayer';
 
 interface PlayerCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  teamId: number | null;
-  onPlayerCreated: () => void;
+  onSuccess: () => void;
 }
 
-const PlayerCreateModal: React.FC<PlayerCreateModalProps> = ({
-  isOpen,
-  onClose,
-  teamId,
-  onPlayerCreated
-}) => {
-  const initialFormData: CreatePlayerRequest = {
+interface PlayerFormData {
+  name: string;
+  position: string;
+  backNumber: number | '';
+  profileImageUrl: string;
+  isActive: boolean;
+}
+
+const PlayerCreateModal: React.FC<PlayerCreateModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const { currentTeam } = useTeam();
+  const [formData, setFormData] = useState<PlayerFormData>({
     name: '',
-    position: '',
-    backNumber: 1,
-    isActive: true,
-    profileImageUrl: ''
-  };
-  
-  const { formData, setFormData, loading, error, setError, handleChange, setLoading, resetForm } = useFormState(initialFormData);
+    position: 'FW',
+    backNumber: '',
+    profileImageUrl: '',
+    isActive: true
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const positions = [
+    { value: 'GK', label: '골키퍼 (GK)' },
+    { value: 'DF', label: '수비수 (DF)' },
+    { value: 'MF', label: '미드필더 (MF)' },
+    { value: 'FW', label: '공격수 (FW)' }
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!teamId) return;
-
-    setLoading(true);
     setError('');
+    setIsLoading(true);
 
     try {
-      const response = await adminPlayerService.createPlayer(teamId, formData);
-      if (response.success) {
-        onPlayerCreated();
-        onClose();
-        // Reset form
-        setFormData({
-          name: '',
-          position: '',
-          backNumber: 1,
-          isActive: true,
-          profileImageUrl: ''
-        });
-      } else {
-        setError(response.message || ERROR_MESSAGES.CREATE_FAILED);
+      const playerData: CreatePlayerRequest = {
+        name: formData.name,
+        position: formData.position,
+        backNumber: formData.backNumber === '' ? undefined : Number(formData.backNumber),
+        profileImageUrl: formData.profileImageUrl || undefined,
+        isActive: formData.isActive
+      };
+
+      if (!currentTeam) {
+        throw new Error('팀 정보를 찾을 수 없습니다.');
       }
-    } catch (err) {
-      setError(ERROR_MESSAGES.CREATE_FAILED);
-      Logger.error('Create player error:', err);
+
+      await adminPlayerApi.createPlayer(parseInt(currentTeam.id), playerData);
+
+      onSuccess();
+      handleClose();
+    } catch (error) {
+      console.error('선수 등록 실패:', error);
+      setError('선수 등록에 실패했습니다. 다시 시도해주세요.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-
   const handleClose = () => {
-    resetForm();
+    setFormData({
+      name: '',
+      position: 'FW',
+      backNumber: '',
+      profileImageUrl: '',
+      isActive: true
+    });
+    setError('');
     onClose();
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title="새 선수 추가"
-      size="md"
-    >
+    <Modal isOpen={isOpen} onClose={handleClose} title="선수 등록">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className={ALERT_STYLES.ERROR}>
-            {error}
-          </div>
-        )}
-
-        {/* 선수 이름 */}
         <div>
-          <label className={FORM_STYLES.LABEL}>
-            선수 이름 <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            선수명 *
           </label>
           <input
             type="text"
             value={formData.name}
-            onChange={(e) => handleChange('name', e.target.value)}
-            className={FORM_STYLES.INPUT}
-            placeholder="선수 이름을 입력하세요"
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="선수명을 입력하세요"
             required
+            disabled={isLoading}
           />
         </div>
 
-        {/* 포지션 */}
         <div>
-          <label className={FORM_STYLES.LABEL}>
-            포지션 <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            포지션 *
           </label>
           <select
             value={formData.position}
-            onChange={(e) => handleChange('position', e.target.value)}
-            className={FORM_STYLES.INPUT}
+            onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            disabled={isLoading}
           >
-            <option value="">포지션 선택</option>
-            <option value="GK">골키퍼 (GK)</option>
-            <option value="DF">수비수 (DF)</option>
-            <option value="MF">미드필더 (MF)</option>
-            <option value="FW">공격수 (FW)</option>
+            {positions.map(pos => (
+              <option key={pos.value} value={pos.value}>
+                {pos.label}
+              </option>
+            ))}
           </select>
         </div>
 
-        {/* 등번호 */}
         <div>
-          <label className={FORM_STYLES.LABEL}>
-            등번호 <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            등번호
           </label>
           <input
             type="number"
             value={formData.backNumber}
-            onChange={(e) => handleChange('backNumber', parseInt(e.target.value) || 1)}
-            className={FORM_STYLES.INPUT}
+            onChange={(e) => setFormData(prev => ({ ...prev, backNumber: e.target.value === '' ? '' : Number(e.target.value) }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="등번호를 입력하세요"
             min="1"
             max="99"
-            required
+            disabled={isLoading}
           />
         </div>
 
-        {/* 프로필 이미지 */}
         <div>
-          <label className={FORM_STYLES.LABEL}>
-            프로필 이미지
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            프로필 이미지 URL
           </label>
-          <ImageUpload
+          <input
+            type="url"
             value={formData.profileImageUrl}
-            onChange={(imageUrl) => handleChange('profileImageUrl', imageUrl)}
-            onError={(errorMsg) => setError(errorMsg)}
-            placeholder="선수 프로필 이미지를 업로드하세요"
-            className="w-full max-w-xs mx-auto"
+            onChange={(e) => setFormData(prev => ({ ...prev, profileImageUrl: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="이미지 URL을 입력하세요"
+            disabled={isLoading}
           />
-          {formData.profileImageUrl && (
-            <div className="mt-2">
-              <p className="text-sm text-gray-600">업로드된 이미지:</p>
-              <input
-                type="url"
-                value={formData.profileImageUrl}
-                onChange={(e) => handleChange('profileImageUrl', e.target.value)}
-                className={`${FORM_STYLES.INPUT} text-sm`}
-                placeholder="직접 URL 입력도 가능합니다"
-              />
-            </div>
-          )}
         </div>
 
-        {/* 활성 상태 */}
-        <div>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={formData.isActive}
-              onChange={(e) => handleChange('isActive', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-            />
-            <span className="ml-2 text-sm text-gray-700">활성 선수</span>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="isActive"
+            checked={formData.isActive}
+            onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            disabled={isLoading}
+          />
+          <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
+            활성 상태
           </label>
         </div>
 
-        {/* 버튼 */}
-        <div className="flex gap-3 pt-4">
-          <Button
+        {error && (
+          <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
+            {error}
+          </div>
+        )}
+
+        <div className="flex space-x-3 pt-4">
+          <button
             type="button"
-            variant="outline"
             onClick={handleClose}
-            className="flex-1"
-            disabled={loading}
+            className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            disabled={isLoading}
           >
             취소
-          </Button>
-          <Button
+          </button>
+          <button
             type="submit"
-            className="flex-1 bg-blue-600 hover:bg-blue-700"
-            disabled={loading}
+            className="flex-1 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
+            disabled={isLoading}
           >
-            {loading ? LOADING_MESSAGES.CREATING : '생성'}
-          </Button>
+            {isLoading ? '등록 중...' : '등록'}
+          </button>
         </div>
       </form>
     </Modal>

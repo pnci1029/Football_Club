@@ -4,6 +4,11 @@ import { PlayerDto } from '../types/player';
 import { LoadingSpinner, Button, Card } from '../components/common';
 import PlayerCard from '../components/player/PlayerCard';
 import { ImageUtil } from '../utils/image';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../components/Toast';
+import { adminPlayerApi } from '../api/modules/adminPlayer';
+import PlayerCreateModal from '../components/admin/PlayerCreateModal';
+import PlayerEditModal from '../components/admin/PlayerEditModal';
 
 interface FilterState {
   position: string;
@@ -13,7 +18,14 @@ interface FilterState {
 const Players: React.FC = () => {
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerDto | null>(null);
   const [filter, setFilter] = useState<FilterState>({ position: 'ALL', isActive: null });
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingPlayer, setEditingPlayer] = useState<PlayerDto | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingPlayer, setDeletingPlayer] = useState<PlayerDto | null>(null);
   const { data: playersPage, loading, error, refetch } = usePlayers(0, 50);
+  const { admin, isAuthenticated } = useAuth();
+  const { success, ToastContainer } = useToast();
   
   const handlePlayerSelect = useCallback((player: PlayerDto | any) => {
     setSelectedPlayer(player as PlayerDto);
@@ -26,6 +38,46 @@ const Players: React.FC = () => {
     DF: '수비수',
     MF: '미드필더',
     FW: '공격수'
+  };
+
+  const handleCreateSuccess = () => {
+    success('선수가 추가되었습니다.');
+    refetch();
+  };
+
+  const handleEditPlayer = (player: PlayerDto) => {
+    setEditingPlayer(player);
+    setShowEditModal(true);
+  };
+
+  const handleEditSuccess = () => {
+    success('선수 정보가 수정되었습니다.');
+    refetch();
+    setEditingPlayer(null);
+  };
+
+  const handleDeletePlayer = (player: PlayerDto) => {
+    setDeletingPlayer(player);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingPlayer) return;
+
+    try {
+      await adminPlayerApi.deletePlayer(deletingPlayer.id);
+      success('선수가 삭제되었습니다.');
+      refetch();
+      if (selectedPlayer?.id === deletingPlayer.id) {
+        setSelectedPlayer(null);
+      }
+    } catch (error) {
+      console.error('선수 삭제 실패:', error);
+      success('선수 삭제에 실패했습니다.');
+    } finally {
+      setShowDeleteModal(false);
+      setDeletingPlayer(null);
+    }
   };
 
   if (loading) {
@@ -70,8 +122,24 @@ const Players: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* 헤더 - 모바일 최적화 */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">선수단</h1>
-          <p className="text-sm sm:text-base text-gray-600">우리 팀의 선수들을 소개합니다</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">선수단</h1>
+              <p className="text-sm sm:text-base text-gray-600">우리 팀의 선수들을 소개합니다</p>
+            </div>
+            
+            {/* 관리자 기능 */}
+            {isAuthenticated && admin && (
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  선수 추가
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 필터 메뉴 - 모바일 최적화 */}
@@ -219,12 +287,76 @@ const Players: React.FC = () => {
             </div>
             
             {/* 팀명 - 모바일 최적화 */}
-            <div className="text-base sm:text-lg text-gray-600">
+            <div className="text-base sm:text-lg text-gray-600 mb-6">
               {selectedPlayer.teamName}
             </div>
+
+            {/* 관리자 기능 */}
+            {isAuthenticated && admin && (
+              <div className="flex flex-wrap justify-center gap-2">
+                <button
+                  onClick={() => handleEditPlayer(selectedPlayer)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  선수 수정
+                </button>
+                <button
+                  onClick={() => handleDeletePlayer(selectedPlayer)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+                >
+                  선수 삭제
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </Card>
+
+      {/* 선수 등록 모달 */}
+      <PlayerCreateModal 
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleCreateSuccess}
+      />
+
+      {/* 선수 수정 모달 */}
+      <PlayerEditModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={handleEditSuccess}
+        player={editingPlayer}
+      />
+
+      {/* 선수 삭제 확인 모달 */}
+      {showDeleteModal && deletingPlayer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">선수 삭제</h3>
+            <p className="text-gray-600 mb-6">
+              "{deletingPlayer.name}" 선수를 삭제하시겠습니까?
+              <span className="block text-sm text-gray-500 mt-2">
+                삭제된 선수는 복구할 수 없습니다.
+              </span>
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ToastContainer />
     </div>
   );
 };

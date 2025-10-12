@@ -1,25 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
-import { Button, ImageUpload } from '../common';
-import { AdminPlayer, UpdatePlayerRequest, adminPlayerService } from '../../services/adminPlayerService';
+import { Button } from '../common';
+import { adminPlayerApi, UpdatePlayerRequest } from '../../api/modules/adminPlayer';
+import type { PlayerDto } from '../../types/player';
 
 interface PlayerEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  player: AdminPlayer | null;
-  onPlayerUpdated: () => void;
+  player: PlayerDto | null;
+  onSuccess: () => void;
 }
 
 const PlayerEditModal: React.FC<PlayerEditModalProps> = ({
   isOpen,
   onClose,
   player,
-  onPlayerUpdated
+  onSuccess
 }) => {
   const [formData, setFormData] = useState<UpdatePlayerRequest>({
     name: '',
     position: '',
-    backNumber: 0,
+    backNumber: undefined,
     isActive: true,
     profileImageUrl: ''
   });
@@ -31,7 +32,7 @@ const PlayerEditModal: React.FC<PlayerEditModalProps> = ({
       setFormData({
         name: player.name || '',
         position: player.position || '',
-        backNumber: player.backNumber || 0,
+        backNumber: player.backNumber || undefined,
         isActive: player.isActive ?? true,
         profileImageUrl: player.profileImageUrl || ''
       });
@@ -47,13 +48,9 @@ const PlayerEditModal: React.FC<PlayerEditModalProps> = ({
     setError('');
 
     try {
-      const response = await adminPlayerService.updatePlayer(player.id, formData);
-      if (response.success) {
-        onPlayerUpdated();
-        onClose();
-      } else {
-        setError(response.message || '선수 정보 수정에 실패했습니다.');
-      }
+      await adminPlayerApi.updatePlayer(player.id, formData);
+      onSuccess();
+      onClose();
     } catch (err) {
       setError('선수 정보 수정 중 오류가 발생했습니다.');
       console.error('Update player error:', err);
@@ -62,7 +59,7 @@ const PlayerEditModal: React.FC<PlayerEditModalProps> = ({
     }
   };
 
-  const handleChange = (field: keyof UpdatePlayerRequest, value: string | number | boolean) => {
+  const handleChange = (field: keyof UpdatePlayerRequest, value: string | number | boolean | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -121,40 +118,27 @@ const PlayerEditModal: React.FC<PlayerEditModalProps> = ({
           </label>
           <input
             type="number"
-            value={formData.backNumber}
-            onChange={(e) => handleChange('backNumber', parseInt(e.target.value) || 0)}
+            value={formData.backNumber || ''}
+            onChange={(e) => handleChange('backNumber', e.target.value ? parseInt(e.target.value) : undefined)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="등번호를 입력하세요"
-            min="0"
+            min="1"
             max="99"
-            required
           />
         </div>
 
         {/* 프로필 이미지 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            프로필 이미지
+            프로필 이미지 URL
           </label>
-          <ImageUpload
-            value={formData.profileImageUrl}
-            onChange={(imageUrl) => handleChange('profileImageUrl', imageUrl)}
-            onError={(errorMsg) => setError(errorMsg)}
-            placeholder="선수 프로필 이미지를 업로드하세요"
-            className="w-full max-w-xs mx-auto"
+          <input
+            type="url"
+            value={formData.profileImageUrl || ''}
+            onChange={(e) => handleChange('profileImageUrl', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="이미지 URL을 입력하세요"
           />
-          {formData.profileImageUrl && (
-            <div className="mt-2">
-              <p className="text-sm text-gray-600">업로드된 이미지:</p>
-              <input
-                type="url"
-                value={formData.profileImageUrl}
-                onChange={(e) => handleChange('profileImageUrl', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                placeholder="직접 URL 입력도 가능합니다"
-              />
-            </div>
-          )}
         </div>
 
         {/* 활성 상태 */}

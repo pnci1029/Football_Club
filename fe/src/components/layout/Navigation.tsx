@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTeam } from '../../contexts/TeamContext';
+import { useAuth } from '../../contexts/AuthContext';
+import AdminLoginModal from '../auth/AdminLoginModal';
 
 const Navigation: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
   const { currentTeam, isLoading } = useTeam();
+  const { admin, isAuthenticated, logout } = useAuth();
   const location = useLocation();
 
   // 서브도메인 (팀별) 전용 메뉴
@@ -67,6 +71,29 @@ const Navigation: React.FC = () => {
 
           {/* 데스크톱 메뉴 */}
           <div className="hidden md:flex md:items-center md:space-x-6 lg:space-x-8">
+            {/* 관리자 로그인/로그아웃 버튼 */}
+            <div className="flex items-center space-x-4">
+              {isAuthenticated && admin ? (
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-gray-600">
+                    관리자: <span className="font-medium text-blue-600">{admin.name || admin.username}</span>
+                  </span>
+                  <button
+                    onClick={logout}
+                    className="px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                  >
+                    로그아웃
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowAdminLoginModal(true)}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors border border-blue-200 hover:border-blue-300"
+                >
+                  관리자
+                </button>
+              )}
+            </div>
             {menuItems.map((item) => (
               <div key={item.name} className="relative">
                 {item.submenu ? (
@@ -157,7 +184,24 @@ const Navigation: React.FC = () => {
           </div>
 
           {/* 모바일 메뉴 버튼 - 터치 최적화 */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center space-x-2">
+            {/* 모바일 관리자 버튼 */}
+            {isAuthenticated && admin ? (
+              <button
+                onClick={logout}
+                className="px-3 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+              >
+                로그아웃
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowAdminLoginModal(true)}
+                className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors border border-blue-200"
+              >
+                관리자
+              </button>
+            )}
+            
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center w-11 h-11 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 active:bg-blue-100 transition-all duration-200 touch-manipulation"
@@ -249,6 +293,12 @@ const Navigation: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* 관리자 로그인 모달 */}
+      <AdminLoginModal 
+        isOpen={showAdminLoginModal} 
+        onClose={() => setShowAdminLoginModal(false)} 
+      />
     </nav>
   );
 };
