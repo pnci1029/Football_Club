@@ -66,14 +66,27 @@ class NoticeService(
      * 전체 팀의 공지사항 목록 조회 (관리자용)
      */
     @Transactional(readOnly = true)
-    fun getAllNotices(page: Int, size: Int, keyword: String? = null): Page<AllNoticeResponse> {
+    fun getAllNotices(page: Int, size: Int, keyword: String? = null, teamId: Long? = null): Page<AllNoticeResponse> {
         logger.info("Fetching all notices - page: $page, size: $size, keyword: $keyword")
         val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
         
-        val notices = if (keyword.isNullOrBlank()) {
-            noticeRepository.findByIsActiveTrueOrderByCreatedAtDesc(pageable)
-        } else {
-            noticeRepository.findByKeywordAndGlobalVisible(keyword.trim(), pageable)
+        val notices = when {
+            teamId != null && !keyword.isNullOrBlank() -> {
+                // 특정 팀 + 키워드 검색
+                noticeRepository.findByTeamIdAndKeyword(teamId, keyword.trim(), pageable)
+            }
+            teamId != null -> {
+                // 특정 팀만
+                noticeRepository.findByTeamIdAndIsActiveTrue(teamId, pageable)
+            }
+            !keyword.isNullOrBlank() -> {
+                // 전체 팀 + 키워드 검색
+                noticeRepository.findByKeywordAndGlobalVisible(keyword.trim(), pageable)
+            }
+            else -> {
+                // 전체 팀 전체 공지사항
+                noticeRepository.findByIsActiveTrueOrderByCreatedAtDesc(pageable)
+            }
         }
 
         logger.info("Found ${notices.totalElements} notices across all teams")

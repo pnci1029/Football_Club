@@ -39,14 +39,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const adminInfo = await authService.getCurrentAdmin();
           setAdmin(adminInfo);
         } catch (error) {
-          // API 실패해도 토큰이 있으면 로그인 상태 유지
-          // admin 정보는 나중에 다시 시도
+          console.error('getCurrentAdmin 실패:', error);
+          // API 실패 시 토큰 정리하고 재로그인 유도
+          TokenManager.clearTokens();
+          setAdmin(null);
         }
       } else {
         setAdmin(null);
       }
     } catch (error) {
-      // Unexpected error
+      console.error('checkAuthStatus 에러:', error);
     } finally {
       setIsLoading(false);
     }

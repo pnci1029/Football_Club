@@ -1,4 +1,5 @@
 import { LoginResponse, AdminInfo, TokenValidationResponse } from '../types/auth';
+import { AdminRole } from '../types/enums';
 import { Logger } from '../utils/logger';
 import { ERROR_MESSAGES } from '../constants/messages';
 import { Auth } from '../api';
@@ -9,12 +10,27 @@ import { TokenManager } from '../utils/tokenManager';
 class AuthService {
 
   /**
+   * 문자열 role을 AdminRole enum으로 변환
+   */
+  private mapStringToAdminRole(role: string): AdminRole {
+    switch (role.toUpperCase()) {
+      case 'SUPER_ADMIN':
+        return AdminRole.SUPER_ADMIN;
+      case 'MASTER':
+        return AdminRole.MASTER;
+      case 'ADMIN':
+      default:
+        return AdminRole.ADMIN;
+    }
+  }
+
+  /**
    * 관리자 로그인
    */
   async login(username: string, password: string): Promise<LoginResponse> {
     try {
       const credentials: LoginRequest = { username, password };
-      const loginData: LoginUserResponse = await Auth.loginUser(credentials);
+      const loginData: LoginUserResponse = await Auth.loginAdmin(credentials);
 
 
       // loginData.admin이 undefined인 경우 처리
@@ -27,7 +43,9 @@ class AuthService {
       const admin: AdminInfo = {
         id: typeof loginData.admin.id === 'string' ? parseInt(loginData.admin.id) || 0 : loginData.admin.id,
         username: loginData.admin.email,
-        role: loginData.admin.role,
+        role: this.mapStringToAdminRole(loginData.admin.role),
+        adminLevel: loginData.admin.adminLevel,
+        teamSubdomain: loginData.admin.teamSubdomain,
         email: loginData.admin.email,
         name: loginData.admin.name,
         createdAt: loginData.admin.createdAt,
@@ -51,7 +69,7 @@ class AuthService {
    */
   async logout(): Promise<void> {
     try {
-      await Auth.logoutUser();
+      await Auth.logoutAdmin();
     } catch (error) {
       Logger.warn('Logout API call failed:', error);
     }
@@ -64,22 +82,23 @@ class AuthService {
    */
   async getCurrentAdmin(): Promise<AdminInfo> {
     try {
-      const user = await Auth.getCurrentUser();
-      if (!user) {
-        throw new Error('No user found');
+      const admin = await Auth.verifyAdmin();
+      if (!admin) {
+        throw new Error('No admin found');
       }
-
-      const admin: AdminInfo = {
-        id: typeof user.id === 'string' ? parseInt(user.id) || 0 : user.id,
-        username: user.email, // email을 username으로 사용
-        role: user.role || 'admin',
-        email: user.email,
-        name: user.name,
-        createdAt: user.createdAt,
-        lastLoginAt: user.updatedAt
+      
+      // 타입 변환: interfaces/auth.AdminInfo -> auth.AdminInfo
+      return {
+        id: typeof admin.id === 'string' ? parseInt(admin.id) || 0 : admin.id,
+        username: admin.email, // email을 username으로 사용
+        role: this.mapStringToAdminRole(admin.role),
+        adminLevel: admin.adminLevel,
+        teamSubdomain: admin.teamSubdomain,
+        email: admin.email,
+        name: admin.name,
+        createdAt: admin.createdAt,
+        lastLoginAt: admin.updatedAt
       };
-
-      return admin;
     } catch (error) {
       console.error('현재 관리자 정보 조회 실패:', error);
       throw new Error('Authentication failed');
@@ -93,16 +112,19 @@ class AuthService {
     try {
       // 토큰 유효성 확인
       if (TokenManager.isLoggedIn()) {
-        const user = await Auth.getCurrentUser();
-        if (user) {
+        const adminData = await Auth.verifyAdmin();
+        if (adminData) {
+          // 타입 변환: interfaces/auth.AdminInfo -> auth.AdminInfo
           const admin: AdminInfo = {
-            id: typeof user.id === 'string' ? parseInt(user.id) || 0 : user.id,
-            username: user.email,
-            role: user.role || 'admin',
-            email: user.email,
-            name: user.name,
-            createdAt: user.createdAt,
-            lastLoginAt: user.updatedAt
+            id: typeof adminData.id === 'string' ? parseInt(adminData.id) || 0 : adminData.id,
+            username: adminData.email, // email을 username으로 사용
+            role: this.mapStringToAdminRole(adminData.role),
+            adminLevel: adminData.adminLevel,
+            teamSubdomain: adminData.teamSubdomain,
+            email: adminData.email,
+            name: adminData.name,
+            createdAt: adminData.createdAt,
+            lastLoginAt: adminData.updatedAt
           };
           return { valid: true, admin };
         }

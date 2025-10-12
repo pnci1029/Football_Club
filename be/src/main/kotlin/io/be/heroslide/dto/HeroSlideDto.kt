@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 
 data class HeroSlideDto(
     val id: Long,
+    val teamId: Long,
     val title: String,
     val subtitle: String,
     val backgroundImage: String?,
@@ -19,6 +20,7 @@ data class HeroSlideDto(
         fun from(heroSlide: HeroSlide): HeroSlideDto {
             return HeroSlideDto(
                 id = heroSlide.id,
+                teamId = heroSlide.team.id,
                 title = heroSlide.title,
                 subtitle = heroSlide.subtitle,
                 backgroundImage = heroSlide.backgroundImage,
