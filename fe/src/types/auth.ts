@@ -1,3 +1,5 @@
+import { AdminLevel, AdminRole } from './enums';
+
 export interface LoginRequest {
   username: string;
   password: string;
@@ -12,7 +14,9 @@ export interface LoginResponse {
 export interface AdminInfo {
   id: number;
   username: string;
-  role: string;
+  role: AdminRole;
+  adminLevel?: AdminLevel;
+  teamSubdomain?: string;
   email?: string;
   name?: string;
   createdAt: string;
