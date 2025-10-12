@@ -4,6 +4,7 @@ import { useTeam } from '../contexts/TeamContext';
 import { communityApi } from '../api/modules/community';
 import { communityAuthManager } from '../utils/communityAuth';
 import { getErrorMessage, NetworkError } from '../utils/errorHandler';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Category {
   value: string;
@@ -14,6 +15,7 @@ const CommunityWrite: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { currentTeam } = useTeam();
+  const { admin, isAuthenticated } = useAuth();
   const editPostId = searchParams.get('edit');
   const isEditing = !!editPostId;
   
@@ -53,17 +55,20 @@ const CommunityWrite: React.FC = () => {
       try {
         setIsLoading(true);
         
-        // 임시 권한 확인
-        const tempAuth = communityAuthManager.getTemporaryAuth(
-          'post', 
-          parseInt(editPostId), 
-          parseInt(currentTeam.id)
-        );
-        
-        if (!tempAuth || !tempAuth.isOwner || !tempAuth.canEdit) {
-          setError('수정 권한이 없거나 만료되었습니다. 다시 시도해주세요.');
-          navigate('/community');
-          return;
+        // 관리자인 경우 권한 체크 건너뛰기
+        if (!(isAuthenticated && admin)) {
+          // 일반 사용자인 경우 임시 권한 확인
+          const tempAuth = communityAuthManager.getTemporaryAuth(
+            'post', 
+            parseInt(editPostId), 
+            parseInt(currentTeam.id)
+          );
+          
+          if (!tempAuth || !tempAuth.isOwner || !tempAuth.canEdit) {
+            setError('수정 권한이 없거나 만료되었습니다. 다시 시도해주세요.');
+            navigate('/community');
+            return;
+          }
         }
         
         // 게시글 로드
@@ -104,9 +109,18 @@ const CommunityWrite: React.FC = () => {
     const requiredFields = [formData.title.trim(), formData.content.trim(), formData.authorName.trim()];
     const passwordToUse = formData.authorPassword.trim();
     
-    if (!requiredFields.every(field => field) || !passwordToUse) {
-      setError('제목, 내용, 작성자명, 비밀번호는 필수 입력 항목입니다.');
-      return;
+    // 관리자인 경우 비밀번호 체크 건너뛰기
+    if (!(isAuthenticated && admin)) {
+      if (!requiredFields.every(field => field) || !passwordToUse) {
+        setError('제목, 내용, 작성자명, 비밀번호는 필수 입력 항목입니다.');
+        return;
+      }
+    } else {
+      // 관리자는 제목, 내용, 작성자명만 체크
+      if (!requiredFields.every(field => field)) {
+        setError('제목, 내용, 작성자명은 필수 입력 항목입니다.');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -118,15 +132,29 @@ const CommunityWrite: React.FC = () => {
 
     try {
       if (isEditing && editPostId) {
-        await communityApi.updatePost(parseInt(editPostId), {
-          title: formData.title.trim(),
-          content: formData.content.trim(),
-          authorPassword: passwordToUse,
-          teamId: parseInt(currentTeam.id)
-        });
+        if (isAuthenticated && admin) {
+          // 관리자는 관리자 API 사용 (비밀번호 없이)
+          // 현재 adminCommunityApi에는 updatePost가 없으므로 일반 API 사용하되 임시 비밀번호 사용
+          await communityApi.updatePost(parseInt(editPostId), {
+            title: formData.title.trim(),
+            content: formData.content.trim(),
+            authorPassword: 'admin_update', // 관리자 임시 비밀번호
+            teamId: parseInt(currentTeam.id)
+          });
+        } else {
+          // 일반 사용자는 기존대로
+          await communityApi.updatePost(parseInt(editPostId), {
+            title: formData.title.trim(),
+            content: formData.content.trim(),
+            authorPassword: passwordToUse,
+            teamId: parseInt(currentTeam.id)
+          });
+        }
         
         // 수정 완료 후 임시 권한 정리
-        communityAuthManager.clearTemporaryAuth('post', parseInt(editPostId), parseInt(currentTeam.id));
+        if (!(isAuthenticated && admin)) {
+          communityAuthManager.clearTemporaryAuth('post', parseInt(editPostId), parseInt(currentTeam.id));
+        }
         
         navigate(`/community/${editPostId}`, { 
           state: { message: '게시글이 성공적으로 수정되었습니다.' }
@@ -285,25 +313,39 @@ const CommunityWrite: React.FC = () => {
               />
             </div>
             
-            <div>
-              <label htmlFor="authorPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                비밀번호 <span className="text-red-500">*</span>
-                <span className="text-xs text-gray-500 block">
-                  {isEditing ? '게시글 수정을 위해 비밀번호를 입력해주세요' : '게시글 수정/삭제 시 필요합니다'}
-                </span>
-              </label>
-              <input
-                type="password"
-                id="authorPassword"
-                name="authorPassword"
-                value={formData.authorPassword}
-                onChange={handleChange}
-                placeholder={isEditing ? "수정을 위한 비밀번호를 입력해주세요" : "비밀번호를 입력해주세요"}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                maxLength={50}
-                required
-              />
-            </div>
+            {/* 관리자가 아닌 경우에만 비밀번호 필드 표시 */}
+            {!(isAuthenticated && admin) && (
+              <div>
+                <label htmlFor="authorPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                  비밀번호 <span className="text-red-500">*</span>
+                  <span className="text-xs text-gray-500 block">
+                    {isEditing ? '게시글 수정을 위해 비밀번호를 입력해주세요' : '게시글 수정/삭제 시 필요합니다'}
+                  </span>
+                </label>
+                <input
+                  type="password"
+                  id="authorPassword"
+                  name="authorPassword"
+                  value={formData.authorPassword}
+                  onChange={handleChange}
+                  placeholder={isEditing ? "수정을 위한 비밀번호를 입력해주세요" : "비밀번호를 입력해주세요"}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  maxLength={50}
+                  required
+                />
+              </div>
+            )}
+            
+            {/* 관리자인 경우 안내 메시지 표시 */}
+            {(isAuthenticated && admin) && (
+              <div className="col-span-1">
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                  <p className="text-sm text-blue-700">
+                    🔑 관리자 권한으로 {isEditing ? '수정' : '작성'} 중입니다. 비밀번호 입력이 필요하지 않습니다.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">

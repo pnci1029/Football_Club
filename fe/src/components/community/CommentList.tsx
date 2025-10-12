@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { CommunityComment } from '../../api/types';
 import { getErrorMessage, NetworkError } from '../../utils/errorHandler';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface CommentListProps {
   comments: CommunityComment[];
@@ -9,6 +10,7 @@ interface CommentListProps {
 }
 
 const CommentList: React.FC<CommentListProps> = ({ comments, onDeleteComment, isProcessing }) => {
+  const { admin, isAuthenticated } = useAuth();
   const [commentMenuOpen, setCommentMenuOpen] = useState<number | null>(null);
   const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null);
   const [deleteCommentPassword, setDeleteCommentPassword] = useState('');
@@ -40,14 +42,35 @@ const CommentList: React.FC<CommentListProps> = ({ comments, onDeleteComment, is
   };
 
   const handleDeleteCommentClick = (commentId: number) => {
-    setDeleteCommentId(commentId);
-    setCommentMenuOpen(null);
+    // 관리자인 경우 비밀번호 확인 없이 바로 삭제
+    if (isAuthenticated && admin) {
+      handleAdminCommentDelete(commentId);
+    } else {
+      setDeleteCommentId(commentId);
+      setCommentMenuOpen(null);
+    }
   };
 
   const handleCancelDeleteComment = () => {
     setDeleteCommentId(null);
     setDeleteCommentPassword('');
     setDeleteError(null);
+  };
+
+  // 관리자용 댓글 삭제 함수 (비밀번호 확인 없음)
+  const handleAdminCommentDelete = async (commentId: number) => {
+    if (!window.confirm('이 댓글을 삭제하시겠습니까?')) {
+      setCommentMenuOpen(null);
+      return;
+    }
+
+    try {
+      await onDeleteComment(commentId, 'admin_delete'); // 관리자 임시 비밀번호
+      setCommentMenuOpen(null);
+    } catch (err) {
+      const errorMessage = getErrorMessage(err as NetworkError);
+      alert(`댓글 삭제에 실패했습니다: ${errorMessage}`);
+    }
   };
 
   const handleCommentDelete = async (commentId: number) => {
@@ -107,7 +130,7 @@ const CommentList: React.FC<CommentListProps> = ({ comments, onDeleteComment, is
                         onClick={() => handleDeleteCommentClick(comment.id)}
                         className="block w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-50 text-left"
                       >
-                        삭제
+                        {isAuthenticated && admin ? '🔑 삭제' : '삭제'}
                       </button>
                     </div>
                   )}

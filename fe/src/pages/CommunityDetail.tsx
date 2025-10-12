@@ -8,6 +8,7 @@ import AuthModal from '../components/community/AuthModal';
 import CommentSection from '../components/community/CommentSection';
 import { communityAuthManager } from '../utils/communityAuth';
 import { useToast } from '../components/Toast';
+import { useAuth } from '../contexts/AuthContext';
 
 const CommunityDetail: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -15,6 +16,7 @@ const CommunityDetail: React.FC = () => {
   const location = useLocation();
   const { currentTeam } = useTeam();
   const { success, ToastContainer } = useToast();
+  const { admin, isAuthenticated } = useAuth();
   
   const [post, setPost] = useState<CommunityPostDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,13 +71,50 @@ const CommunityDetail: React.FC = () => {
   };
 
   const handleEdit = () => {
-    setModalAction('edit');
-    setShowAuthModal(true);
+    // 관리자인 경우 비밀번호 확인 없이 바로 수정 페이지로 이동
+    if (isAuthenticated && admin) {
+      navigate(`/community/write?edit=${postId}`);
+    } else {
+      setModalAction('edit');
+      setShowAuthModal(true);
+    }
   };
 
   const handleDelete = () => {
-    setModalAction('delete');
-    setShowAuthModal(true);
+    // 관리자인 경우 비밀번호 확인 없이 바로 삭제
+    if (isAuthenticated && admin) {
+      handleDeleteAdmin();
+    } else {
+      setModalAction('delete');
+      setShowAuthModal(true);
+    }
+  };
+
+  // 관리자용 삭제 함수 (비밀번호 확인 없음)
+  const handleDeleteAdmin = async () => {
+    if (!currentTeam || !postId) {
+      throw new Error('팀 정보 또는 게시글 ID를 찾을 수 없습니다.');
+    }
+
+    if (!window.confirm('이 게시글을 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      // 관리자 API 사용
+      const { adminCommunityApi } = await import('../api/modules/adminCommunity');
+      await adminCommunityApi.deactivatePost(parseInt(postId), '관리자에 의한 삭제 처리');
+      
+      success('게시글이 삭제되었습니다.');
+      navigate('/community', { 
+        state: { message: '게시글이 성공적으로 삭제되었습니다.' }
+      });
+    } catch (err) {
+      throw new Error('게시글 삭제에 실패했습니다.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handlePasswordConfirm = async (password: string) => {
