@@ -1,12 +1,16 @@
 package io.be.admin.presentation
 
 import io.be.admin.application.AdminAuthService
-import io.be.admin.application.LoginResponse
-import io.be.admin.application.TokenResponse
-import io.be.admin.application.AdminInfo
+import io.be.admin.dto.LoginResponse
+import io.be.admin.dto.TokenResponse
+import io.be.admin.dto.AdminInfo
+import io.be.admin.dto.LoginRequest
+import io.be.admin.dto.RefreshTokenRequest
+import io.be.admin.dto.LogoutRequest
+import io.be.admin.dto.ValidateTokenRequest
+import io.be.admin.dto.TokenValidationResponse
 import io.be.shared.util.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
-import jakarta.validation.constraints.NotBlank
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -30,7 +34,9 @@ class AdminAuthController(
         val response = adminAuthService.login(
             username = request.username,
             password = request.password,
-            request = httpRequest
+            request = httpRequest,
+            teamCode = request.teamCode,
+            clientIp = clientIp
         )
 
         return ResponseEntity.ok(ApiResponse.success(response))
@@ -111,45 +117,3 @@ class AdminAuthController(
         }
     }
 }
-
-/**
- * 로그인 요청 DTO
- */
-data class LoginRequest(
-    @field:NotBlank(message = "Username is required")
-    val username: String,
-
-    @field:NotBlank(message = "Password is required")
-    val password: String
-)
-
-/**
- * 토큰 갱신 요청 DTO
- */
-data class RefreshTokenRequest(
-    @field:NotBlank(message = "Refresh token is required")
-    val refreshToken: String
-)
-
-/**
- * 로그아웃 요청 DTO
- */
-data class LogoutRequest(
-    val username: String
-)
-
-/**
- * 토큰 검증 요청 DTO
- */
-data class ValidateTokenRequest(
-    @field:NotBlank(message = "Token is required")
-    val token: String
-)
-
-/**
- * 토큰 검증 응답 DTO
- */
-data class TokenValidationResponse(
-    val valid: Boolean,
-    val admin: AdminInfo?
-)

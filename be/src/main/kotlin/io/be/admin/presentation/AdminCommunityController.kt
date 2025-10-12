@@ -1,11 +1,13 @@
 package io.be.admin.presentation
 
 import io.be.admin.application.AdminCommunityService
-import io.be.admin.application.AdminCommunityPostResponse
-import io.be.admin.application.AdminCommunityPostDetailResponse
-import io.be.admin.application.CreateNoticePostRequest
-import io.be.admin.application.AdminInfo
+import io.be.admin.dto.AdminCommunityPostResponse
+import io.be.admin.dto.AdminCommunityPostDetailResponse
+import io.be.admin.dto.CreateNoticePostRequest
+import io.be.admin.dto.AdminInfo
 import io.be.admin.domain.AdminLevel
+import io.be.admin.dto.AdminActionRequest
+import io.be.admin.dto.CommunityStatsResponse
 import io.be.shared.util.ApiResponse
 import io.be.shared.security.AdminPermissionRequired
 import org.slf4j.LoggerFactory
@@ -167,18 +169,3 @@ class AdminCommunityController(
     }
 }
 
-/**
- * 관리자 액션 요청 DTO
- */
-data class AdminActionRequest(
-    val reason: String? = null
-)
-
-/**
- * 커뮤니티 통계 응답 DTO (임시)
- */
-data class CommunityStatsResponse(
-    val message: String,
-    val adminLevel: String,
-    val accessibleTeam: String
-)

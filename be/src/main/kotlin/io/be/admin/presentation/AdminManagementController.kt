@@ -1,10 +1,11 @@
 package io.be.admin.presentation
 
 import io.be.admin.application.AdminManagementService
-import io.be.admin.application.CreateSubdomainAdminRequest
-import io.be.admin.application.UpdateSubdomainAdminRequest
-import io.be.admin.application.AdminInfo
+import io.be.admin.dto.CreateSubdomainAdminRequest
+import io.be.admin.dto.UpdateSubdomainAdminRequest
+import io.be.admin.dto.AdminInfo
 import io.be.admin.domain.AdminLevel
+import io.be.admin.dto.AdminStatsResponse
 import io.be.shared.util.ApiResponse
 import io.be.shared.security.AdminPermissionRequired
 import org.slf4j.LoggerFactory
@@ -195,12 +196,3 @@ class AdminManagementController(
     }
 }
 
-/**
- * 관리자 통계 응답 DTO
- */
-data class AdminStatsResponse(
-    val totalAdmins: Int,
-    val masterAdmins: Int,
-    val subdomainAdmins: Int,
-    val activeAdmins: Int
-)

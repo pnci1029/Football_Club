@@ -225,7 +225,7 @@
 
 ### 🔧 백엔드 현황 (✅ 완료)
 **API 엔드포인트**: 이미 모든 기능 구현됨
-- `POST /v1/admin/auth/login` - 서브도메인 관리자 로그인 ✅
+- `POST /api/v1/admin/auth/login` - 서브도메인 관리자 로그인 ✅
 - 기존 Admin CRUD API들 (선수, 구장, 공지사항 등) ✅
 
 ### 🎨 프론트엔드 구현 계획

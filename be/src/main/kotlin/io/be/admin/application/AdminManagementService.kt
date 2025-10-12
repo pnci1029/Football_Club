@@ -3,6 +3,9 @@ package io.be.admin.application
 import io.be.admin.domain.Admin
 import io.be.admin.domain.AdminLevel
 import io.be.admin.domain.AdminRepository
+import io.be.admin.dto.AdminInfo
+import io.be.admin.dto.CreateSubdomainAdminRequest
+import io.be.admin.dto.UpdateSubdomainAdminRequest
 import io.be.shared.exception.InvalidRequestException
 import io.be.shared.exception.ConflictException
 import io.be.shared.exception.NotFoundException
@@ -198,26 +201,3 @@ class AdminManagementService(
         }
     }
 }
-
-/**
- * 서브도메인 관리자 생성 요청 DTO
- */
-data class CreateSubdomainAdminRequest(
-    val username: String,
-    val password: String,
-    val email: String?,
-    val name: String?,
-    val teamSubdomain: String
-)
-
-/**
- * 서브도메인 관리자 수정 요청 DTO
- */
-data class UpdateSubdomainAdminRequest(
-    val username: String,
-    val password: String = "", // 빈 문자열이면 비밀번호 변경 안함
-    val email: String?,
-    val name: String?,
-    val teamSubdomain: String,
-    val isActive: Boolean = true
-)
