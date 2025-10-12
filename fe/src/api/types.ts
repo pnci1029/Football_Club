@@ -392,6 +392,7 @@ export interface Notice {
   commentCount: number;
   createdAt: string;
   updatedAt: string;
+  isGlobalVisible?: boolean;
 }
 
 export interface NoticeDetail {

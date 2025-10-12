@@ -27,9 +27,9 @@ class AuthService {
   /**
    * 관리자 로그인
    */
-  async login(username: string, password: string): Promise<LoginResponse> {
+  async login(username: string, password: string, teamCode?: string): Promise<LoginResponse> {
     try {
-      const credentials: LoginRequest = { username, password };
+      const credentials: LoginRequest & { teamCode?: string } = { username, password, teamCode };
       const loginData: LoginUserResponse = await Auth.loginAdmin(credentials);
 
 

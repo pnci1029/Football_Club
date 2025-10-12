@@ -55,11 +55,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
 
-  const login = async (username: string, password: string): Promise<void> => {
+  const login = async (username: string, password: string, teamCode?: string): Promise<void> => {
     setIsLoading(true);
 
     try {
-      const loginResponse = await authService.login(username, password);
+      const loginResponse = await authService.login(username, password, teamCode);
       setAdmin(loginResponse.admin);
     } catch (error) {
       setAdmin(null);

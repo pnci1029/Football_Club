@@ -323,15 +323,23 @@ const AdminPlayers: React.FC = () => {
       <PlayerCreateModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        teamId={selectedTeam}
-        onPlayerCreated={handlePlayerCreated}
+        onSuccess={handlePlayerCreated}
       />
 
       <PlayerEditModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
-        player={editingPlayer}
-        onPlayerUpdated={handlePlayerUpdated}
+        player={editingPlayer ? {
+          id: editingPlayer.id,
+          name: editingPlayer.name,
+          position: editingPlayer.position,
+          backNumber: editingPlayer.backNumber,
+          profileImageUrl: editingPlayer.profileImageUrl,
+          isActive: editingPlayer.isActive,
+          teamId: editingPlayer.team.id,
+          teamName: editingPlayer.team.name
+        } : null}
+        onSuccess={handlePlayerUpdated}
       />
 
       <ConfirmDeleteModal

@@ -2,6 +2,7 @@ package io.be.shared.security
 
 import io.be.admin.application.AdminAuthService
 import io.be.admin.domain.AdminLevel
+import io.be.admin.dto.AdminInfo
 import io.be.shared.exception.UnauthorizedAccessException
 import io.be.shared.util.TeamSubdomainExtractor
 import jakarta.servlet.http.HttpServletRequest
@@ -73,7 +74,7 @@ class AdminPermissionInterceptor(
     /**
      * 관리자 레벨 권한 확인
      */
-    private fun hasRequiredLevel(adminInfo: io.be.admin.application.AdminInfo, requiredLevel: AdminLevel): Boolean {
+    private fun hasRequiredLevel(adminInfo: AdminInfo, requiredLevel: AdminLevel): Boolean {
         return when (requiredLevel) {
             AdminLevel.SUBDOMAIN -> true // 서브도메인 레벨은 모든 관리자가 가능
             AdminLevel.MASTER -> {
@@ -86,7 +87,7 @@ class AdminPermissionInterceptor(
     /**
      * 서브도메인 제한 검증
      */
-    private fun validateSubdomainRestriction(adminInfo: io.be.admin.application.AdminInfo, request: HttpServletRequest) {
+    private fun validateSubdomainRestriction(adminInfo: AdminInfo, request: HttpServletRequest) {
         val currentSubdomain = try {
             teamSubdomainExtractor.extractFromRequest(request)
         } catch (e: Exception) {

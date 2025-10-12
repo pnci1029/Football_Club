@@ -27,7 +27,7 @@ export interface AuthContextType {
   admin: AdminInfo | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, teamCode?: string) => Promise<void>;
   logout: () => void;
 }
 

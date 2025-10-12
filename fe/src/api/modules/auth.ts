@@ -11,7 +11,7 @@ import {
   User,
   ApiResponse,
 } from '../types';
-import { AdminInfo, LoginUserResponse, AuthError } from '../../types/interfaces/auth';
+import { AdminInfo, LoginUserResponse } from '../../types/interfaces/auth';
 import { TokenManager } from '../../utils/tokenManager';
 
 export const authApi = {
@@ -38,6 +38,10 @@ export const authApi = {
   // 관리자 토큰 검증 (기본 AUTH.ME와 동일)
   adminVerify: (): Promise<ApiResponse<AdminInfo>> =>
     api.callEndpoint<ApiResponse<AdminInfo>>(API_ENDPOINTS.AUTH.ME),
+
+  // 관리자 로그인 (서브도메인 지원)
+  adminLogin: (data: LoginRequest & { teamCode?: string }): Promise<LoginResponse> =>
+    api.callEndpoint<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, undefined, data as LoginRequest & { teamCode?: string } & Record<string, unknown>),
 };
 
 export const Auth = {
@@ -125,9 +129,44 @@ export const Auth = {
     return TokenManager.isLoggedIn();
   },
 
-  // 관리자 로그인 (기본 로그인과 동일)
-  async loginAdmin(credentials: LoginRequest): Promise<LoginUserResponse> {
-    return this.loginUser(credentials);
+  // 관리자 로그인 (서브도메인 지원)
+  async loginAdmin(credentials: LoginRequest & { teamCode?: string }): Promise<LoginUserResponse> {
+    const response = await authApi.adminLogin(credentials);
+
+    // API 응답이 ApiResponse<data> 형태인 경우 처리
+    interface AdminApiResponseWrapper {
+      success: boolean;
+      data: {
+        accessToken: string;
+        refreshToken?: string;
+        admin: AdminInfo;
+      };
+      message: string | null;
+      error: unknown;
+      timestamp: string;
+    }
+
+    let loginData: { accessToken: string; refreshToken?: string; admin: AdminInfo };
+    if (response && typeof response === 'object' && 'data' in response) {
+      const wrappedResponse = response as unknown as AdminApiResponseWrapper;
+      loginData = wrappedResponse.data;
+    } else {
+      loginData = response as unknown as { accessToken: string; refreshToken?: string; admin: AdminInfo };
+    }
+
+    // 토큰을 TokenManager로 저장
+    TokenManager.setTokens(loginData.accessToken, loginData.refreshToken);
+
+    // admin 정보 확인
+    if (!loginData.admin) {
+      throw new Error('Admin information not found in login response');
+    }
+
+    return {
+      accessToken: loginData.accessToken,
+      refreshToken: loginData.refreshToken,
+      admin: loginData.admin,
+    };
   },
 
   async logoutAdmin(): Promise<void> {
