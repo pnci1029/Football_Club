@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { getApiBaseUrl } from '../constants/api';
-import { TokenStorage } from '../utils/storage';
+import { TokenManager } from '../utils/tokenManager';
 
 class ApiClient {
   private client: AxiosInstance;
@@ -26,7 +26,7 @@ class ApiClient {
         const host = window.location.host;
         config.headers['X-Forwarded-Host'] = host;
 
-        const token = TokenStorage.getAccessToken();
+        const token = TokenManager.getAccessToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -40,7 +40,7 @@ class ApiClient {
       (response: AxiosResponse) => response,
       async (error) => {
         if (error.response?.status === 401) {
-          TokenStorage.clearTokens();
+          TokenManager.clearTokens();
         }
         return Promise.reject(error);
       }

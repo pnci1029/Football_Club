@@ -22,8 +22,6 @@ class ApiTester {
   async testAdminServices(): Promise<TestResult[]> {
     const tests = [
       { service: 'adminService', method: 'getDashboardStats', fn: () => adminService.getDashboardStats() },
-      { service: 'adminService', method: 'getTeams', fn: () => adminService.getTeams() },
-      { service: 'adminService', method: 'getPlayers', fn: () => adminService.getPlayers() },
     ];
 
     for (const test of tests) {

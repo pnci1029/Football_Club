@@ -95,7 +95,7 @@ class AdminManagementController(
      * 서브도메인 관리자 생성
      */
     @AdminPermissionRequired(level = AdminLevel.MASTER, enforceSubdomainRestriction = false)
-    @PostMapping("/admins/subdomain")
+    @PostMapping("/admins")
     fun createSubdomainAdmin(
         @RequestBody request: CreateSubdomainAdminRequest,
         httpRequest: HttpServletRequest
