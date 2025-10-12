@@ -1,6 +1,6 @@
 package io.be.admin.presentation
 
-import io.be.admin.application.AdminInfo
+import io.be.admin.dto.AdminInfo
 import io.be.admin.domain.AdminLevel
 import io.be.stadium.dto.CreateStadiumRequest
 import io.be.stadium.dto.StadiumDto

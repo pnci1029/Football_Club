@@ -1,11 +1,12 @@
 package io.be.admin.presentation
 
 import io.be.admin.application.MasterDashboardService
-import io.be.admin.application.SystemOverviewResponse
-import io.be.admin.application.SubdomainStatsResponse
-import io.be.admin.application.RecentActivityResponse
-import io.be.admin.application.AdminInfo
+import io.be.admin.dto.SystemOverviewResponse
+import io.be.admin.dto.SubdomainStatsResponse
+import io.be.admin.dto.RecentActivityResponse
+import io.be.admin.dto.AdminInfo
 import io.be.admin.domain.AdminLevel
+import io.be.admin.dto.ComprehensiveDashboardResponse
 import io.be.shared.util.ApiResponse
 import io.be.shared.security.AdminPermissionRequired
 import org.slf4j.LoggerFactory
@@ -87,11 +88,3 @@ class MasterDashboardController(
     }
 }
 
-/**
- * 종합 대시보드 응답 DTO
- */
-data class ComprehensiveDashboardResponse(
-    val overview: SystemOverviewResponse,
-    val subdomainStats: List<SubdomainStatsResponse>,
-    val recentActivities: List<RecentActivityResponse>
-)
