@@ -30,7 +30,7 @@ class AdminNoticeController(
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @GetMapping
     fun getAllNotices(
-        adminInfo: AdminInfo,
+        @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
         @RequestParam(required = false) keyword: String?
@@ -61,7 +61,7 @@ class AdminNoticeController(
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @GetMapping("/team/{teamId}")
     fun getNoticesByTeam(
-        adminInfo: AdminInfo,
+        @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @PathVariable teamId: Long,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
@@ -90,7 +90,7 @@ class AdminNoticeController(
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @GetMapping("/{noticeId}")
     fun getNotice(
-        adminInfo: AdminInfo,
+        @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @PathVariable noticeId: Long,
         @RequestParam teamId: Long
     ): ResponseEntity<ApiResponse<NoticeDetailResponse>> {
@@ -116,7 +116,7 @@ class AdminNoticeController(
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @PostMapping
     fun createNotice(
-        adminInfo: AdminInfo,
+        @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @Valid @RequestBody request: CreateNoticeRequestDto
     ): ResponseEntity<ApiResponse<NoticeResponse>> {
         logger.info("Admin POST /notices request - teamId: ${request.teamId}, title: ${request.title}")
@@ -164,7 +164,7 @@ class AdminNoticeController(
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @DeleteMapping("/{noticeId}")
     fun deleteNotice(
-        adminInfo: AdminInfo,
+        @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @PathVariable noticeId: Long,
         @RequestParam teamId: Long
     ): ResponseEntity<ApiResponse<String>> {
@@ -190,7 +190,7 @@ class AdminNoticeController(
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @DeleteMapping("/comments/{commentId}")
     fun deleteComment(
-        adminInfo: AdminInfo,
+        @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @PathVariable commentId: Long,
         @RequestParam teamId: Long
     ): ResponseEntity<ApiResponse<String>> {
