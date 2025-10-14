@@ -5,6 +5,7 @@ import { Auth } from '../../api';
 import { LoginRequest } from '../../api/types';
 import { AdminLevel } from '../../types/enums';
 import { TokenManager } from '../../utils/tokenManager';
+import { UnknownError, getErrorMessage } from '../../types/error';
 
 const AdminLogin: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -75,13 +76,10 @@ const AdminLogin: React.FC = () => {
         navigate('/admin/dashboard', { replace: true });
       }
       
-    } catch (err: any) {
+    } catch (err: UnknownError) {
       console.error('Admin login error:', err);
-      setError(
-        err.response?.data?.error?.message || 
-        err.message || 
-        '로그인에 실패했습니다. 사용자명과 비밀번호를 확인해주세요.'
-      );
+      const errorMessage = getErrorMessage(err, '로그인에 실패했습니다. 사용자명과 비밀번호를 확인해주세요.');
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

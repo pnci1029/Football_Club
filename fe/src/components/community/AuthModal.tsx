@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { UnknownError, getErrorMessage } from '../../types/error';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -60,10 +61,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
     try {
       await onConfirm(password);
       // 성공 시 모달은 부모 컴포넌트에서 닫음
-    } catch (err: any) {
-      const errorMessage = err?.response?.data?.message || 
-                          err?.message || 
-                          '처리 중 오류가 발생했습니다.';
+    } catch (err: UnknownError) {
+      const errorMessage = getErrorMessage(err, '처리 중 오류가 발생했습니다.');
       setError(errorMessage);
     }
   };

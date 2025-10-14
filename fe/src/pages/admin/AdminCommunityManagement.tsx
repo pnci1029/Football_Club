@@ -3,6 +3,7 @@ import { adminService } from '../../services/adminService';
 import { AdminCommunityPost, AdminPageResponse, AdminCommunityPostDetail } from '../../types/interfaces/admin';
 import { Button, Card } from '../../components/common';
 import { useToast } from '../../components/Toast';
+import { UnknownError, getErrorMessage } from '../../types/error';
 
 interface PostDetailModalProps {
   isOpen: boolean;
@@ -195,9 +196,10 @@ const AdminCommunityManagement: React.FC = () => {
           break;
       }
       fetchPosts();
-    } catch (error: any) {
-      console.error('게시글 작업 실패:', error);
-      showToast(error.response?.data?.message || '작업에 실패했습니다.', 'error');
+    } catch (err: UnknownError) {
+      console.error('게시글 작업 실패:', err);
+      const errorMessage = getErrorMessage(err, '작업에 실패했습니다.');
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -227,9 +229,10 @@ const AdminCommunityManagement: React.FC = () => {
         setSelectedPostDetail(updatedDetail);
       }
       fetchPosts();
-    } catch (error: any) {
-      console.error('댓글 작업 실패:', error);
-      showToast(error.response?.data?.message || '작업에 실패했습니다.', 'error');
+    } catch (err: UnknownError) {
+      console.error('댓글 작업 실패:', err);
+      const errorMessage = getErrorMessage(err, '작업에 실패했습니다.');
+      showToast(errorMessage, 'error');
     }
   };
 

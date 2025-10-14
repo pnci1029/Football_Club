@@ -3,6 +3,7 @@
  */
 
 import { getApiBaseUrl, CONTENT_TYPES } from '../constants/api';
+import { getErrorMessage } from '../types/error';
 
 /**
  * API 요청을 위한 전체 URL 생성
@@ -40,28 +41,7 @@ export const createApiHeaders = (contentType: string = CONTENT_TYPES.JSON, token
  * API 응답 에러 처리
  */
 export const handleApiError = (error: unknown, defaultMessage: string = '요청 처리 중 오류가 발생했습니다.'): string => {
-  if (typeof error === 'object' && error !== null) {
-    const err = error as Record<string, unknown>;
-    
-    if (typeof err.response === 'object' && err.response !== null) {
-      const response = err.response as Record<string, unknown>;
-      if (typeof response.data === 'object' && response.data !== null) {
-        const data = response.data as Record<string, unknown>;
-        if (typeof data.error === 'object' && data.error !== null) {
-          const errorObj = data.error as Record<string, unknown>;
-          if (typeof errorObj.message === 'string') {
-            return errorObj.message;
-          }
-        }
-      }
-    }
-    
-    if (typeof err.message === 'string') {
-      return err.message;
-    }
-  }
-  
-  return defaultMessage;
+  return getErrorMessage(error, defaultMessage);
 };
 
 /**

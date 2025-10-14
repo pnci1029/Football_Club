@@ -4,6 +4,7 @@ import { AdminAccountDto, CreateAdminRequest, UpdateAdminRequest, AdminPageRespo
 import { Button, Card } from '../../components/common';
 import { useToast } from '../../components/Toast';
 import { AdminLevel } from '../../types/enums';
+import { UnknownError, getErrorMessage } from '../../types/error';
 
 interface CreateAdminModalProps {
   isOpen: boolean;
@@ -48,9 +49,10 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
         adminLevel: AdminLevel.SUBDOMAIN,
         teamSubdomain: ''
       });
-    } catch (error: any) {
-      console.error('관리자 생성 실패:', error);
-      showToast(error.response?.data?.message || '관리자 계정 생성에 실패했습니다.', 'error');
+    } catch (err: UnknownError) {
+      console.error('관리자 생성 실패:', err);
+      const errorMessage = getErrorMessage(err, '관리자 계정 생성에 실패했습니다.');
+      showToast(errorMessage, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -213,9 +215,10 @@ const AdminAccountManagement: React.FC = () => {
         showToast(`${admin.name} 관리자를 활성화했습니다.`, 'success');
       }
       fetchAdmins();
-    } catch (error: any) {
-      console.error('관리자 상태 변경 실패:', error);
-      showToast(error.response?.data?.message || '관리자 상태 변경에 실패했습니다.', 'error');
+    } catch (err: UnknownError) {
+      console.error('관리자 상태 변경 실패:', err);
+      const errorMessage = getErrorMessage(err, '관리자 상태 변경에 실패했습니다.');
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -228,9 +231,10 @@ const AdminAccountManagement: React.FC = () => {
       await adminService.deleteAdmin(admin.id);
       showToast(`${admin.name} 관리자가 삭제되었습니다.`, 'success');
       fetchAdmins();
-    } catch (error: any) {
-      console.error('관리자 삭제 실패:', error);
-      showToast(error.response?.data?.message || '관리자 삭제에 실패했습니다.', 'error');
+    } catch (err: UnknownError) {
+      console.error('관리자 삭제 실패:', err);
+      const errorMessage = getErrorMessage(err, '관리자 삭제에 실패했습니다.');
+      showToast(errorMessage, 'error');
     }
   };
 
