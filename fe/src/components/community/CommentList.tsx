@@ -130,7 +130,7 @@ const CommentList: React.FC<CommentListProps> = ({ comments, onDeleteComment, is
                         onClick={() => handleDeleteCommentClick(comment.id)}
                         className="block w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-50 text-left"
                       >
-                        {isAuthenticated && admin ? '🔑 삭제' : '삭제'}
+                        삭제
                       </button>
                     </div>
                   )}

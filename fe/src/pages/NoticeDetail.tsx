@@ -5,13 +5,15 @@ import { noticeApi } from '../api/modules/notice';
 import type { NoticeDetail as NoticeDetailType, NoticeComment, CreateNoticeCommentRequest } from '../api/types';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useToast } from '../components/Toast';
-import ConfirmModal from '../components/ConfirmModal';
+import { useAuth } from '../contexts/AuthContext';
+import NoticeEditModal from '../components/admin/NoticeEditModal';
 
 const NoticeDetail: React.FC = () => {
   const { noticeId } = useParams<{ noticeId: string }>();
   const navigate = useNavigate();
   const { currentTeam } = useTeam();
   const { success, error, ToastContainer } = useToast();
+  const { admin, isAuthenticated } = useAuth();
 
   const [notice, setNotice] = useState<NoticeDetailType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +30,7 @@ const NoticeDetail: React.FC = () => {
   const [showDeleteCommentModal, setShowDeleteCommentModal] = useState(false);
   const [deletingComment, setDeletingComment] = useState<NoticeComment | null>(null);
   const [deletePassword, setDeletePassword] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     if (noticeId && currentTeam) {
@@ -85,8 +88,46 @@ const NoticeDetail: React.FC = () => {
     }
   };
 
+  const handleEditNotice = () => {
+    setShowEditModal(true);
+  };
+
+  const handleEditSuccess = () => {
+    success('공지사항이 수정되었습니다.');
+    loadNotice(); // 수정된 내용 다시 로드
+    setShowEditModal(false);
+  };
+
   const handleDeleteNotice = () => {
-    setShowDeleteModal(true);
+    // 관리자인 경우 비밀번호 확인 없이 바로 삭제
+    if (isAuthenticated && admin) {
+      confirmDeleteNoticeAdmin();
+    } else {
+      setShowDeleteModal(true);
+    }
+  };
+
+  // 관리자용 삭제 함수 (비밀번호 확인 없음)
+  const confirmDeleteNoticeAdmin = async () => {
+    if (!currentTeam || !noticeId) {
+      error('팀 정보 또는 공지사항 ID를 찾을 수 없습니다.');
+      return;
+    }
+
+    if (!window.confirm('이 공지사항을 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      // 관리자 API 사용 (adminNoticeApi 사용 필요)
+      const adminNoticeApi = await import('../api/modules/adminNotice');
+      await adminNoticeApi.adminNoticeApi.deleteNotice(parseInt(noticeId), parseInt(currentTeam.id));
+      success('공지사항이 삭제되었습니다.');
+      navigate('/notices');
+    } catch (err) {
+      error('공지사항 삭제에 실패했습니다.');
+      console.error('Failed to delete notice:', err);
+    }
   };
 
   const confirmDeleteNotice = async () => {
@@ -109,8 +150,35 @@ const NoticeDetail: React.FC = () => {
   };
 
   const handleDeleteComment = (comment: NoticeComment) => {
-    setDeletingComment(comment);
-    setShowDeleteCommentModal(true);
+    // 관리자인 경우 비밀번호 확인 없이 바로 삭제
+    if (isAuthenticated && admin) {
+      confirmDeleteCommentAdmin(comment);
+    } else {
+      setDeletingComment(comment);
+      setShowDeleteCommentModal(true);
+    }
+  };
+
+  // 관리자용 댓글 삭제 함수 (비밀번호 확인 없음)
+  const confirmDeleteCommentAdmin = async (comment: NoticeComment) => {
+    if (!currentTeam) {
+      error('팀 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    if (!window.confirm('이 댓글을 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      // 관리자 API로 댓글 삭제 (adminNoticeApi에 댓글 삭제 API가 있는지 확인 필요)
+      await noticeApi.deleteComment(comment.id, parseInt(currentTeam.id), 'admin_delete');
+      success('댓글이 삭제되었습니다.');
+      loadNotice(); // 댓글 목록 새로고침
+    } catch (err) {
+      error('댓글 삭제에 실패했습니다.');
+      console.error('Failed to delete comment:', err);
+    }
   };
 
   const confirmDeleteComment = async () => {
@@ -202,12 +270,23 @@ const NoticeDetail: React.FC = () => {
                   <span>조회수: {notice.viewCount}</span>
                 </div>
               </div>
-              <button
-                onClick={handleDeleteNotice}
-                className="px-3 py-1 text-sm text-red-600 hover:text-red-800 transition-colors"
-              >
-                삭제
-              </button>
+              {/* 관리자로 로그인했을 때만 수정/삭제 버튼 표시 */}
+              {isAuthenticated && admin && (
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleEditNotice}
+                    className="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    수정
+                  </button>
+                  <button
+                    onClick={handleDeleteNotice}
+                    className="px-3 py-1 text-sm text-red-600 hover:text-red-800 transition-colors"
+                  >
+                    삭제
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -241,12 +320,15 @@ const NoticeDetail: React.FC = () => {
                     </div>
                     <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
                   </div>
-                  <button
-                    onClick={() => handleDeleteComment(comment)}
-                    className="text-sm text-red-600 hover:text-red-800 transition-colors"
-                  >
-                    삭제
-                  </button>
+                  {/* 관리자로 로그인했을 때만 댓글 삭제 버튼 표시 */}
+                  {isAuthenticated && admin && (
+                    <button
+                      onClick={() => handleDeleteComment(comment)}
+                      className="text-sm text-red-600 hover:text-red-800 transition-colors"
+                    >
+                      삭제
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -308,39 +390,8 @@ const NoticeDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* 공지사항 삭제 모달 */}
-      <ConfirmModal
-        isOpen={showDeleteModal}
-        title="공지사항 삭제"
-        message="정말로 이 공지사항을 삭제하시겠습니까?"
-        confirmText="삭제"
-        cancelText="취소"
-        onConfirm={confirmDeleteNotice}
-        onCancel={() => {
-          setShowDeleteModal(false);
-          setDeletePassword('');
-        }}
-        type="danger"
-      />
-
-      {/* 댓글 삭제 모달 */}
-      <ConfirmModal
-        isOpen={showDeleteCommentModal}
-        title="댓글 삭제"
-        message="정말로 이 댓글을 삭제하시겠습니까?"
-        confirmText="삭제"
-        cancelText="취소"
-        onConfirm={confirmDeleteComment}
-        onCancel={() => {
-          setShowDeleteCommentModal(false);
-          setDeletingComment(null);
-          setDeletePassword('');
-        }}
-        type="danger"
-      />
-
-      {/* 비밀번호 입력 모달 */}
-      {(showDeleteModal || showDeleteCommentModal) && (
+      {/* 일반 사용자용 비밀번호 입력 모달 */}
+      {(showDeleteModal || showDeleteCommentModal) && !(isAuthenticated && admin) && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 transition-opacity" aria-hidden="true">
@@ -356,17 +407,60 @@ const NoticeDetail: React.FC = () => {
                   placeholder="작성 시 입력했던 비밀번호"
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       showDeleteModal ? confirmDeleteNotice() : confirmDeleteComment();
                     }
                   }}
                 />
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDeleteModal(false);
+                      setShowDeleteCommentModal(false);
+                      setDeletingComment(null);
+                      setDeletePassword('');
+                    }}
+                    className="flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      showDeleteModal ? confirmDeleteNotice() : confirmDeleteComment();
+                    }}
+                    className="flex-1 px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+                  >
+                    삭제
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* 공지사항 수정 모달 */}
+      {notice && (
+        <NoticeEditModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={handleEditSuccess}
+          notice={{
+            id: notice.id,
+            title: notice.title,
+            content: notice.content,
+            authorName: notice.authorName,
+            viewCount: notice.viewCount,
+            commentCount: notice.comments.length,
+            createdAt: notice.createdAt,
+            updatedAt: notice.updatedAt,
+            isGlobalVisible: false
+          }}
+        />
       )}
 
       <ToastContainer />
