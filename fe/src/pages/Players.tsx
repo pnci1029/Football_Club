@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { usePlayers } from '../hooks/usePlayers';
-import { PlayerDto } from '../types/player';
+import { PlayerDto, Player } from '../types/player';
 import { LoadingSpinner, Button, Card } from '../components/common';
 import PlayerCard from '../components/player/PlayerCard';
 import { ImageUtil } from '../utils/image';
@@ -27,7 +27,7 @@ const Players: React.FC = () => {
   const { admin, isAuthenticated } = useAuth();
   const { success, ToastContainer } = useToast();
   
-  const handlePlayerSelect = useCallback((player: PlayerDto | any) => {
+  const handlePlayerSelect = useCallback((player: PlayerDto | Player) => {
     setSelectedPlayer(player as PlayerDto);
   }, []);
   

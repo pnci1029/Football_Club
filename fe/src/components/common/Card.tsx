@@ -1,14 +1,5 @@
 import React from 'react';
-
-interface CardProps {
-  children: React.ReactNode;
-  className?: string;
-  padding?: 'none' | 'sm' | 'md' | 'lg';
-  shadow?: 'none' | 'sm' | 'md' | 'lg';
-  rounded?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
-  hover?: boolean;
-  onClick?: () => void;
-}
+import { CardProps } from '../../types/components/common';
 
 const Card: React.FC<CardProps> = ({
   children,

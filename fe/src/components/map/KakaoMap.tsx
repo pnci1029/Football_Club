@@ -37,7 +37,7 @@ interface KakaoMaps {
     removable?: boolean;
   }) => KakaoInfoWindow;
   event: {
-    addListener: (target: any, type: string, handler: () => void) => void;
+    addListener: (target: KakaoMap | KakaoMarker, type: string, handler: () => void) => void;
   };
 }
 

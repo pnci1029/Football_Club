@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { useStadiums } from '../hooks/useStadiums';
 import { StadiumDto } from '../types/stadium';
+import { StadiumDto as AdminStadiumDto } from '../types/interfaces/admin/index';
 import { Card, LoadingSpinner } from '../components/common';
 import StadiumMapModal from '../components/admin/StadiumMapModal';
+import StadiumCreateModal from '../components/admin/StadiumCreateModal';
+import StadiumEditModal from '../components/admin/StadiumEditModal';
 import StadiumsMapView from '../components/stadiums/StadiumsMapView';
 import KakaoMap from '../components/map/KakaoMap';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../contexts/AuthContext';
+import { adminStadiumService } from '../services/adminStadiumService';
 
 const formatPrice = (price?: number) => {
   return price ? `${price.toLocaleString()}원/시간` : '문의';
@@ -52,6 +56,9 @@ const Stadiums: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [showMapModal, setShowMapModal] = useState(false);
   const [mapStadium, setMapStadium] = useState<StadiumDto | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingStadium, setEditingStadium] = useState<AdminStadiumDto | null>(null);
   const { data: stadiumsData, loading, error, refetch } = useStadiums();
   const { admin, isAuthenticated } = useAuth();
   const stadiums = stadiumsData?.content || [];
@@ -59,6 +66,37 @@ const Stadiums: React.FC = () => {
   const handleViewMap = (stadium: StadiumDto) => {
     setMapStadium(stadium);
     setShowMapModal(true);
+  };
+
+  const handleCreateSuccess = () => {
+    success('구장이 추가되었습니다.');
+    refetch();
+  };
+
+  const handleEditStadium = (stadium: StadiumDto) => {
+    // StadiumDto를 AdminStadiumDto로 변환
+    const adminStadium: AdminStadiumDto = {
+      ...stadium,
+      hourlyRate: stadium.hourlyRate || 0,
+      facilities: stadium.facilities ? 
+        (typeof stadium.facilities === 'string' ? 
+          stadium.facilities.split(',').map(f => f.trim()) : 
+          [stadium.facilities]) : [],
+      availableHours: stadium.availableHours || '09:00-22:00',
+      availableDays: stadium.availableDays || [],
+      imageUrls: stadium.imageUrls ? 
+        (typeof stadium.imageUrls === 'string' ? 
+          stadium.imageUrls.split(',').map(f => f.trim()) : 
+          [stadium.imageUrls]) : []
+    };
+    setEditingStadium(adminStadium);
+    setShowEditModal(true);
+  };
+
+  const handleEditSuccess = () => {
+    success('구장 정보가 수정되었습니다.');
+    refetch();
+    setEditingStadium(null);
   };
 
   if (loading) {
@@ -100,7 +138,7 @@ const Stadiums: React.FC = () => {
             {/* 관리자 기능 */}
             {isAuthenticated && admin && (
               <button
-                onClick={() => {/* TODO: 구장 추가 모달 */}}
+                onClick={() => setShowCreateModal(true)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
               >
                 구장 추가
@@ -336,16 +374,25 @@ const Stadiums: React.FC = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              /* TODO: 구장 수정 모달 */
+                              handleEditStadium(stadium);
                             }}
                             className="px-4 py-3 text-sm font-semibold text-blue-700 bg-gradient-to-r from-blue-100 to-blue-200 border border-blue-300 rounded-xl hover:from-blue-200 hover:to-blue-300 transition-all duration-200 shadow-sm hover:shadow-md"
                           >
                             ✏️ 수정
                           </button>
                           <button
-                            onClick={(e) => {
+                            onClick={async (e) => {
                               e.stopPropagation();
-                              /* TODO: 구장 삭제 확인 */
+                              if (window.confirm(`정말로 "${stadium.name}" 구장을 삭제하시겠습니까?`)) {
+                                try {
+                                  await adminStadiumService.deleteStadium(stadium.id);
+                                  success('구장이 삭제되었습니다.');
+                                  refetch();
+                                } catch (error) {
+                                  console.error('구장 삭제 실패:', error);
+                                  success('구장 삭제에 실패했습니다.');
+                                }
+                              }
                             }}
                             className="px-4 py-3 text-sm font-semibold text-red-700 bg-gradient-to-r from-red-100 to-red-200 border border-red-300 rounded-xl hover:from-red-200 hover:to-red-300 transition-all duration-200 shadow-sm hover:shadow-md"
                           >
@@ -388,6 +435,26 @@ const Stadiums: React.FC = () => {
             setShowMapModal(false);
             setMapStadium(null);
           }}
+        />
+      )}
+
+      {/* 구장 생성 모달 */}
+      <StadiumCreateModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onStadiumCreated={handleCreateSuccess}
+      />
+
+      {/* 구장 수정 모달 */}
+      {editingStadium && (
+        <StadiumEditModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingStadium(null);
+          }}
+          stadium={editingStadium}
+          onStadiumUpdated={handleEditSuccess}
         />
       )}
 

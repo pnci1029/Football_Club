@@ -1,13 +1,5 @@
 import React from 'react';
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  isLoading?: boolean;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
-  children: React.ReactNode;
-}
+import { ButtonProps } from '../../types/components/common';
 
 const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
