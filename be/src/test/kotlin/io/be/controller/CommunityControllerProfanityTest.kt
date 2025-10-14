@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.be.community.dto.CreatePostRequest
 import io.be.community.dto.CreateCommentRequest
 import io.be.shared.service.ProfanityFilterService
+import io.be.shared.dto.ValidationResult
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
@@ -38,7 +39,7 @@ class CommunityControllerProfanityTest {
     @Test
     fun `비속어가 포함된 게시글 작성 시 에러를 반환한다`() {
         // Given
-        val profanityValidation = ProfanityFilterService.ValidationResult(
+        val profanityValidation = ValidationResult(
             isValid = false,
             violations = listOf("제목에 부적절한 표현이 포함되어 있습니다.")
         )
@@ -68,7 +69,7 @@ class CommunityControllerProfanityTest {
     @Test
     fun `깨끗한 내용의 게시글은 정상적으로 작성된다`() {
         // Given
-        val cleanValidation = ProfanityFilterService.ValidationResult(
+        val cleanValidation = ValidationResult(
             isValid = true,
             violations = emptyList()
         )
@@ -97,7 +98,7 @@ class CommunityControllerProfanityTest {
     @Test
     fun `비속어가 포함된 댓글 작성 시 에러를 반환한다`() {
         // Given
-        val profanityValidation = ProfanityFilterService.ValidationResult(
+        val profanityValidation = ValidationResult(
             isValid = false,
             violations = listOf("내용에 부적절한 표현이 포함되어 있습니다.")
         )
@@ -125,7 +126,7 @@ class CommunityControllerProfanityTest {
     @Test
     fun `깨끗한 댓글은 정상적으로 작성된다`() {
         // Given
-        val cleanValidation = ProfanityFilterService.ValidationResult(
+        val cleanValidation = ValidationResult(
             isValid = true,
             violations = emptyList()
         )
