@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTeam } from '../contexts/TeamContext';
+import { useAuth } from '../contexts/AuthContext';
 import PlayerCard from '../components/player/PlayerCard';
 import { useParallelHomeData } from '../hooks/useParallelHomeData';
 import { GRADIENT_OPTIONS } from '../types/hero';
@@ -8,6 +10,7 @@ import HeroSectionSkeleton from '../components/ui/HeroSectionSkeleton';
 
 const Home: React.FC = React.memo(() => {
   const { currentTeam, isLoading: teamLoading } = useTeam();
+  const { admin, isAuthenticated } = useAuth();
 
   // 팀이 로드된 후에만 데이터를 로드
   const teamId = currentTeam?.id ? Number(currentTeam.id) : null;
@@ -96,6 +99,24 @@ const Home: React.FC = React.memo(() => {
             }`}>
               {currentHero.subtitle}
             </p>
+
+            {/* 관리자 버튼 */}
+            {isAuthenticated && admin && (
+              <div className={`mb-8 sm:mb-10 transition-all duration-1000 delay-600 ${
+                hasAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}>
+                <Link
+                  to="/admin/dashboard"
+                  className="inline-flex items-center px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-lg backdrop-blur-sm border border-white border-opacity-30 hover:border-opacity-50 transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  관리자 대시보드
+                </Link>
+              </div>
+            )}
 
             {/* 슬라이드 인디케이터 - 모바일 최적화 (2개 이상일 때만 표시) */}
             {currentSlides.length > 1 && (

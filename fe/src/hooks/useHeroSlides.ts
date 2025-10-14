@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { HeroService } from '../services/heroService';
 import { HeroSlide } from '../types/hero';
+import { ApiResponse } from '../api/types';
 
 interface HeroSlidesHookReturn {
   slides: HeroSlide[];
@@ -19,12 +20,12 @@ export const useHeroSlides = (teamId: number, activeOnly: boolean = true): HeroS
     setError('');
     
     try {
-      const response: any = activeOnly 
+      const response: ApiResponse<HeroSlide[]> | HeroSlide[] = activeOnly 
         ? await HeroService.getActiveSlides(teamId)
         : await HeroService.getAllSlides(teamId);
       
       // 응답 구조 확인 (래핑된 응답 처리)
-      const slidesData = response.data || response;
+      const slidesData = 'data' in response ? response.data : response;
       
       // 배열인지 확인하고 정렬
       if (Array.isArray(slidesData)) {

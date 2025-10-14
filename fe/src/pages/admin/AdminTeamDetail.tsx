@@ -13,6 +13,8 @@ import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import { useToast } from '../../components/Toast';
 import ConfirmModal from '../../components/ConfirmModal';
 
+type TabKey = 'overview' | 'stadiums' | 'notices' | 'players';
+
 const AdminTeamDetail: React.FC = () => {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
@@ -327,7 +329,7 @@ const AdminTeamDetail: React.FC = () => {
           ].map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key as any)}
+              onClick={() => setActiveTab(tab.key as TabKey)}
               className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                 activeTab === tab.key
                   ? 'border-blue-500 text-blue-600'

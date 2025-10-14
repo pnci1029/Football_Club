@@ -180,11 +180,12 @@ export const Auth = {
       
       // ApiResponse 구조인 경우 data 필드 접근
       if (response && typeof response === 'object' && 'data' in response) {
-        return (response as any).data;
+        const apiResponse = response as ApiResponse<AdminInfo>;
+        return apiResponse.data;
       }
       
       // 직접 AdminInfo 객체인 경우
-      return response as any;
+      return response as AdminInfo;
     } catch (error: unknown) {
       console.error('Failed to verify admin:', error);
       return null;
