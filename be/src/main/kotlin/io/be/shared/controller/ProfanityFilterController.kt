@@ -2,8 +2,8 @@ package io.be.shared.controller
 
 import io.be.shared.service.ProfanityFilterService
 import io.be.shared.util.ApiResponse
+import io.be.shared.dto.*
 import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -17,30 +17,6 @@ class ProfanityFilterController(
 
     private val logger = LoggerFactory.getLogger(ProfanityFilterController::class.java)
 
-    data class AddWordRequest(
-        @field:NotBlank(message = "단어를 입력해주세요.")
-        val word: String
-    )
-
-    data class RemoveWordRequest(
-        @field:NotBlank(message = "단어를 입력해주세요.")
-        val word: String
-    )
-
-    data class CheckTextRequest(
-        @field:NotBlank(message = "검사할 텍스트를 입력해주세요.")
-        val text: String
-    )
-
-    data class FilterTextResponse(
-        val originalText: String,
-        val filteredText: String,
-        val containsProfanity: Boolean
-    )
-
-    data class ProfanityStatsResponse(
-        val totalWordsCount: Long
-    )
 
     /**
      * 비속어 단어 추가

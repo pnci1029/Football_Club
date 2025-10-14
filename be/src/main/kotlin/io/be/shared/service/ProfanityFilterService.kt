@@ -1,5 +1,6 @@
 package io.be.shared.service
 
+import io.be.shared.dto.ValidationResult
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service
@@ -187,8 +188,4 @@ class ProfanityFilterService(
         }
     }
     
-    data class ValidationResult(
-        val isValid: Boolean,
-        val violations: List<String>
-    )
 }
