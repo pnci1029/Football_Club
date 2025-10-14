@@ -13,7 +13,7 @@ export const adminCommunityApi = {
   deactivatePost: (postId: number, reason?: string): Promise<string> => 
     api.callEndpoint<string>({
       method: 'PATCH',
-      path: `/v1/admin/community/posts/${postId}/deactivate`,
+      path: `/api/v1/admin/community/posts/${postId}/deactivate`,
       requiresAuth: true,
     }, undefined, reason ? { reason } : undefined),
 };

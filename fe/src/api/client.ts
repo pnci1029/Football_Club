@@ -37,12 +37,37 @@ class UnifiedApiClient {
     this.setupInterceptors();
   }
 
+  // 현재 서브도메인 추출
+  private extractSubdomain(): string | null {
+    const host = window.location.hostname;
+    
+    // localhost 환경에서 서브도메인 처리
+    if (host.includes('localhost') || host.includes('127.0.0.1')) {
+      const subdomainMatch = host.match(/^([a-zA-Z0-9-]+)\.localhost/);
+      return subdomainMatch ? subdomainMatch[1] : null;
+    }
+    
+    // 프로덕션 환경에서 서브도메인 처리
+    const parts = host.split('.');
+    if (parts.length >= 3 && !parts[0].includes('www') && !parts[0].includes('admin')) {
+      return parts[0];
+    }
+    
+    return null;
+  }
+
   private setupInterceptors() {
     // 요청 인터셉터 - 토큰 자동 첨부
     this.client.interceptors.request.use(
       async (config) => {
         // 호스트 헤더 설정 (멀티테넌트)
         config.headers['X-Forwarded-Host'] = window.location.host;
+        
+        // 서브도메인 헤더 추가 (관리자 API용)
+        const subdomain = this.extractSubdomain();
+        if (subdomain) {
+          config.headers['X-Team-Subdomain'] = subdomain;
+        }
         
         // 토큰 갱신이 필요한지 확인
         if (TokenManager.needsRefresh()) {

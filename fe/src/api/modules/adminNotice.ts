@@ -28,7 +28,7 @@ export const adminNoticeApi = {
   createNotice: (data: CreateNoticeRequest): Promise<Notice> => 
     api.callEndpoint<Notice>({
       method: 'POST',
-      path: '/v1/admin/notices',
+      path: `/api/v1/admin/notices?teamId=${data.teamId}`,
       requiresAuth: true,
     }, undefined, data as CreateNoticeRequest & Record<string, unknown>),
 
@@ -36,7 +36,7 @@ export const adminNoticeApi = {
   updateNotice: (noticeId: number, data: AdminUpdateNoticeRequest): Promise<Notice> => 
     api.callEndpoint<Notice>({
       method: 'PUT',
-      path: `/v1/admin/notices/${noticeId}`,
+      path: `/api/v1/admin/notices/${noticeId}?teamId=${data.teamId}`,
       requiresAuth: true,
     }, undefined, data as AdminUpdateNoticeRequest & Record<string, unknown>),
 
@@ -44,7 +44,7 @@ export const adminNoticeApi = {
   deleteNotice: (noticeId: number, teamId: number): Promise<string> => 
     api.callEndpoint<string>({
       method: 'DELETE',
-      path: `/v1/admin/notices/${noticeId}?teamId=${teamId}`,
+      path: `/api/v1/admin/notices/${noticeId}?teamId=${teamId}`,
       requiresAuth: true,
     }),
 };
