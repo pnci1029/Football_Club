@@ -55,7 +55,7 @@ class AdminAuthServiceTest {
         assertEquals("access-token", result.accessToken)
         assertEquals("refresh-token", result.refreshToken)
         assertEquals("master", result.admin.username)
-        verify(adminRepository).updateLastLoginTime(1L, any())
+        verify(adminRepository).updateLastLoginTime(eq(1L), any())
     }
 
     @Test
