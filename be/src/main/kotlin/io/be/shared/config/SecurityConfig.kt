@@ -47,10 +47,10 @@ class SecurityConfig {
 
                     // Admin 인증 관련 API는 공개 (순서 중요: 더 구체적인 패턴을 먼저)
                     .requestMatchers("/admin/auth/**").permitAll()
-                    
+
                     // 관리자 API는 JWT 인증 필요
                     .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
-                    
+
                     // 공개 API 허용 (Tenant API는 TenantSecurityInterceptor에서 처리)
                     .requestMatchers("/test/**").permitAll()
                     .requestMatchers("/v1/**").permitAll()
