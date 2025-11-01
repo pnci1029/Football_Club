@@ -1,34 +1,37 @@
 package io.be.admin.dto
 
-/**
- * 서브도메인 관리자 생성 요청 DTO
- */
-data class CreateSubdomainAdminRequest(
+import io.be.admin.domain.Admin
+import java.time.LocalDateTime
+
+data class AdminBasicInfo(
+    val id: Long,
     val username: String,
+    val name: String,
+    val email: String?,
+    val role: String,
+    val createdAt: LocalDateTime,
+    val lastLoginAt: LocalDateTime?
+) {
+    companion object {
+        fun from(admin: Admin): AdminBasicInfo {
+            return AdminBasicInfo(
+                id = admin.id,
+                username = admin.username,
+                name = admin.name ?: "",
+                email = admin.email,
+                role = admin.role,
+                createdAt = admin.createdAt,
+                lastLoginAt = admin.lastLoginAt
+            )
+        }
+    }
+}
+
+data class CreateAdminRequest(
+    val teamId: Long,
+    val username: String,
+    val name: String,
+    val email: String?,
     val password: String,
-    val email: String?,
-    val name: String?,
-    val teamSubdomain: String
 )
 
-/**
- * 서브도메인 관리자 수정 요청 DTO
- */
-data class UpdateSubdomainAdminRequest(
-    val username: String,
-    val password: String = "", // 빈 문자열이면 비밀번호 변경 안함
-    val email: String?,
-    val name: String?,
-    val teamSubdomain: String,
-    val isActive: Boolean = true
-)
-
-/**
- * 관리자 통계 응답 DTO
- */
-data class AdminStatsResponse(
-    val totalAdmins: Int,
-    val masterAdmins: Int,
-    val subdomainAdmins: Int,
-    val activeAdmins: Int
-)
