@@ -40,3 +40,21 @@ export interface PageResponse<T> {
   numberOfElements: number;
   empty: boolean;
 }
+
+export interface AdminBasicInfo {
+  id: number;
+  username: string;
+  name: string;
+  email: string | null;
+  role: string;
+  createdAt: string;
+  lastLoginAt: string | null;
+}
+
+export interface CreateAdminRequest {
+  teamId: number;
+  username: string;
+  name: string;
+  password?: string;
+  email: string | null;
+}

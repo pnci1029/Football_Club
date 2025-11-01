@@ -89,8 +89,8 @@ const Landing: React.FC = () => {
   ];
 
   const sampleTeams = [
-    { name: '김철수 FC', teamCode: 'kim', description: '서울 지역 축구 동호회' },
-    { name: '박영희 유나이티드', teamCode: 'park', description: '부산 지역 축구 동호회' }
+    { name: '반디 FC', teamCode: 'bandi', description: '서울 지역 축구 동호회' },
+    { name: '김진수 FC', teamCode: 'kim', description: '부산 지역 축구 동호회' }
   ];
   console.log(sampleTeams.toString())
 
