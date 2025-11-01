@@ -17,12 +17,11 @@ const Navigation: React.FC = () => {
   const menuItems = [
     { name: '선수', href: '/players' },
     { name: '구장', href: '/stadiums' },
-    { name: '경기', href: '/matches', submenu: [
-      { name: '경기 일정', href: '/matches' },
-      { name: '커뮤니티', href: '/community' },
-      { name: '공지사항', href: '/notices' }
-    ]},
-  ];
+          { name: '경기', href: '/matches', submenu: [
+          { name: '경기 일정', href: '/matches' },
+          { name: '공지사항', href: '/notices' },
+          { name: '커뮤니티', href: '/community' }
+        ]},  ];
 
   // 로딩 중이어도 기본 네비게이션을 표시하되, 팀 정보만 스켈레톤으로 처리
 
