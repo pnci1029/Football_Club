@@ -12,8 +12,9 @@ import StadiumEditModal from '../../components/admin/StadiumEditModal';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import { useToast } from '../../components/Toast';
 import ConfirmModal from '../../components/ConfirmModal';
+import AdminManagement from '../../components/admin/AdminManagement';
 
-type TabKey = 'overview' | 'stadiums' | 'notices' | 'players';
+type TabKey = 'overview' | 'stadiums' | 'notices' | 'players' | 'admins';
 
 const AdminTeamDetail: React.FC = () => {
   const { teamId } = useParams<{ teamId: string }>();
@@ -24,7 +25,7 @@ const AdminTeamDetail: React.FC = () => {
   const [stadiums, setStadiums] = useState<StadiumDto[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'stadiums' | 'notices' | 'players'>('overview');
+  const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateStadiumModal, setShowCreateStadiumModal] = useState(false);
   const [showEditStadiumModal, setShowEditStadiumModal] = useState(false);
@@ -326,6 +327,7 @@ const AdminTeamDetail: React.FC = () => {
             { key: 'stadiums', label: '구장 관리', icon: '🏟️' },
             { key: 'notices', label: '공지사항', icon: '📢' },
             { key: 'players', label: '선수 관리', icon: '👥' },
+            { key: 'admins', label: '관리자 관리', icon: '👮' },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -722,6 +724,10 @@ const AdminTeamDetail: React.FC = () => {
             </Button>
           </div>
         </Card>
+      )}
+
+      {activeTab === 'admins' && teamId && (
+        <AdminManagement teamId={parseInt(teamId)} />
       )}
 
       {/* 팀 수정 모달 */}
