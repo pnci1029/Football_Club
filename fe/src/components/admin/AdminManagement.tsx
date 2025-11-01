@@ -12,7 +12,7 @@ interface AdminManagementProps {
 const AdminManagement: React.FC<AdminManagementProps> = ({ teamId }) => {
   const [admins, setAdmins] = useState<AdminBasicInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [newAdmin, setNewAdmin] = useState({ username: '', name: '', email: '', password: '' });
+  const [newAdmin, setNewAdmin] = useState({ username: '', name: 'Admin', email: '', password: '' });
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -48,7 +48,7 @@ const AdminManagement: React.FC<AdminManagementProps> = ({ teamId }) => {
     try {
       await adminManagementService.createAdmin(request);
       showToast('새로운 관리자가 생성되었습니다.', 'success');
-      setNewAdmin({ username: '', name: '', email: '', password: '' });
+      setNewAdmin({ username: '', name: 'Admin', email: '', password: '' });
       fetchAdmins();
     } catch (error) {
       showToast('관리자 생성에 실패했습니다.', 'error');
@@ -72,7 +72,7 @@ const AdminManagement: React.FC<AdminManagementProps> = ({ teamId }) => {
       <h3 className="text-lg font-semibold mb-4">팀 관리자</h3>
       <div className="mb-4 p-4 border rounded-lg">
         <h4 className="font-semibold mb-2">새 관리자 추가</h4>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             placeholder="사용자 이름"
             value={newAdmin.username}
