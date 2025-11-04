@@ -194,7 +194,7 @@ const SubdomainDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="text-green-600 text-3xl mb-2">🏆</div>
+                <div className="text-green-600 text-3xl mb-2"></div>
                 <div className="text-lg font-medium text-gray-900">{currentTeam.name}</div>
                 <div className="text-sm text-green-600">활성 상태</div>
                 <Link 

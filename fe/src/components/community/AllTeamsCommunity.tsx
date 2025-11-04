@@ -109,7 +109,7 @@ const AllTeamsCommunity: React.FC = () => {
     <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
       <div className="text-center mb-6 sm:mb-8">
         <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
-          🏆 전체 팀 커뮤니티
+          전체 팀 커뮤니티
         </h3>
         <p className="text-sm sm:text-base text-gray-600">
           모든 축구 동호회의 최신 소식을 한 곳에서 확인하세요
