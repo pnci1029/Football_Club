@@ -20,13 +20,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
   const { admin } = useAuth();
 
   const menuItems: SidebarMenuItem[] = [
-    { path: '/', label: '대시보드', icon: '📊' },
-    { path: '/admin-accounts', label: '관리자 계정 관리', icon: '👨‍💼', adminOnly: true },
-    { path: '/tenants', label: '서브도메인 관리', icon: '🏢', adminOnly: true },
-    { path: '/teams', label: '팀 관리', icon: '👥' },
-    { path: '/players', label: '선수 관리', icon: '👤' },
-    { path: '/matches', label: '경기 관리', icon: '⚽' },
-    { path: '/inquiries', label: '문의 관리', icon: '📝' },
+    { path: '/', label: '대시보드', icon: '' },
+    { path: '/admin-accounts', label: '관리자 계정 관리', icon: '', adminOnly: true },
+    { path: '/tenants', label: '서브도메인 관리', icon: '', adminOnly: true },
+    { path: '/teams', label: '팀 관리', icon: '' },
+    { path: '/inquiries', label: '문의 관리', icon: '' },
   ];
 
   // 현재 관리자가 MASTER인지 확인 (adminLevel 우선, role로 fallback)
