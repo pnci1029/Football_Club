@@ -5,6 +5,7 @@ import { LoadingSpinner, Button, Card } from '../components/common';
 import PlayerCard from '../components/player/PlayerCard';
 import { ImageUtil } from '../utils/image';
 import { useAuth } from '../contexts/AuthContext';
+import { useTeam } from '../contexts/TeamContext';
 import { useToast } from '../components/Toast';
 import { adminPlayerApi } from '../api/modules/adminPlayer';
 import PlayerCreateModal from '../components/admin/PlayerCreateModal';
@@ -26,6 +27,7 @@ const Players: React.FC = () => {
   const { data: playersPage, loading, error, refetch } = usePlayers(0, 50);
   const { admin, isAuthenticated } = useAuth();
   const { success, ToastContainer } = useToast();
+  const { currentTeam } = useTeam();
   
   const handlePlayerSelect = useCallback((player: PlayerDto | Player) => {
     setSelectedPlayer(player as PlayerDto);
@@ -133,6 +135,7 @@ const Players: React.FC = () => {
               <div className="flex space-x-2">
                 <button
                   onClick={() => setShowCreateModal(true)}
+                  disabled={!currentTeam}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
                 >
                   선수 추가
@@ -313,11 +316,14 @@ const Players: React.FC = () => {
       </Card>
 
       {/* 선수 등록 모달 */}
-      <PlayerCreateModal 
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSuccess={handleCreateSuccess}
-      />
+      {showCreateModal && currentTeam && (
+        <PlayerCreateModal 
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={handleCreateSuccess}
+          teamId={parseInt(currentTeam.id, 10)}
+        />
+      )}
 
       {/* 선수 수정 모달 */}
       <PlayerEditModal

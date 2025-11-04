@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Modal } from '../common';
-import { useTeam } from '../../contexts/TeamContext';
+
 import { adminPlayerApi, CreatePlayerRequest } from '../../api/modules/adminPlayer';
 
 interface PlayerCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  teamId: number;
 }
 
 interface PlayerFormData {
@@ -17,8 +18,7 @@ interface PlayerFormData {
   isActive: boolean;
 }
 
-const PlayerCreateModal: React.FC<PlayerCreateModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { currentTeam } = useTeam();
+const PlayerCreateModal: React.FC<PlayerCreateModalProps> = ({ isOpen, onClose, onSuccess, teamId }) => {
   const [formData, setFormData] = useState<PlayerFormData>({
     name: '',
     position: 'FW',
@@ -50,11 +50,11 @@ const PlayerCreateModal: React.FC<PlayerCreateModalProps> = ({ isOpen, onClose, 
         isActive: formData.isActive
       };
 
-      if (!currentTeam) {
+      if (!teamId) {
         throw new Error('팀 정보를 찾을 수 없습니다.');
       }
 
-      await adminPlayerApi.createPlayer(parseInt(currentTeam.id), playerData);
+      await adminPlayerApi.createPlayer(teamId, playerData);
 
       onSuccess();
       handleClose();
