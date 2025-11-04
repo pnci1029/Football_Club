@@ -348,7 +348,7 @@ const Stadiums: React.FC = () => {
                         }}
                         className="px-4 py-3 text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
                       >
-                        🗺️ 지도보기
+                        지도보기
                       </button>
 
                       {/* 길찾기 버튼 */}
@@ -365,7 +365,7 @@ const Stadiums: React.FC = () => {
                         }}
                         className="px-4 py-3 text-sm font-semibold text-green-700 bg-gradient-to-r from-green-100 to-green-200 border border-green-300 rounded-xl hover:from-green-200 hover:to-green-300 transition-all duration-200 shadow-sm hover:shadow-md"
                       >
-                        🚗 길찾기
+                        길찾기
                       </button>
 
                       {/* 관리자 기능 */}
