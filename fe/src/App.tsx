@@ -22,6 +22,7 @@ import AdminPlayers from './pages/admin/AdminPlayers';
 import AdminTeams from './pages/admin/AdminTeams';
 import AdminTeamDetail from './pages/admin/AdminTeamDetail';
 import AdminMatches from './pages/admin/AdminMatches';
+import AdminStadiums from './pages/admin/AdminStadiums';
 import AdminInquiries from './pages/admin/AdminInquiries';
 import AdminHeroSlides from './pages/admin/AdminHeroSlides';
 import TenantManagement from './pages/admin/TenantManagement';
@@ -84,6 +85,7 @@ const AppContent: React.FC = () => {
                 <Route path="/teams" element={<AdminTeams />} />
                 <Route path="/teams/:teamId" element={<AdminTeamDetail />} />
                 <Route path="/matches" element={<AdminMatches />} />
+                <Route path="/stadiums" element={<AdminStadiums />} />
                 <Route path="/inquiries" element={<AdminInquiries />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
