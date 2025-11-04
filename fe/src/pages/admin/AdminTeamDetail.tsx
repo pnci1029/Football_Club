@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button, Card } from '../../components/common';
 import { adminTeamService, AdminTeam } from '../../services/adminTeamService';
 import { adminService } from '../../services/adminService';
@@ -13,8 +13,10 @@ import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import { useToast } from '../../components/Toast';
 import ConfirmModal from '../../components/ConfirmModal';
 import AdminManagement from '../../components/admin/AdminManagement';
+import TeamPlayerManagement from '../../components/admin/TeamPlayerManagement';
+import TeamMatchManagement from '../../components/admin/TeamMatchManagement';
 
-type TabKey = 'overview' | 'stadiums' | 'notices' | 'players' | 'admins';
+type TabKey = 'overview' | 'stadiums' | 'notices' | 'players' | 'admins' | 'matches';
 
 const AdminTeamDetail: React.FC = () => {
   const { teamId } = useParams<{ teamId: string }>();
@@ -125,10 +127,6 @@ const AdminTeamDetail: React.FC = () => {
     setShowDeleteStadiumModal(true);
   };
 
-
-  const handleViewPlayers = () => {
-    navigate(`/admin/players?teamId=${teamId}`);
-  };
 
   const handleNoticeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -244,51 +242,31 @@ const AdminTeamDetail: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/admin/teams')}
-            className="mr-4 text-gray-600 border-gray-300 hover:bg-gray-50"
-          >
-            <span className="mr-1">←</span>
-            팀 목록
-          </Button>
-          <div className="flex items-center">
-            <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-green-400 to-green-600 mr-4 flex items-center justify-center">
-              {team.logoUrl ? (
-                <img 
-                  src={team.logoUrl}
-                  alt={`${team.name} 로고`}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-white text-xl font-bold">{team.code}</span>
-              )}
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{team.name}</h1>
-              <p className="text-gray-600 mt-1">{team.description}</p>
-              <div className="flex items-center mt-2">
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium mr-2">
-                  {team.code}
-                </span>
-                <span className="text-gray-500 text-sm">
-                  생성일: {new Date(team.createdAt).toLocaleDateString('ko-KR')}
-                </span>
-              </div>
-            </div>
-          </div>
+      {/* Breadcrumbs */}
+      <nav className="text-sm font-medium text-gray-500">
+        <ol className="list-none p-0 inline-flex">
+          <li className="flex items-center">
+            <Link to="/admin/teams" className="hover:text-gray-700">팀 관리</Link>
+            <svg className="fill-current w-3 h-3 mx-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/></svg>
+          </li>
+          <li className="flex items-center">
+            <span className="text-gray-900">{team.name}</span>
+          </li>
+        </ol>
+      </nav>
+      <div className="mt-2 md:flex md:items-center md:justify-between">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            {team.name}
+          </h2>
         </div>
-        <Button 
-          className="bg-blue-600 hover:bg-blue-700"
-          onClick={handleEditTeam}
-        >
-          <span className="mr-2">✏️</span>
-          팀 정보 수정
-        </Button>
+        <div className="mt-4 flex-shrink-0 flex md:mt-0 md:ml-4">
+          <Button
+            onClick={handleEditTeam}
+          >
+            팀 정보 수정
+          </Button>
+        </div>
       </div>
 
       {/* 통계 카드 */}
@@ -323,11 +301,12 @@ const AdminTeamDetail: React.FC = () => {
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           {[
-            { key: 'overview', label: '개요', icon: '📊' },
-            { key: 'stadiums', label: '구장 관리', icon: '🏟️' },
-            { key: 'notices', label: '공지사항', icon: '📢' },
-            { key: 'players', label: '선수 관리', icon: '👥' },
-            { key: 'admins', label: '관리자 관리', icon: '👮' },
+            { key: 'overview', label: '개요' },
+            { key: 'players', label: '선수 관리' },
+            { key: 'matches', label: '경기 관리' },
+            { key: 'stadiums', label: '구장 관리' },
+            { key: 'notices', label: '공지사항' },
+            { key: 'admins', label: '관리자 관리' },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -338,7 +317,6 @@ const AdminTeamDetail: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <span className="mr-2">{tab.icon}</span>
               {tab.label}
             </button>
           ))}
@@ -710,20 +688,12 @@ const AdminTeamDetail: React.FC = () => {
         </div>
       )}
 
-      {activeTab === 'players' && (
-        <Card>
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">👥</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">선수 관리</h3>
-            <p className="text-gray-600 mb-4">이 팀의 선수들을 관리할 수 있습니다</p>
-            <Button
-              className="bg-green-600 hover:bg-green-700"
-              onClick={handleViewPlayers}
-            >
-              선수 관리 페이지로 이동
-            </Button>
-          </div>
-        </Card>
+      {activeTab === 'players' && teamId && (
+        <TeamPlayerManagement teamId={parseInt(teamId)} />
+      )}
+
+      {activeTab === 'matches' && teamId && (
+        <TeamMatchManagement teamId={parseInt(teamId)} />
       )}
 
       {activeTab === 'admins' && teamId && (

@@ -122,6 +122,10 @@ const AdminPlayers: React.FC = () => {
   };
 
   const handleCreatePlayer = () => {
+    if (!selectedTeam) {
+      showError('선수를 추가할 팀을 먼저 선택해주세요.');
+      return;
+    }
     setShowCreateModal(true);
   };
 
@@ -165,7 +169,7 @@ const AdminPlayers: React.FC = () => {
         <Button
           className="bg-blue-600 hover:bg-blue-700"
           onClick={handleCreatePlayer}
-        >
+          disabled={!selectedTeam}        >
           <span className="mr-2">➕</span>
           선수 추가
         </Button>
@@ -320,11 +324,14 @@ const AdminPlayers: React.FC = () => {
       </div>
 
       {/* 모달들 */}
-      <PlayerCreateModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSuccess={handlePlayerCreated}
-      />
+      {showCreateModal && selectedTeam && (
+        <PlayerCreateModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={handlePlayerCreated}
+          teamId={selectedTeam}
+        />
+      )}
 
       <PlayerEditModal
         isOpen={showEditModal}
