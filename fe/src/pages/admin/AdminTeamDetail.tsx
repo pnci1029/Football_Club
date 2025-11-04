@@ -235,7 +235,7 @@ const AdminTeamDetail: React.FC = () => {
   if (!team) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-400 text-6xl mb-4">🏆</div>
+        
         <h3 className="text-lg font-medium text-gray-900 mb-2">팀을 찾을 수 없습니다</h3>
         <Button onClick={() => navigate('/admin/teams')}>팀 목록으로 돌아가기</Button>
       </div>

@@ -23,9 +23,9 @@ const AdminNavigation: React.FC = () => {
     { 
       path: '/teams', 
       label: '팀 관리', 
-      icon: '🏆',
+      icon: '',
       subItems: [
-        { path: '/teams', label: '팀 목록', icon: '🏆' },
+        { path: '/teams', label: '팀 목록', icon: '' },
         { path: '/teams/stadiums', label: '구장 관리', icon: '🏟️' },
       ]
     },
