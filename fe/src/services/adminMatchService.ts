@@ -64,7 +64,7 @@ export class AdminMatchService {
   }
 
   async getMatchesByTeam(teamId: number, page: number = 0, size: number = 10): Promise<ApiResponse<MatchPageResponse>> {
-    return apiClient.get(`/api/v1/admin/matches/team/${teamId}?page=${page}&size=${size}`);
+    return apiClient.get(`/api/v1/admin/matches?teamId=${teamId}&page=${page}&size=${size}`);
   }
 
 }

@@ -6,12 +6,14 @@ export interface AdminStadium {
   address: string;
   latitude: number;
   longitude: number;
-  hourlyRate: number;
+  teamId: number;
+  teamName: string;
+  facilities?: string[];
+  hourlyRate?: number;
+  availableHours?: string;
+  availableDays?: string[];
   contactNumber?: string;
-  facilities: string[];
-  availableHours: string;
-  availableDays: string[];
-  imageUrls: string[];
+  imageUrls?: string[];
 }
 
 export interface CreateStadiumRequest {
@@ -19,11 +21,12 @@ export interface CreateStadiumRequest {
   address: string;
   latitude: number;
   longitude: number;
-  hourlyRate: number;
-  contactNumber?: string;
+  teamId?: number;
   facilities: string[];
+  hourlyRate: number;
   availableHours: string;
   availableDays: string[];
+  contactNumber: string;
   imageUrls: string[];
 }
 
@@ -32,11 +35,11 @@ export interface UpdateStadiumRequest {
   address?: string;
   latitude?: number;
   longitude?: number;
-  hourlyRate?: number;
-  contactNumber?: string;
   facilities?: string[];
+  hourlyRate?: number;
   availableHours?: string;
   availableDays?: string[];
+  contactNumber?: string;
   imageUrls?: string[];
 }
 
@@ -56,15 +59,14 @@ export interface ApiResponse<T> {
 }
 
 export class AdminStadiumService {
-  async getAllStadiums(page: number = 0, size: number = 10): Promise<ApiResponse<StadiumsPageResponse>> {
-    return apiClient.get(`/api/v1/admin/stadiums?page=${page}&size=${size}`);
+  async getAllStadiums(page: number = 0, size: number = 10, teamId: number): Promise<ApiResponse<StadiumsPageResponse>> {
+    const url = `/api/v1/admin/stadiums?page=${page}&size=${size}&teamId=${teamId}`;
+    return apiClient.get(url);
   }
 
   async createStadium(request: CreateStadiumRequest, teamId?: number): Promise<ApiResponse<AdminStadium>> {
-    const url = teamId 
-      ? `/api/v1/admin/stadiums?teamId=${teamId}`
-      : '/api/v1/admin/stadiums';
-    return apiClient.post(url, request);
+    const finalRequest = teamId ? { ...request, teamId } : request;
+    return apiClient.post('/api/v1/admin/stadiums', finalRequest);
   }
 
   async updateStadium(id: number, request: UpdateStadiumRequest): Promise<ApiResponse<AdminStadium>> {
@@ -72,17 +74,7 @@ export class AdminStadiumService {
   }
 
   async deleteStadium(id: number): Promise<ApiResponse<string>> {
-    try {
-      const response = await apiClient.delete<ApiResponse<string>>(`/api/v1/admin/stadiums/${id}`);
-      return response;
-    } catch (error) {
-      console.error('API delete error:', error);
-      throw error;
-    }
-  }
-
-  async searchStadiumsByName(name: string): Promise<ApiResponse<AdminStadium[]>> {
-    return apiClient.get(`/api/v1/admin/stadiums/search?name=${encodeURIComponent(name)}`);
+    return apiClient.delete(`/api/v1/admin/stadiums/${id}`);
   }
 }
 

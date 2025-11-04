@@ -54,7 +54,7 @@ export const API_ENDPOINTS = {
   ADMIN_MATCHES: {
     LIST: { method: 'GET', path: '/api/v1/admin/matches', requiresAuth: true, isAdmin: true } as ApiEndpoint,
     GET: { method: 'GET', path: '/api/v1/admin/matches/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
-    BY_TEAM: { method: 'GET', path: '/api/v1/admin/matches/team/{teamId}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
+    BY_TEAM: { method: 'GET', path: '/api/v1/admin/matches', requiresAuth: true, isAdmin: true } as ApiEndpoint,
     CREATE: { method: 'POST', path: '/api/v1/admin/matches', requiresAuth: true, isAdmin: true } as ApiEndpoint,
     UPDATE: { method: 'PUT', path: '/api/v1/admin/matches/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
     DELETE: { method: 'DELETE', path: '/api/v1/admin/matches/{id}', requiresAuth: true, isAdmin: true } as ApiEndpoint,
