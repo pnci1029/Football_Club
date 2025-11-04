@@ -247,7 +247,7 @@ const AdminTeams: React.FC = () => {
       {filteredTeams.length === 0 && (
         <Card>
           <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">🏆</div>
+            
             <h3 className="text-lg font-medium text-gray-900 mb-2">팀이 없습니다</h3>
             <p className="text-gray-600 mb-4">
               {searchTerm ? '검색 조건에 맞는 팀이 없습니다.' : '등록된 팀이 없습니다.'}
