@@ -60,6 +60,9 @@ const AdminTeamDetail: React.FC = () => {
     if (teamId && activeTab === 'notices') {
       loadTeamNotices();
     }
+    if (teamId && activeTab === 'stadiums') {
+      loadTeamStadiums();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamId, activeTab]);
 
@@ -84,7 +87,8 @@ const AdminTeamDetail: React.FC = () => {
       const response = await adminService.getStadiumsByTeam(parseInt(teamId!), 0, 100);
       setStadiums(response.content);
     } catch (err) {
-      console.error('Error loading team stadiums:', error);
+      console.error('Error loading team stadiums:', err);
+      error('구장 목록을 불러오는 데 실패했습니다.');
     }
   };
 

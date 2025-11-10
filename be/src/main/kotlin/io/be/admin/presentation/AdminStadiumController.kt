@@ -28,11 +28,11 @@ class AdminStadiumController(
     private val subdomainService: SubdomainService,
     private val teamService: TeamService
 ) {
-    
+
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @GetMapping
     fun getAllStadiums(
-        adminInfo: AdminInfo,
+        @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
         @RequestParam(required = false) teamId: Long?
@@ -59,7 +59,7 @@ class AdminStadiumController(
         }
         return ResponseEntity.ok(ApiResponse.success(stadiums))
     }
-    
+
     @PostMapping
     fun createStadium(
         @Valid @RequestBody request: CreateStadiumRequest,
@@ -74,27 +74,27 @@ class AdminStadiumController(
             val teamCode = subdomainService.extractTeamCodeFromRequest(httpRequest)
                 ?: return ResponseEntity.badRequest()
                     .body(ApiResponse.error("INVALID_SUBDOMAIN", "유효하지 않은 서브도메인입니다."))
-            
+
             val team = subdomainService.getTeamByCode(teamCode)
                 ?: return ResponseEntity.badRequest()
                     .body(ApiResponse.error("TEAM_NOT_FOUND", "팀을 찾을 수 없습니다."))
-            
+
             team.id
         }
-        
+
         val requestWithTeam = request.copy(teamId = finalTeamId)
         val stadium = stadiumService.createStadium(requestWithTeam)
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success(stadium))
     }
-    
+
     @GetMapping("/{id}")
     fun getStadium(@PathVariable id: Long): ResponseEntity<ApiResponse<StadiumDto>> {
         val stadium = stadiumService.findStadiumById(id)
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(ApiResponse.success(stadium))
     }
-    
+
     @PutMapping("/{id}")
     fun updateStadium(
         @PathVariable id: Long,
@@ -103,13 +103,13 @@ class AdminStadiumController(
         val updatedStadium = stadiumService.updateStadium(id, request)
         return ResponseEntity.ok(ApiResponse.success(updatedStadium))
     }
-    
+
     @DeleteMapping("/{id}")
     fun deleteStadium(@PathVariable id: Long): ResponseEntity<ApiResponse<String>> {
         stadiumService.deleteStadium(id)
         return ResponseEntity.ok(ApiResponse.success("Stadium deleted successfully"))
     }
-    
+
     @GetMapping("/search")
     fun searchStadiums(
         @RequestParam(required = false) name: String?,
@@ -120,7 +120,7 @@ class AdminStadiumController(
             !address.isNullOrBlank() -> stadiumService.searchStadiumsByAddress(address)
             else -> emptyList()
         }
-        
+
         return ResponseEntity.ok(ApiResponse.success(stadiums))
     }
 }
