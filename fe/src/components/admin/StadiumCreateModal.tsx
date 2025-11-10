@@ -55,7 +55,7 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.address || formData.hourlyRate <= 0 || formData.availableDays.length === 0) {
+    if (!formData.name || !formData.address || (formData.hourlyRate ?? 0) <= 0 || (formData.availableDays ?? []).length === 0) {
       setError('필수 항목을 모두 입력해주세요. (이용요일을 최소 하나 선택해주세요)');
       return;
     }

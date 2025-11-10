@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button, Card } from '../../components/common';
 import { adminTeamService, AdminTeam } from '../../services/adminTeamService';
@@ -21,7 +21,7 @@ type TabKey = 'overview' | 'stadiums' | 'notices' | 'players' | 'admins' | 'matc
 const AdminTeamDetail: React.FC = () => {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
-  const { showToast, ToastContainer, success, error, warning } = useToast();
+  const { ToastContainer, success, error, warning } = useToast();
   
   const [team, setTeam] = useState<AdminTeam | null>(null);
   const [stadiums, setStadiums] = useState<StadiumDto[]>([]);
@@ -46,6 +46,7 @@ const AdminTeamDetail: React.FC = () => {
   const [showNoticeForm, setShowNoticeForm] = useState(false);
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
   const [showEditNoticeForm, setShowEditNoticeForm] = useState(false);
+  const [showDeleteTeamModal, setShowDeleteTeamModal] = useState(false);
 
   useEffect(() => {
     if (teamId) {
@@ -99,6 +100,24 @@ const AdminTeamDetail: React.FC = () => {
 
   const handleEditTeam = () => {
     setShowEditModal(true);
+  };
+
+  const handleDeleteTeam = () => {
+    setShowDeleteTeamModal(true);
+  };
+
+  const confirmDeleteTeam = async () => {
+    if (!team) return;
+    try {
+      await adminTeamService.deleteTeam(team.id);
+      success('팀이 성공적으로 삭제되었습니다.');
+      navigate('/admin/teams');
+    } catch (err) {
+      error('팀 삭제에 실패했습니다.');
+      console.error('Error deleting team:', err);
+    } finally {
+      setShowDeleteTeamModal(false);
+    }
   };
 
   const handleTeamUpdated = () => {
@@ -261,11 +280,7 @@ const AdminTeamDetail: React.FC = () => {
           </h2>
         </div>
         <div className="mt-4 flex-shrink-0 flex md:mt-0 md:ml-4">
-          <Button
-            onClick={handleEditTeam}
-          >
-            팀 정보 수정
-          </Button>
+          <TeamActionsDropdown onEdit={handleEditTeam} onDelete={handleDeleteTeam} />
         </div>
       </div>
 
@@ -757,8 +772,79 @@ const AdminTeamDetail: React.FC = () => {
         type="danger"
       />
 
+      {/* 팀 삭제 확인 모달 */}
+      <ConfirmModal
+        isOpen={showDeleteTeamModal}
+        title="팀 삭제"
+        message={`"${team?.name}" 팀을 정말로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`}
+        confirmText="삭제"
+        cancelText="취소"
+        onConfirm={confirmDeleteTeam}
+        onCancel={() => setShowDeleteTeamModal(false)}
+        type="danger"
+      />
+
       {/* 토스트 컨테이너 */}
       <ToastContainer />
+    </div>
+  );
+};
+
+interface TeamActionsDropdownProps {
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+const TeamActionsDropdown: React.FC<TeamActionsDropdownProps> = ({ onEdit, onDelete }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+        </svg>
+      </button>
+      {isOpen && (
+        <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+          <div className="py-1">
+            <button
+              onClick={() => { onEdit(); setIsOpen(false); }}
+              className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              팀 정보 수정
+            </button>
+            <button
+              onClick={() => { onDelete(); setIsOpen(false); }}
+              className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              팀 삭제
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
