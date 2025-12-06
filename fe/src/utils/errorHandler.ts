@@ -2,28 +2,7 @@
  * API 에러 처리 유틸리티
  */
 
-interface ErrorDetails {
-  [key: string]: unknown;
-}
 
-interface ApiError {
-  code?: string;
-  message?: string;
-  details?: ErrorDetails;
-  timestamp?: string;
-}
-
-interface ApiErrorResponse {
-  success: boolean;
-  data: null;
-  message: string | null;
-  error?: {
-    code: string;
-    message: string;
-    details: ErrorDetails;
-  };
-  timestamp: string;
-}
 
 export interface NetworkError {
   code?: string;
@@ -155,7 +134,6 @@ export function isProfanityError(error: NetworkError): boolean {
  * 에러 상황에 따른 사용자 행동 가이드를 제공합니다.
  */
 export function getErrorActionGuide(error: NetworkError): string | null {
-  const message = getErrorMessage(error);
   const status = error?.response?.status;
 
   if (isProfanityError(error)) {

@@ -7,7 +7,7 @@ import { useToast } from '../../components/Toast';
 
 const AdminTeams: React.FC = () => {
   const navigate = useNavigate();
-  const { success, error: showError, ToastContainer } = useToast();
+  const { success, ToastContainer } = useToast();
   const [teams, setTeams] = useState<AdminTeam[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [page] = useState(0);

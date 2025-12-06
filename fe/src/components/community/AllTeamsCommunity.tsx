@@ -9,7 +9,6 @@ const AllTeamsCommunity: React.FC = () => {
   const [selectedTeamId, setSelectedTeamId] = useState<number | undefined>(undefined);
   const [keyword, setKeyword] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
   // 데이터 로드
@@ -30,7 +29,6 @@ const AllTeamsCommunity: React.FC = () => {
       }
 
       setCurrentPage(page);
-      setTotalPages(response.totalPages);
       setHasMore(!response.last);
     } catch (error) {
       console.error('Failed to load community posts:', error);
