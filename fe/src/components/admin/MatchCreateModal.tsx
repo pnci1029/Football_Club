@@ -85,9 +85,6 @@ const MatchCreateModal: React.FC<MatchCreateModalProps> = ({
 
     try {
       // TODO: Replace with real API call
-      const matchDateTime = `${formData.matchDate}T${formData.matchTime}:00`;
-      
-
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
