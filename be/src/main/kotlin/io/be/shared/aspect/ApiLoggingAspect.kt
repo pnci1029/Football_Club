@@ -30,7 +30,6 @@ class ApiLoggingAspect {
 
     @Around("restController() && apiMethod()")
     fun logApiCall(joinPoint: ProceedingJoinPoint): Any? {
-        println("ㅡㅡㅡㅡㅡㅡ")
         val startTime = System.currentTimeMillis()
 
         // 요청 정보 추출
