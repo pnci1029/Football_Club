@@ -67,6 +67,10 @@ export class AdminMatchService {
     return apiClient.get(`/api/v1/admin/matches?teamId=${teamId}&page=${page}&size=${size}`);
   }
 
+  async createMatch(request: CreateMatchRequest): Promise<ApiResponse<AdminMatch>> {
+    return apiClient.post('/api/v1/admin/matches', request);
+  }
+
 }
 
 export const adminMatchService = new AdminMatchService();

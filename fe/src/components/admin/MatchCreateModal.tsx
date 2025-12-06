@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import { Button } from '../common';
+import { adminTeamService } from '../../services/adminTeamService';
+import { adminStadiumService } from '../../services/adminStadiumService';
+import { adminMatchService } from '../../services/adminMatchService';
 
 interface Team {
   id: number;
@@ -46,21 +49,28 @@ const MatchCreateModal: React.FC<MatchCreateModalProps> = ({
 
   const loadTeamsAndStadiums = async () => {
     try {
-      // TODO: Replace with real API calls
-      const mockTeams: Team[] = [
-        { id: 1, name: 'FC Barcelona', code: 'barcelona' },
-        { id: 2, name: 'Real Madrid', code: 'realmadrid' },
-        { id: 3, name: 'Manchester United', code: 'manchester' },
-      ];
-      
-      const mockStadiums: Stadium[] = [
-        { id: 1, name: 'Camp Nou', location: 'Barcelona' },
-        { id: 2, name: 'Santiago Bernabeu', location: 'Madrid' },
-        { id: 3, name: 'Old Trafford', location: 'Manchester' },
-      ];
+      const [teamsResponse, stadiumsResponse] = await Promise.all([
+        adminTeamService.getAllTeams(0, 100),
+        adminStadiumService.getAllStadiums(0, 100, 0)
+      ]);
 
-      setTeams(mockTeams);
-      setStadiums(mockStadiums);
+      if (teamsResponse.success && teamsResponse.data) {
+        const teams: Team[] = teamsResponse.data.content.map((team: any) => ({
+          id: team.id,
+          name: team.name,
+          code: team.code
+        }));
+        setTeams(teams);
+      }
+
+      if (stadiumsResponse.success && stadiumsResponse.data) {
+        const stadiums: Stadium[] = stadiumsResponse.data.content.map((stadium: any) => ({
+          id: stadium.id,
+          name: stadium.name,
+          location: stadium.address
+        }));
+        setStadiums(stadiums);
+      }
     } catch (err) {
       setError('팀과 구장 정보를 불러오는데 실패했습니다.');
     }
@@ -84,13 +94,22 @@ const MatchCreateModal: React.FC<MatchCreateModalProps> = ({
     setError('');
 
     try {
-      // TODO: Replace with real API call
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const matchRequest = {
+        homeTeamId: parseInt(formData.homeTeamId),
+        awayTeamId: parseInt(formData.awayTeamId),
+        stadiumId: parseInt(formData.stadiumId),
+        matchDate: `${formData.matchDate}T${formData.matchTime}`
+      };
+
+      const response = await adminMatchService.createMatch(matchRequest);
       
-      onMatchCreated();
-      onClose();
-      resetForm();
+      if (response.success) {
+        onMatchCreated();
+        onClose();
+        resetForm();
+      } else {
+        setError(response.message || '경기 생성에 실패했습니다.');
+      }
     } catch (err) {
       setError('경기 생성에 실패했습니다.');
       console.error('Match creation error:', err);
