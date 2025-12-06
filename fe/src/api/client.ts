@@ -6,7 +6,6 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import { getApiBaseUrl } from '../utils/config';
 import { TokenManager } from '../utils/tokenManager';
 import { 
-  ApiResponse, 
   PageResponse, 
   PageParams, 
   SearchParams,
@@ -318,7 +317,7 @@ class UnifiedApiClient {
   // 헬스 체크
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     try {
-      const response = await this.get<{ status: string }>('/health');
+      await this.get<{ status: string }>('/health');
       return {
         status: 'healthy',
         timestamp: new Date().toISOString(),

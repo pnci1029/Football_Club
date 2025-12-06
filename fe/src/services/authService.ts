@@ -108,7 +108,7 @@ class AuthService {
   /**
    * 토큰 검증
    */
-  async validateToken(token?: string): Promise<TokenValidationResponse> {
+  async validateToken(_token?: string): Promise<TokenValidationResponse> {
     try {
       // 토큰 유효성 확인
       if (TokenManager.isLoggedIn()) {

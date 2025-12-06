@@ -132,9 +132,6 @@ class ApiTester {
     await this.testPublicServices();
     await this.testSpecificEndpoints();
     
-    const successful = this.results.filter(r => r.success).length;
-    const total = this.results.length;
-    
     // 실패한 테스트 상세 정보
     const failed = this.results.filter(r => !r.success);
     if (failed.length > 0) {
