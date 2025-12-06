@@ -17,7 +17,7 @@ const CommentList: React.FC<CommentListProps> = ({ comments, onDeleteComment, is
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (_event: MouseEvent) => {
       setCommentMenuOpen(null);
     };
 

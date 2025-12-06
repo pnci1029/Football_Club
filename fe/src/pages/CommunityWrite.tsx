@@ -160,7 +160,7 @@ const CommunityWrite: React.FC = () => {
           state: { message: '게시글이 성공적으로 수정되었습니다.' }
         });
       } else {
-        const newPost = await communityApi.createPost({
+        await communityApi.createPost({
           title: formData.title.trim(),
           content: formData.content.trim(),
           authorName: formData.authorName.trim(),
