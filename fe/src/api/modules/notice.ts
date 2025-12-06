@@ -3,7 +3,6 @@
  */
 
 import { api } from '../client';
-import { API_ENDPOINTS } from '../endpoints';
 import type { 
   Notice,
   NoticeDetail,

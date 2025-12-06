@@ -1,5 +1,4 @@
 import { apiClient } from './api';
-import { HeroSlides } from '../api';
 import { HeroSlide, CreateHeroSlideRequest, UpdateHeroSlideRequest } from '../types/hero';
 
 export class HeroService {

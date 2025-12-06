@@ -1,6 +1,6 @@
 import { Team } from '../types/team';
 import { Teams } from '../api';
-import { TeamPageResponse, TeamApiResponse } from '../types/interfaces/team';
+import { TeamPageResponse } from '../types/interfaces/team';
 
 class TeamService {
   async getAllTeams(): Promise<Team[]> {

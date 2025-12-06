@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Team } from '../types/team';
 import { teamService } from '../services/teamService';
 import { isMainDomain } from '../utils/config';
@@ -33,7 +33,6 @@ export const useSubdomain = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [teamNotFound, setTeamNotFound] = useState(false);
-  const hasInitialized = useRef(false);
 
   useEffect(() => {
     let isCancelled = false;
