@@ -15,7 +15,7 @@ class TeamSubdomainExtractor {
         // 프론트엔드에서 보낸 X-Team-Subdomain 헤더 우선 확인
         val subdomainHeader = request.getHeader("X-Team-Subdomain")
         if (!subdomainHeader.isNullOrBlank()) {
-            println("✅ [TeamSubdomainExtractor] Using subdomain from header: '$subdomainHeader'")
+            return subdomainHeader
         }
 
         val host = request.getHeader("Host") ?: request.serverName
