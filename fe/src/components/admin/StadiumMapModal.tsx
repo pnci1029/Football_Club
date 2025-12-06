@@ -63,21 +63,6 @@ const StadiumMapModal: React.FC<StadiumMapModalProps> = ({
     }
   };
 
-  const copyCoordinates = async () => {
-    const coordinates = `${stadium.latitude}, ${stadium.longitude}`;
-    try {
-      await navigator.clipboard.writeText(coordinates);
-      alert('좌표가 클립보드에 복사되었습니다!');
-    } catch (error) {
-      const textArea = document.createElement('textarea');
-      textArea.value = coordinates;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      alert('좌표가 클립보드에 복사되었습니다!');
-    }
-  };
 
   return (
     <Modal

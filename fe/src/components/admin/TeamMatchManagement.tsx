@@ -12,7 +12,7 @@ const TeamMatchManagement: React.FC<TeamMatchManagementProps> = ({ teamId }) => 
   const { warning, ToastContainer } = useToast();
   const [matches, setMatches] = useState<AdminMatch[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter] = useState<string>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);

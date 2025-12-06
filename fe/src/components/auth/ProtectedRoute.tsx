@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface ProtectedRouteProps {
@@ -9,7 +9,6 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   // 인증되지 않은 경우 즉시 리다이렉트
   useEffect(() => {
