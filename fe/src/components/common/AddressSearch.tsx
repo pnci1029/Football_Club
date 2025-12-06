@@ -13,7 +13,6 @@ interface Address {
 interface AddressSearchProps {
   onSelect: (address: Address) => void;
   onClose: () => void;
-  isOpen: boolean;
   placeholder?: string;
   className?: string;
 }
@@ -21,7 +20,6 @@ interface AddressSearchProps {
 const AddressSearch: React.FC<AddressSearchProps> = ({
   onSelect,
   onClose,
-  isOpen,
   placeholder = "주소를 검색하세요",
   className = ""
 }) => {

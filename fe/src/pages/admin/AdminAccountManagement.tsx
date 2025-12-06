@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../../services/adminService';
-import { AdminAccountDto, CreateAdminRequest, UpdateAdminRequest, AdminPageResponse } from '../../types/interfaces/admin';
+import { AdminAccountDto, CreateAdminRequest, AdminPageResponse } from '../../types/interfaces/admin';
 import { Button, Card } from '../../components/common';
 import { useToast } from '../../components/Toast';
 import { AdminLevel } from '../../types/enums';

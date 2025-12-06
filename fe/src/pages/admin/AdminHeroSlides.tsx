@@ -159,7 +159,7 @@ const AdminHeroSlides: React.FC = () => {
       )}
 
       <div className="grid gap-4">
-        {slides.map((slide, index) => (
+        {slides.map((slide, _index) => (
           <Card key={slide.id} className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">

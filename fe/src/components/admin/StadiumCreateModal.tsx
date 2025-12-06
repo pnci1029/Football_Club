@@ -166,10 +166,6 @@ const StadiumCreateModal: React.FC<StadiumCreateModalProps> = ({
   };
 
   // Daum Postcode 데이터에서 좌표를 직접 받아오므로 별도 좌표 검색 불필요
-  const searchCoordinatesFromAddress = async (address: string) => {
-    console.log('주소가 설정되었습니다:', address);
-    // Daum Postcode API에서 이미 좌표 정보를 제공하므로 추가 검색 불필요
-  };
 
   return (
     <Modal
