@@ -100,13 +100,10 @@ jobs:
             docker ps -a --format \"table {{.Names}}\" | grep -E \"backend-(blue|green)\" | xargs docker rm -f 2>/dev/null || true
           "
 
-      - name: Setup Docker network and Redis container
+      - name: Setup Redis container
         run: |
           ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
-            docker network create football-club-network --driver bridge 2>/dev/null || true
-            docker stop redis-container 2>/dev/null || true
-            docker rm redis-container 2>/dev/null || true
-            docker run -d --name redis-container --network football-club-network -p 6379:6379 redis:7-alpine
+            docker run -d --name redis-container -p 6379:6379 redis:7-alpine 2>/dev/null || echo \"Redis already running\"
           "
 
       - name: Start new backend container
