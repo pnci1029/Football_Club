@@ -20,7 +20,9 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
     code: '',
     name: '',
     description: '',
-    logoUrl: ''
+    logoUrl: '',
+    contactPhone: '',
+    kakaoId: ''
   });
   const [errors, setErrors] = useState<Partial<CreateTeamData>>({});
 
@@ -67,7 +69,9 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
         code: '',
         name: '',
         description: '',
-        logoUrl: ''
+        logoUrl: '',
+        contactPhone: '',
+        kakaoId: ''
       });
       setErrors({});
       onClose();
@@ -211,6 +215,49 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isLoading}
             />
+          </div>
+
+          {/* 연락처 정보 섹션 */}
+          <div className="border-t pt-4 mt-6">
+            <h4 className="text-md font-medium text-gray-900 mb-4">팀 연락처 정보</h4>
+            
+            {/* 대표 연락처 */}
+            <div className="mb-4">
+              <label htmlFor="contactPhone" className="block text-sm font-medium text-gray-700 mb-1">
+                대표 연락처
+              </label>
+              <input
+                type="tel"
+                id="contactPhone"
+                value={formData.contactPhone}
+                onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+                placeholder="010-1234-5678"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isLoading}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                다른 팀에서 경기 신청 시 연락받을 전화번호
+              </p>
+            </div>
+
+            {/* 카카오톡 ID */}
+            <div>
+              <label htmlFor="kakaoId" className="block text-sm font-medium text-gray-700 mb-1">
+                카카오톡 ID
+              </label>
+              <input
+                type="text"
+                id="kakaoId"
+                value={formData.kakaoId}
+                onChange={(e) => handleInputChange('kakaoId', e.target.value)}
+                placeholder="yourteam_kakao"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isLoading}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                카카오톡으로 연락받을 수 있는 ID
+              </p>
+            </div>
           </div>
 
           {/* 버튼 */}
