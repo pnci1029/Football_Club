@@ -28,6 +28,7 @@ import AdminHeroSlides from './pages/admin/AdminHeroSlides';
 import TenantManagement from './pages/admin/TenantManagement';
 import NotFound from './pages/NotFound';
 import Landing from './pages/Landing';
+import TeamMap from './pages/TeamMap';
 import AllCommunityPage from './pages/AllCommunityPage';
 import Notices from './pages/Notices';
 import NoticeDetail from './pages/NoticeDetail';
@@ -56,6 +57,7 @@ const AppContent: React.FC = () => {
         <MainNavigation />
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/team-map" element={<TeamMap />} />
           <Route path="/community" element={<AllCommunityPage />} />
           <Route path="/global-notices" element={<GlobalNotices />} />
           <Route path="/global-notices/:noticeId" element={<GlobalNoticeDetail />} />

@@ -3,6 +3,7 @@ import { Button, Card } from '../components/common';
 import { inquiryService, CreateInquiryRequest } from '../services/inquiryService';
 import { getTeamUrl } from '../utils/config';
 import { useToast } from '../components/Toast';
+import TeamMapSection from '../components/map/TeamMapSection';
 
 const Landing: React.FC = () => {
   const [contactForm, setContactForm] = useState({
@@ -153,6 +154,25 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
+
+      {/* 전국 축구팀 지도 섹션 */}
+      <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
+              전국 축구 동호회 찾기
+            </h3>
+            <p className="text-sm sm:text-base text-gray-600 max-w-xl lg:max-w-2xl mx-auto">
+              지도에서 우리 지역 근처의 축구 동호회를 찾아보고 경기를 신청해보세요.<br className="hidden sm:block" />
+              마커를 클릭하면 각 팀의 상세 정보를 확인할 수 있습니다.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <TeamMapSection />
+          </div>
+        </div>
+      </section>
 
       {/* 샘플 팀 섹션 */}
       <section className="py-12 sm:py-16 lg:py-20 bg-white">
