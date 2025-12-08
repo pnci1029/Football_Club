@@ -1,6 +1,5 @@
 package io.be.shared.controller
 
-import io.be.shared.util.ApiResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -27,8 +26,6 @@ class ImageController {
     fun uploadImage(
         @RequestParam("file") file: MultipartFile
     ): ResponseEntity<Map<String, Any>> {
-        println("file = ${file}")
-        println("6666 - ImageController 도착")
         try {
             // 파일 검증
             if (file.isEmpty) {
