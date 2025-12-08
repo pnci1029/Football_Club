@@ -146,6 +146,7 @@ jobs:
             docker ps | grep backend-\$NEW_COLOR || echo \"Container not running\"
             echo \"Container logs:\"
             docker logs backend-\$NEW_COLOR | tail -20
+          "
 
       - name: Health check
         run: |
