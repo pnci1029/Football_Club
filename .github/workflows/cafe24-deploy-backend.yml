@@ -78,8 +78,8 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             # Check which containers are running
-            BLUE_RUNNING=\$(docker ps --format \"{{.Names}}\" | grep -c \"backend-blue\" || echo 0)
-            GREEN_RUNNING=\$(docker ps --format \"{{.Names}}\" | grep -c \"backend-green\" || echo 0)
+            BLUE_RUNNING=\$(docker ps --filter \"name=backend-blue\" -q | wc -l)
+            GREEN_RUNNING=\$(docker ps --filter \"name=backend-green\" -q | wc -l)
             
             if [ \$BLUE_RUNNING -gt 0 ] && [ \$GREEN_RUNNING -eq 0 ]; then
               # Blue is running, deploy green
