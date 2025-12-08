@@ -21,7 +21,8 @@ import java.time.LocalDateTime
 class TeamService(
     private val teamRepository: TeamRepository,
     private val playerRepository: io.be.player.domain.PlayerRepository,
-    private val stadiumRepository: io.be.stadium.domain.StadiumRepository
+    private val stadiumRepository: io.be.stadium.domain.StadiumRepository,
+    private val matchRepository: io.be.match.domain.MatchRepository
 ) {
     private val logger = logger()
 
@@ -124,6 +125,14 @@ class TeamService(
         
         val playerCount = playerRepository.countByTeamIdAndIsDeletedFalse(teamId)
         val stadiumCount = stadiumRepository.count()
+        val totalMatches = matchRepository.countByHomeTeamIdOrAwayTeamId(teamId, teamId)
+        
+        // 최근 활동을 위한 최근 경기나 선수 추가 확인
+        val recentActivity = when {
+            totalMatches > 0 -> "최근 경기 활동"
+            playerCount > 0 -> "선수 관리 활동"
+            else -> "최근 활동 없음"
+        }
         
         return mapOf(
             "teamId" to teamId,
@@ -131,8 +140,8 @@ class TeamService(
             "teamCode" to team.code,
             "playerCount" to playerCount,
             "stadiumCount" to stadiumCount,
-            "totalMatches" to 0, // TODO: Match 엔티티 구현 후 추가
-            "recentActivity" to "최근 활동 없음" // TODO: 실제 활동 로그 구현 후 추가
+            "totalMatches" to totalMatches,
+            "recentActivity" to recentActivity
         )
     }
     
@@ -151,11 +160,13 @@ class TeamService(
             )
         }
         
+        val totalMatches = matchRepository.count()
+        
         return mapOf(
             "totalTeams" to allTeams.size,
             "totalPlayers" to totalPlayers,
             "totalStadiums" to totalStadiums,
-            "totalMatches" to 0, // TODO: Match 엔티티 구현 후 추가
+            "totalMatches" to totalMatches,
             "teams" to teamStats
         )
     }
