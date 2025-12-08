@@ -79,7 +79,9 @@ class TeamService(
             code = request.code,
             name = request.name,
             description = request.description,
-            logoUrl = request.logoUrl
+            logoUrl = request.logoUrl,
+            contactPhone = request.contactPhone,
+            kakaoId = request.kakaoId
         )
 
         val savedTeam = teamRepository.save(team)
@@ -97,7 +99,9 @@ class TeamService(
         val updatedTeam = team.copy(
             name = request.name ?: team.name,
             description = request.description ?: team.description,
-            logoUrl = request.logoUrl ?: team.logoUrl
+            logoUrl = request.logoUrl ?: team.logoUrl,
+            contactPhone = request.contactPhone ?: team.contactPhone,
+            kakaoId = request.kakaoId ?: team.kakaoId
         )
 
         val savedTeam = teamRepository.save(updatedTeam)
