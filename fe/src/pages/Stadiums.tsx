@@ -12,11 +12,11 @@ import { useToast } from '../components/Toast';
 import { useAuth } from '../contexts/AuthContext';
 import { adminStadiumService } from '../services/adminStadiumService';
 
-const formatPrice = (price?: number) => {
+const formatPrice = (price?: number | null) => {
   return price ? `${price.toLocaleString()}원/시간` : '문의';
 };
 
-const parseFacilities = (facilities?: string | string[]): string[] => {
+const parseFacilities = (facilities?: string | string[] | null): string[] => {
   if (!facilities) return [];
 
   // 이미 배열인 경우
@@ -34,7 +34,7 @@ const parseFacilities = (facilities?: string | string[]): string[] => {
   return [];
 };
 
-const parseDays = (days?: string[]): string[] => {
+const parseDays = (days?: string[] | null): string[] => {
   return days || [];
 };
 
@@ -78,16 +78,15 @@ const Stadiums: React.FC = () => {
     const adminStadium: AdminStadiumDto = {
       ...stadium,
       hourlyRate: stadium.hourlyRate || 0,
+      contactNumber: stadium.contactNumber || undefined,
       facilities: stadium.facilities ? 
-        (typeof stadium.facilities === 'string' ? 
-          stadium.facilities.split(',').map(f => f.trim()) : 
-          [stadium.facilities]) : [],
+        (Array.isArray(stadium.facilities) ? stadium.facilities : 
+          String(stadium.facilities).split(',').map(f => f.trim())) : [],
       availableHours: stadium.availableHours || '09:00-22:00',
       availableDays: stadium.availableDays || [],
       imageUrls: stadium.imageUrls ? 
-        (typeof stadium.imageUrls === 'string' ? 
-          stadium.imageUrls.split(',').map(f => f.trim()) : 
-          [stadium.imageUrls]) : []
+        (Array.isArray(stadium.imageUrls) ? stadium.imageUrls : 
+          String(stadium.imageUrls).split(',').map(f => f.trim())) : []
     };
     setEditingStadium(adminStadium);
     setShowEditModal(true);

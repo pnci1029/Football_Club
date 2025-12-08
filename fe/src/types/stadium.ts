@@ -19,10 +19,12 @@ export interface StadiumDto {
   address: string;
   latitude: number;
   longitude: number;
-  facilities?: string;
-  hourlyRate?: number;
-  availableHours?: string;
-  availableDays?: string[];
-  contactNumber?: string;
-  imageUrls?: string;
+  teamId: number;
+  teamName: string;
+  facilities?: string[] | null;
+  hourlyRate?: number | null;
+  availableHours?: string | null;
+  availableDays?: string[] | null;
+  contactNumber?: string | null;
+  imageUrls?: string[] | null;
 }

@@ -6,6 +6,7 @@ const MainNavigation: React.FC = () => {
   const location = useLocation();
 
   const menuItems = [
+    { name: '전국 팀 지도', href: '/team-map' },
     { name: '공지사항', href: '/global-notices' },
     { name: '전체 커뮤니티', href: '/community' },
   ];
