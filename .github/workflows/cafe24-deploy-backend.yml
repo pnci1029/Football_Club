@@ -77,27 +77,55 @@ jobs:
       - name: Determine Blue-Green deployment ports
         run: |
           ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
-            if docker ps --format \"table {{.Names}}\" | grep -q \"backend-blue\"; then
+            # Check which containers are running
+            BLUE_RUNNING=\$(docker ps --format \"{{.Names}}\" | grep -c \"backend-blue\" || echo 0)
+            GREEN_RUNNING=\$(docker ps --format \"{{.Names}}\" | grep -c \"backend-green\" || echo 0)
+            
+            if [ \$BLUE_RUNNING -gt 0 ] && [ \$GREEN_RUNNING -eq 0 ]; then
+              # Blue is running, deploy green
               echo \"NEW_COLOR=green\" >> /tmp/deploy_vars
               echo \"NEW_PORT=8083\" >> /tmp/deploy_vars
               echo \"OLD_COLOR=blue\" >> /tmp/deploy_vars
-            else
+              echo \"OLD_PORT=8082\" >> /tmp/deploy_vars
+            elif [ \$GREEN_RUNNING -gt 0 ] && [ \$BLUE_RUNNING -eq 0 ]; then
+              # Green is running, deploy blue
               echo \"NEW_COLOR=blue\" >> /tmp/deploy_vars
               echo \"NEW_PORT=8082\" >> /tmp/deploy_vars
               echo \"OLD_COLOR=green\" >> /tmp/deploy_vars
+              echo \"OLD_PORT=8083\" >> /tmp/deploy_vars
+            else
+              # Neither or both running, default to blue
+              echo \"NEW_COLOR=blue\" >> /tmp/deploy_vars
+              echo \"NEW_PORT=8082\" >> /tmp/deploy_vars
+              echo \"OLD_COLOR=green\" >> /tmp/deploy_vars
+              echo \"OLD_PORT=8083\" >> /tmp/deploy_vars
             fi
+            
             source /tmp/deploy_vars
-            echo \"Deploying: backend-\$NEW_COLOR on port \$NEW_PORT\"
+            echo \"Deploying: backend-\$NEW_COLOR on port \$NEW_PORT (stopping \$OLD_COLOR on \$OLD_PORT)\"
           "
 
       - name: Clean up existing containers and ports
         run: |
           ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             source /tmp/deploy_vars
+            
+            # Stop old running container first
+            echo \"Stopping old container: backend-\$OLD_COLOR\"
+            docker stop backend-\$OLD_COLOR 2>/dev/null || true
+            docker rm backend-\$OLD_COLOR 2>/dev/null || true
+            
+            # Clean up new container if exists
+            echo \"Cleaning up target container: backend-\$NEW_COLOR\"
             docker stop backend-\$NEW_COLOR 2>/dev/null || true
             docker rm backend-\$NEW_COLOR 2>/dev/null || true
+            
+            # Kill processes on both ports
+            echo \"Freeing up ports\"
+            lsof -ti:\$OLD_PORT | xargs kill -9 2>/dev/null || true
             lsof -ti:\$NEW_PORT | xargs kill -9 2>/dev/null || true
-            docker ps -a --format \"table {{.Names}}\" | grep -E \"backend-(blue|green)\" | xargs docker rm -f 2>/dev/null || true
+            
+            sleep 2
           "
 
       - name: Setup Redis container
@@ -111,9 +139,13 @@ jobs:
           ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             cd /opt/football-club &&
             source /tmp/deploy_vars
-            docker run -d --name backend-\$NEW_COLOR --network football-club-network -p \$NEW_PORT:8080 --env-file .env -e SPRING_PROFILES_ACTIVE=prod -e SPRING_DATA_REDIS_HOST=redis-container football-club-backend:latest
-            sleep 10
-          "
+            echo \"Starting backend-\$NEW_COLOR on port \$NEW_PORT\"
+            docker run -d --name backend-\$NEW_COLOR -p \$NEW_PORT:8082 --env-file .env -e SPRING_PROFILES_ACTIVE=prod -e REDIS_HOST=localhost football-club-backend:latest
+            sleep 5
+            echo \"Container status:\"
+            docker ps | grep backend-\$NEW_COLOR || echo \"Container not running\"
+            echo \"Container logs:\"
+            docker logs backend-\$NEW_COLOR | tail -20
 
       - name: Health check
         run: |
