@@ -87,7 +87,7 @@ jobs:
               echo \"OLD_COLOR=green\" >> /tmp/deploy_vars
             fi
             source /tmp/deploy_vars
-            echo \"Selected deployment: backend-\$NEW_COLOR on port \$NEW_PORT\"
+            echo \"Deploying: backend-\$NEW_COLOR on port \$NEW_PORT\"
           "
 
       - name: Clean up existing containers and ports
@@ -97,12 +97,16 @@ jobs:
             docker stop backend-\$NEW_COLOR 2>/dev/null || true
             docker rm backend-\$NEW_COLOR 2>/dev/null || true
             lsof -ti:\$NEW_PORT | xargs kill -9 2>/dev/null || true
+            docker ps -a --format \"table {{.Names}}\" | grep -E \"backend-(blue|green)\" | xargs docker rm -f 2>/dev/null || true
           "
 
-      - name: Setup Redis container
+      - name: Setup Docker network and Redis container
         run: |
           ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
-            docker run -d --name redis-container -p 6379:6379 redis:7-alpine 2>/dev/null || echo \"Redis already running\"
+            docker network create football-club-network --driver bridge 2>/dev/null || true
+            docker stop redis-container 2>/dev/null || true
+            docker rm redis-container 2>/dev/null || true
+            docker run -d --name redis-container --network football-club-network -p 6379:6379 redis:7-alpine
           "
 
       - name: Start new backend container
@@ -110,30 +114,22 @@ jobs:
           ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             cd /opt/football-club &&
             source /tmp/deploy_vars
-            echo \"Starting backend-\$NEW_COLOR on port \$NEW_PORT\"
-            docker run -d --name backend-\$NEW_COLOR -p \$NEW_PORT:8082 --env-file .env -e SPRING_PROFILES_ACTIVE=prod -e REDIS_HOST=localhost football-club-backend:latest
-            sleep 5
-            echo \"Container status:\"
-            docker ps | grep backend-\$NEW_COLOR || echo \"Container not running\"
-            echo \"Container logs:\"
-            docker logs backend-\$NEW_COLOR | tail -20
+            docker run -d --name backend-\$NEW_COLOR --network football-club-network -p \$NEW_PORT:8080 --env-file .env -e SPRING_PROFILES_ACTIVE=prod -e SPRING_DATA_REDIS_HOST=redis-container football-club-backend:latest
+            sleep 10
           "
 
       - name: Health check
         run: |
           ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             source /tmp/deploy_vars
-            echo \"Starting health check on port \$NEW_PORT\"
             for i in {1..30}; do
-              echo \"Health check attempt \$i/30\"
               if curl -f http://localhost:\$NEW_PORT/api/test/51 2>/dev/null; then
-                echo \"Health check passed\"
+                echo \"✅ Health check passed\"
                 break
               fi
               if [ \$i -eq 30 ]; then
-                echo \"Deploy failed - health check timeout\"
-                echo \"Final container logs:\"
-                docker logs backend-\$NEW_COLOR | tail -50
+                echo \"❌ Deploy failed - health check timeout\"
+                docker logs backend-\$NEW_COLOR | tail -10
                 docker rm -f backend-\$NEW_COLOR
                 exit 1
               fi
@@ -145,12 +141,8 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             source /tmp/deploy_vars
-            echo \"Updating Nginx to use port \$NEW_PORT\"
             sudo sed -i \"s/proxy_pass http:\/\/localhost:[0-9]*\/api\//proxy_pass http:\/\/localhost:\$NEW_PORT\/api\//g\" /etc/nginx/sites-enabled/nginx.conf
-            echo \"Nginx configuration updated:\"
-            grep \"proxy_pass.*localhost:\" /etc/nginx/sites-enabled/nginx.conf
             sudo nginx -t && sudo systemctl reload nginx
-            echo \"Nginx reloaded successfully\"
           "
 
       - name: Clean up old containers and finalize
@@ -160,14 +152,6 @@ jobs:
             docker stop backend-\$OLD_COLOR 2>/dev/null || true
             docker rm backend-\$OLD_COLOR 2>/dev/null || true
             docker stop backend 2>/dev/null && docker rm backend 2>/dev/null || true
-            
-            echo \"Redis container final status:\"
-            docker ps | grep redis-container || echo \"Redis not running\"
-            docker logs redis-container | tail -5 2>/dev/null || echo \"No Redis logs\"
-            
-            echo \"Backend-Redis connection test:\"
-            curl -f http://localhost:\$NEW_PORT/api/test/51 2>/dev/null && echo \"Backend responding\" || echo \"Backend not responding\"
-            
             docker image prune -f
             rm -f /tmp/deploy_vars
           "
