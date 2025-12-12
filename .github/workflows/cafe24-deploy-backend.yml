@@ -105,27 +105,28 @@ jobs:
             echo \"Deploying: backend-\$NEW_COLOR on port \$NEW_PORT (stopping \$OLD_COLOR on \$OLD_PORT)\"
           "
 
-      - name: Clean up existing containers and ports
+      - name: Clean up target container only
         run: |
           ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             source /tmp/deploy_vars
             
-            # Stop and remove ALL backend containers to avoid conflicts
-            echo \"Cleaning up all backend containers\"
-            docker stop backend backend-blue backend-green 2>/dev/null || true
-            docker rm backend backend-blue backend-green 2>/dev/null || true
+            # Only clean up the target container (NEW_COLOR) - keep OLD_COLOR running
+            echo \"Cleaning up target container: backend-\$NEW_COLOR\"
+            docker stop backend-\$NEW_COLOR 2>/dev/null || true
+            docker rm backend-\$NEW_COLOR 2>/dev/null || true
             
-            # Kill processes on both ports to ensure they're free
-            echo \"Freeing up ports \$OLD_PORT and \$NEW_PORT\"
-            lsof -ti:\$OLD_PORT 2>/dev/null | xargs -r kill -9 2>/dev/null || true
+            # Clean up legacy 'backend' container if exists
+            docker stop backend 2>/dev/null || true
+            docker rm backend 2>/dev/null || true
+            
+            # Kill processes on target port only
+            echo \"Freeing up target port \$NEW_PORT\"
             lsof -ti:\$NEW_PORT 2>/dev/null | xargs -r kill -9 2>/dev/null || true
             
-            # Wait for ports to be freed
-            sleep 5
+            sleep 2
             
-            # Verify ports are free
-            echo \"Verifying ports are available\"
-            netstat -tlnp | grep \":\$NEW_PORT \" && echo \"Port \$NEW_PORT still in use\" || echo \"Port \$NEW_PORT is free\"
+            echo \"Current running containers:\"
+            docker ps --filter \"name=backend\"
           "
 
       - name: Setup Redis container
@@ -172,22 +173,52 @@ jobs:
             done
           "
 
-      - name: Update Nginx configuration
+      - name: Update Nginx configuration and switch traffic
         run: |
           ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             source /tmp/deploy_vars
+            echo \"Switching traffic from port \$OLD_PORT to \$NEW_PORT\"
+            
+            # Backup current nginx config
+            sudo cp /etc/nginx/sites-enabled/nginx.conf /etc/nginx/sites-enabled/nginx.conf.backup
+            
+            # Update nginx configuration to point to new container
             sudo sed -i \"s/proxy_pass http:\/\/localhost:[0-9]*\/api\//proxy_pass http:\/\/localhost:\$NEW_PORT\/api\//g\" /etc/nginx/sites-enabled/nginx.conf
-            sudo nginx -t && sudo systemctl reload nginx
+            
+            # Test and reload nginx
+            if sudo nginx -t; then
+              sudo systemctl reload nginx
+              echo \"✅ Traffic switched to backend-\$NEW_COLOR on port \$NEW_PORT\"
+            else
+              echo \"❌ Nginx config test failed, reverting\"
+              sudo mv /etc/nginx/sites-enabled/nginx.conf.backup /etc/nginx/sites-enabled/nginx.conf
+              exit 1
+            fi
           "
 
       - name: Clean up old containers and finalize
         run: |
           ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             source /tmp/deploy_vars
+            
+            echo \"Waiting 30 seconds to ensure traffic switch is stable...\"
+            sleep 30
+            
+            # Now safe to remove old container since traffic is switched
+            echo \"Removing old container: backend-\$OLD_COLOR\"
             docker stop backend-\$OLD_COLOR 2>/dev/null || true
             docker rm backend-\$OLD_COLOR 2>/dev/null || true
+            
+            # Clean up legacy container
             docker stop backend 2>/dev/null && docker rm backend 2>/dev/null || true
+            
+            # Clean up unused images
             docker image prune -f
+            
+            echo \"✅ Blue-Green deployment completed successfully!\"
+            echo \"Active container: backend-\$NEW_COLOR on port \$NEW_PORT\"
+            docker ps --filter \"name=backend\"
+            
             rm -f /tmp/deploy_vars
           "
 
