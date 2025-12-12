@@ -13,7 +13,7 @@ class TestController {
     fun test(
         @PathVariable value: String
     ): String {
-        return value + "dddd"
+        return value + "ddd"
     }
 
     @GetMapping("/health")
