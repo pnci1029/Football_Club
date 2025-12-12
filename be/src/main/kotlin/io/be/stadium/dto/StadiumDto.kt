@@ -17,7 +17,9 @@ data class StadiumDto(
     val availableHours: String?,
     val availableDays: List<String>?,
     val contactNumber: String?,
-    val imageUrls: List<String>?
+    val imageUrls: List<String>?,
+    val teamContactPhone: String?,
+    val teamKakaoId: String?
 ) {
     companion object {
         private val objectMapper = ObjectMapper()
@@ -36,7 +38,9 @@ data class StadiumDto(
                 availableHours = stadium.availableHours,
                 availableDays = parseJsonToList(stadium.availableDays),
                 contactNumber = stadium.contactNumber,
-                imageUrls = parseJsonToList(stadium.imageUrls)
+                imageUrls = parseJsonToList(stadium.imageUrls),
+                teamContactPhone = stadium.team.contactPhone,
+                teamKakaoId = stadium.team.kakaoId
             )
         }
         

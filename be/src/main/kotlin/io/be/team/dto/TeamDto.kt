@@ -8,7 +8,9 @@ data class TeamDto(
     val code: String,
     val name: String,
     val description: String?,
-    val logoUrl: String?
+    val logoUrl: String?,
+    val contactPhone: String?,
+    val kakaoId: String?
 ) {
     companion object {
         fun from(team: Team): TeamDto {
@@ -17,7 +19,9 @@ data class TeamDto(
                 code = team.code,
                 name = team.name,
                 description = team.description,
-                logoUrl = team.logoUrl
+                logoUrl = team.logoUrl,
+                contactPhone = team.contactPhone,
+                kakaoId = team.kakaoId
             )
         }
     }
@@ -37,7 +41,13 @@ data class CreateTeamRequest(
     val description: String? = null,
     
     @field:Pattern(regexp = "^(https?://.+)?$", message = "올바른 URL 형식이어야 합니다")
-    val logoUrl: String? = null
+    val logoUrl: String? = null,
+    
+    @field:Pattern(regexp = "^[0-9-+()\\s]*$", message = "올바른 전화번호 형식이어야 합니다")
+    val contactPhone: String? = null,
+    
+    @field:Size(max = 50, message = "카카오 ID는 50자 이하여야 합니다")
+    val kakaoId: String? = null
 )
 
 data class UpdateTeamRequest(
@@ -48,5 +58,11 @@ data class UpdateTeamRequest(
     val description: String? = null,
     
     @field:Pattern(regexp = "^(https?://.+)?$", message = "올바른 URL 형식이어야 합니다")
-    val logoUrl: String? = null
+    val logoUrl: String? = null,
+    
+    @field:Pattern(regexp = "^[0-9-+()\\s]*$", message = "올바른 전화번호 형식이어야 합니다")
+    val contactPhone: String? = null,
+    
+    @field:Size(max = 50, message = "카카오 ID는 50자 이하여야 합니다")
+    val kakaoId: String? = null
 )
