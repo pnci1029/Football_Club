@@ -13,6 +13,11 @@ class TestController {
     fun test(
         @PathVariable value: String
     ): String {
-        return value + "ddddd"
+        return value + "dddd"
+    }
+
+    @GetMapping("/health")
+    fun health(): Map<String, String> {
+        return mapOf("status" to "UP", "message" to "Application is running")
     }
 }

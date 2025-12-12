@@ -110,22 +110,22 @@ jobs:
           ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             source /tmp/deploy_vars
             
-            # Stop old running container first
-            echo \"Stopping old container: backend-\$OLD_COLOR\"
-            docker stop backend-\$OLD_COLOR 2>/dev/null || true
-            docker rm backend-\$OLD_COLOR 2>/dev/null || true
+            # Stop and remove ALL backend containers to avoid conflicts
+            echo \"Cleaning up all backend containers\"
+            docker stop backend backend-blue backend-green 2>/dev/null || true
+            docker rm backend backend-blue backend-green 2>/dev/null || true
             
-            # Clean up new container if exists
-            echo \"Cleaning up target container: backend-\$NEW_COLOR\"
-            docker stop backend-\$NEW_COLOR 2>/dev/null || true
-            docker rm backend-\$NEW_COLOR 2>/dev/null || true
-            
-            # Kill processes on both ports
-            echo \"Freeing up ports\"
+            # Kill processes on both ports to ensure they're free
+            echo \"Freeing up ports \$OLD_PORT and \$NEW_PORT\"
             lsof -ti:\$OLD_PORT 2>/dev/null | xargs -r kill -9 2>/dev/null || true
             lsof -ti:\$NEW_PORT 2>/dev/null | xargs -r kill -9 2>/dev/null || true
             
-            sleep 2
+            # Wait for ports to be freed
+            sleep 5
+            
+            # Verify ports are free
+            echo \"Verifying ports are available\"
+            netstat -tlnp | grep \":\$NEW_PORT \" && echo \"Port \$NEW_PORT still in use\" || echo \"Port \$NEW_PORT is free\"
           "
 
       - name: Setup Redis container
@@ -155,7 +155,7 @@ jobs:
             echo \"Starting health check for backend-\$NEW_COLOR on port \$NEW_PORT\"
             for i in {1..30}; do
               echo \"Health check attempt \$i/30\"
-              if curl -f http://localhost:\$NEW_PORT/api/test/51 2>/dev/null; then
+              if curl -f http://localhost:\$NEW_PORT/api/test/health 2>/dev/null; then
                 echo \"✅ Health check passed\"
                 break
               fi
