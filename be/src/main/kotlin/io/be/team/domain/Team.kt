@@ -29,6 +29,10 @@ data class Team(
     
     val logoUrl: String? = null,
     
+    val contactPhone: String? = null, // 팀 대표 연락처
+    
+    val kakaoId: String? = null, // 카카오톡 ID
+    
     @CreationTimestamp
     val createdAt: LocalDateTime = LocalDateTime.now(),
     
