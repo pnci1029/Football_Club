@@ -27,4 +27,7 @@ export interface StadiumDto {
   availableDays?: string[] | null;
   contactNumber?: string | null;
   imageUrls?: string[] | null;
+  // 팀 연락처 정보  
+  teamContactPhone?: string | null;
+  teamKakaoId?: string | null;
 }

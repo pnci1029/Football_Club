@@ -21,6 +21,8 @@ export interface CreateTeamData {
   name: string;
   description: string;
   logoUrl?: string;
+  contactPhone?: string;
+  kakaoId?: string;
 }
 
 class AdminService {

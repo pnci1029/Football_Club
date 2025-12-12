@@ -8,6 +8,8 @@ export interface AdminTeam {
   logoUrl?: string;
   playerCount?: number;
   createdAt: string;
+  contactPhone?: string;
+  kakaoId?: string;
 }
 
 export interface CreateTeamRequest {
@@ -15,6 +17,8 @@ export interface CreateTeamRequest {
   name: string;
   description: string;
   logoUrl?: string;
+  contactPhone?: string;
+  kakaoId?: string;
 }
 
 export interface UpdateTeamRequest {
@@ -22,6 +26,8 @@ export interface UpdateTeamRequest {
   name?: string;
   description?: string;
   logoUrl?: string;
+  contactPhone?: string;
+  kakaoId?: string;
 }
 
 export interface TeamsPageResponse {
