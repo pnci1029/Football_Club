@@ -155,7 +155,7 @@ jobs:
             echo \"Starting health check for backend-\$NEW_COLOR on port \$NEW_PORT\"
             for i in {1..30}; do
               echo \"Health check attempt \$i/30\"
-              if curl -f http://localhost:\$NEW_PORT/actuator/health 2>/dev/null || curl -f http://localhost:\$NEW_PORT/api/health 2>/dev/null; then
+              if curl -f http://localhost:\$NEW_PORT/api/test/51 2>/dev/null; then
                 echo \"✅ Health check passed\"
                 break
               fi
