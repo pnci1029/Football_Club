@@ -13,6 +13,9 @@ interface Stadium {
   hourlyRate?: number | null;
   contactNumber?: string | null;
   imageUrls?: string[] | null;
+  // 팀 연락처 정보
+  teamContactPhone?: string | null;
+  teamKakaoId?: string | null;
 }
 
 interface StadiumDetailModalProps {
@@ -134,6 +137,44 @@ const StadiumDetailModal: React.FC<StadiumDetailModalProps> = ({
                     {facility}
                   </span>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* 팀 연락처 */}
+          {(stadium.teamContactPhone || stadium.teamKakaoId) && (
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <svg className="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.477 8-10 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.477-8 10-8s10 3.582 10 8z" />
+                </svg>
+                팀 연락처
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {stadium.teamContactPhone && (
+                  <a
+                    href={`tel:${stadium.teamContactPhone}`}
+                    className="flex items-center px-4 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    {stadium.teamContactPhone}
+                  </a>
+                )}
+                {stadium.teamKakaoId && (
+                  <a
+                    href={`https://open.kakao.com/me/${stadium.teamKakaoId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors text-sm font-medium"
+                  >
+                    <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z"/>
+                    </svg>
+                    카카오톡: {stadium.teamKakaoId}
+                  </a>
+                )}
               </div>
             </div>
           )}

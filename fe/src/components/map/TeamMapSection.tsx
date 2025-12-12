@@ -15,6 +15,9 @@ interface Stadium {
   hourlyRate?: number | null;
   contactNumber?: string | null;
   imageUrls?: string[] | null;
+  // 팀 연락처 정보
+  teamContactPhone?: string | null;
+  teamKakaoId?: string | null;
 }
 
 const TeamMapSection: React.FC = () => {
@@ -46,7 +49,9 @@ const TeamMapSection: React.FC = () => {
           facilities: stadium.facilities,
           hourlyRate: stadium.hourlyRate,
           contactNumber: stadium.contactNumber,
-          imageUrls: stadium.imageUrls
+          imageUrls: stadium.imageUrls,
+          teamContactPhone: stadium.teamContactPhone,
+          teamKakaoId: stadium.teamKakaoId
         }));
         
         setStadiums(transformedStadiums);
