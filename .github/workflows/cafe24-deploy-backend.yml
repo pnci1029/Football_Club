@@ -59,7 +59,7 @@ jobs:
 
       - name: Setup environment variables
         run: |
-          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+          ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             cd /opt/football-club &&
             echo 'MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}' > .env &&
             echo 'MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}' >> .env &&
@@ -69,14 +69,14 @@ jobs:
 
       - name: Pull and tag Docker image
         run: |
-          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+          ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             docker pull ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} &&
             docker tag ${{ secrets.DOCKER_USERNAME }}/football-club-backend:${{ github.sha }} football-club-backend:latest
           "
 
       - name: Determine Blue-Green deployment ports
         run: |
-          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+          ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             # Check which containers are running
             BLUE_RUNNING=\$(docker ps --filter \"name=backend-blue\" -q | wc -l)
             GREEN_RUNNING=\$(docker ps --filter \"name=backend-green\" -q | wc -l)
@@ -107,7 +107,7 @@ jobs:
 
       - name: Clean up existing containers and ports
         run: |
-          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+          ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             source /tmp/deploy_vars
             
             # Stop old running container first
@@ -122,21 +122,21 @@ jobs:
             
             # Kill processes on both ports
             echo \"Freeing up ports\"
-            lsof -ti:\$OLD_PORT | xargs kill -9 2>/dev/null || true
-            lsof -ti:\$NEW_PORT | xargs kill -9 2>/dev/null || true
+            lsof -ti:\$OLD_PORT 2>/dev/null | xargs -r kill -9 2>/dev/null || true
+            lsof -ti:\$NEW_PORT 2>/dev/null | xargs -r kill -9 2>/dev/null || true
             
             sleep 2
           "
 
       - name: Setup Redis container
         run: |
-          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+          ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             docker run -d --name redis-container -p 6379:6379 redis:7-alpine 2>/dev/null || echo \"Redis already running\"
           "
 
       - name: Start new backend container
         run: |
-          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+          ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             cd /opt/football-club &&
             source /tmp/deploy_vars
             echo \"Starting backend-\$NEW_COLOR on port \$NEW_PORT\"
@@ -150,16 +150,21 @@ jobs:
 
       - name: Health check
         run: |
-          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+          ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             source /tmp/deploy_vars
+            echo \"Starting health check for backend-\$NEW_COLOR on port \$NEW_PORT\"
             for i in {1..30}; do
-              if curl -f http://localhost:\$NEW_PORT/api/test/51 2>/dev/null; then
+              echo \"Health check attempt \$i/30\"
+              if curl -f http://localhost:\$NEW_PORT/actuator/health 2>/dev/null || curl -f http://localhost:\$NEW_PORT/api/health 2>/dev/null; then
                 echo \"✅ Health check passed\"
                 break
               fi
               if [ \$i -eq 30 ]; then
                 echo \"❌ Deploy failed - health check timeout\"
-                docker logs backend-\$NEW_COLOR | tail -10
+                echo \"Container logs:\"
+                docker logs backend-\$NEW_COLOR | tail -20
+                echo \"Container status:\"
+                docker ps -a | grep backend-\$NEW_COLOR
                 docker rm -f backend-\$NEW_COLOR
                 exit 1
               fi
@@ -169,7 +174,7 @@ jobs:
 
       - name: Update Nginx configuration
         run: |
-          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+          ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             source /tmp/deploy_vars
             sudo sed -i \"s/proxy_pass http:\/\/localhost:[0-9]*\/api\//proxy_pass http:\/\/localhost:\$NEW_PORT\/api\//g\" /etc/nginx/sites-enabled/nginx.conf
             sudo nginx -t && sudo systemctl reload nginx
@@ -177,7 +182,7 @@ jobs:
 
       - name: Clean up old containers and finalize
         run: |
-          ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+          ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
             source /tmp/deploy_vars
             docker stop backend-\$OLD_COLOR 2>/dev/null || true
             docker rm backend-\$OLD_COLOR 2>/dev/null || true
