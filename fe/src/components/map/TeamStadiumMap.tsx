@@ -36,13 +36,104 @@ const TeamStadiumMap: React.FC<TeamStadiumMapProps> = ({
 
   // 카카오맵 스크립트 로드
   useEffect(() => {
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_KAKAO_MAP_KEY}&autoload=false`;
+    console.log('🗺️ TeamStadiumMap 초기화 시작');
+    console.log('🔑 API Key:', process.env.REACT_APP_KAKAO_MAP_KEY);
     
-    script.onload = () => {
-      window.kakao.maps.load(() => {
-        if (mapContainer.current) {
+    let isMounted = true;
+    
+    const loadKakaoMap = () => {
+      console.log('🔍 현재 window.kakao 상태:', window.kakao);
+      console.log('🔍 현재 스크립트 존재 여부:', !!document.querySelector('script[src*="dapi.kakao.com"]'));
+      
+      // 이미 카카오맵이 완전히 로드되어 있는지 확인
+      if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
+        console.log('✅ 카카오맵이 이미 로드됨');
+        if (isMounted) {
+          initializeMap();
+        }
+        return;
+      }
+      
+      // 스크립트는 있지만 객체가 없는 경우
+      const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
+      if (existingScript) {
+        console.log('📜 카카오맵 스크립트 이미 존재하지만 객체가 없음');
+        
+        // 최대 30번까지만 재시도 (3초)
+        let retryCount = 0;
+        const maxRetries = 30;
+        
+        const checkKakaoLoaded = () => {
+          retryCount++;
+          console.log(`⏳ 카카오 객체 확인 중... (${retryCount}/${maxRetries})`);
+          
+          if (window.kakao && window.kakao.maps) {
+            console.log('✅ 카카오 객체 발견! 맵 초기화 시작');
+            window.kakao.maps.load(() => {
+              console.log('🗺️ 카카오맵 API 로드 완료');
+              if (isMounted) {
+                initializeMap();
+              }
+            });
+          } else if (retryCount < maxRetries && isMounted) {
+            setTimeout(checkKakaoLoaded, 100);
+          } else {
+            console.error('❌ 카카오 객체 로드 타임아웃 또는 컴포넌트 언마운트');
+            if (isMounted) {
+              setError('카카오맵 로드에 실패했습니다. 페이지를 새로고침해주세요.');
+              setIsLoading(false);
+            }
+          }
+        };
+        
+        checkKakaoLoaded();
+        return;
+      }
+      
+      // 스크립트가 없는 경우 새로 추가
+      console.log('📥 카카오맵 스크립트 새로 추가');
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_KAKAO_MAP_KEY}&autoload=false`;
+      
+      script.onload = () => {
+        console.log('✅ 카카오맵 스크립트 로드 완료');
+        console.log('🔍 로드 후 window.kakao:', window.kakao);
+        
+        if (window.kakao && window.kakao.maps) {
+          window.kakao.maps.load(() => {
+            console.log('🗺️ 카카오맵 API 로드 완료');
+            if (isMounted) {
+              initializeMap();
+            }
+          });
+        } else {
+          console.error('❌ 스크립트는 로드되었지만 kakao 객체가 없음');
+          if (isMounted) {
+            setError('카카오맵 객체를 찾을 수 없습니다.');
+            setIsLoading(false);
+          }
+        }
+      };
+      
+      script.onerror = (e) => {
+        console.error('❌ 카카오맵 스크립트 로드 실패:', e);
+        if (isMounted) {
+          setError('카카오맵 스크립트를 불러오는데 실패했습니다.');
+          setIsLoading(false);
+        }
+      };
+      
+      document.head.appendChild(script);
+    };
+    
+    loadKakaoMap();
+    
+    // 맵 초기화 함수
+    function initializeMap() {
+      console.log('🗺️ 맵 초기화 시작');
+      if (mapContainer.current) {
+        try {
           // 대한민국 중심 좌표 (서울)
           const center = new window.kakao.maps.LatLng(37.5665, 126.9780);
           
@@ -51,22 +142,28 @@ const TeamStadiumMap: React.FC<TeamStadiumMapProps> = ({
             level: 7 // 적당한 줌 레벨
           };
           
+          console.log('🎯 Map 인스턴스 생성 중...');
           const mapInstance = new window.kakao.maps.Map(mapContainer.current, options);
+          console.log('✅ Map 인스턴스 생성 완료');
+          
           setMap(mapInstance);
           setIsLoading(false);
+        } catch (error) {
+          console.error('❌ 맵 초기화 실패:', error);
+          const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+          setError(`지도 초기화 실패: ${errorMessage}`);
+          setIsLoading(false);
         }
-      });
-    };
-    
-    script.onerror = () => {
-      setError('지도를 불러오는데 실패했습니다.');
-      setIsLoading(false);
-    };
-    
-    document.head.appendChild(script);
+      } else {
+        console.error('❌ mapContainer.current가 null');
+        setError('지도 컨테이너를 찾을 수 없습니다.');
+        setIsLoading(false);
+      }
+    }
     
     return () => {
-      document.head.removeChild(script);
+      console.log('🧹 컴포넌트 정리 중');
+      isMounted = false;
     };
   }, []);
 

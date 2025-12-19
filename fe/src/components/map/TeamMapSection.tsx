@@ -34,8 +34,11 @@ const TeamMapSection: React.FC = () => {
     const loadStadiums = async () => {
       try {
         setIsLoading(true);
+        console.log('🏟️ 스타디움 데이터 로드 시작');
+        
         // 모든 스타디움 데이터를 가져옵니다 (페이지 크기를 크게 설정)
         const response = await stadiumService.getStadiums(0, 1000);
+        console.log('📊 스타디움 API 응답:', response);
         
         // StadiumDto를 Stadium 인터페이스에 맞게 변환
         const transformedStadiums: Stadium[] = (response.content || []).map(stadium => ({
@@ -54,10 +57,12 @@ const TeamMapSection: React.FC = () => {
           teamKakaoId: stadium.teamKakaoId
         }));
         
+        console.log(`✅ ${transformedStadiums.length}개 스타디움 데이터 변환 완료:`, transformedStadiums);
+        
         setStadiums(transformedStadiums);
         setFilteredStadiums(transformedStadiums);
       } catch (err) {
-        console.error('Failed to load stadiums:', err);
+        console.error('❌ 스타디움 로드 실패:', err);
         setError('스타디움 정보를 불러오는데 실패했습니다.');
       } finally {
         setIsLoading(false);
