@@ -57,36 +57,53 @@ const TeamStadiumMap: React.FC<TeamStadiumMapProps> = ({
       // 스크립트는 있지만 객체가 없는 경우
       const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
       if (existingScript) {
-        console.log('📜 카카오맵 스크립트 이미 존재하지만 객체가 없음');
+        console.log('📜 기존 카카오맵 스크립트 발견, autoload=false로 인한 문제일 가능성');
+        console.log('🔄 기존 스크립트 제거 후 새로 로드');
         
-        // 최대 30번까지만 재시도 (3초)
-        let retryCount = 0;
-        const maxRetries = 30;
+        // 기존 스크립트 제거
+        existingScript.remove();
         
-        const checkKakaoLoaded = () => {
-          retryCount++;
-          console.log(`⏳ 카카오 객체 확인 중... (${retryCount}/${maxRetries})`);
+        // 새 스크립트 추가 (autoload 활성화)
+        const newScript = document.createElement('script');
+        newScript.async = true;
+        newScript.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_KAKAO_MAP_KEY}`;
+        
+        newScript.onload = () => {
+          console.log('✅ 새 카카오맵 스크립트 로드 완료');
+          console.log('🔍 로드 후 window.kakao:', window.kakao);
           
-          if (window.kakao && window.kakao.maps) {
-            console.log('✅ 카카오 객체 발견! 맵 초기화 시작');
+          // 객체가 바로 생성되었는지 확인
+          if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
+            console.log('🎯 카카오맵 객체 즉시 사용 가능');
+            if (isMounted) {
+              initializeMap();
+            }
+          } else if (window.kakao && window.kakao.maps) {
+            console.log('📞 window.kakao.maps.load() 호출');
             window.kakao.maps.load(() => {
               console.log('🗺️ 카카오맵 API 로드 완료');
               if (isMounted) {
                 initializeMap();
               }
             });
-          } else if (retryCount < maxRetries && isMounted) {
-            setTimeout(checkKakaoLoaded, 100);
           } else {
-            console.error('❌ 카카오 객체 로드 타임아웃 또는 컴포넌트 언마운트');
+            console.error('❌ 새 스크립트 로드 후에도 kakao 객체 없음');
             if (isMounted) {
-              setError('카카오맵 로드에 실패했습니다. 페이지를 새로고침해주세요.');
+              setError('카카오맵을 초기화할 수 없습니다.');
               setIsLoading(false);
             }
           }
         };
         
-        checkKakaoLoaded();
+        newScript.onerror = (e) => {
+          console.error('❌ 새 카카오맵 스크립트 로드 실패:', e);
+          if (isMounted) {
+            setError('카카오맵 스크립트를 불러오는데 실패했습니다.');
+            setIsLoading(false);
+          }
+        };
+        
+        document.head.appendChild(newScript);
         return;
       }
       
@@ -94,7 +111,7 @@ const TeamStadiumMap: React.FC<TeamStadiumMapProps> = ({
       console.log('📥 카카오맵 스크립트 새로 추가');
       const script = document.createElement('script');
       script.async = true;
-      script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_KAKAO_MAP_KEY}&autoload=false`;
+      script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_KAKAO_MAP_KEY}`;
       
       script.onload = () => {
         console.log('✅ 카카오맵 스크립트 로드 완료');
