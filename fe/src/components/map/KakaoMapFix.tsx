@@ -43,13 +43,31 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
     const loadKakaoMap = () => {
       try {
         console.log('🗺️ 카카오맵 로드 시작');
-        
+
         // 이미 카카오맵이 로드되어 있는지 확인
-        if (window.kakao && window.kakao.maps) {
-          console.log('✅ 카카오맵이 이미 로드됨');
+        if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
+          console.log('✅ 카카오맵이 완전히 로드됨');
           if (isMounted) {
-            initializeMap();
+            // DOM 컨테이너가 준비될 때까지 잠깐 대기
+            setTimeout(() => {
+              if (isMounted) {
+                initializeMap();
+              }
+            }, 100);
           }
+          return;
+        } else if (window.kakao && window.kakao.maps) {
+          console.log('🔄 카카오맵 기본 로드됨, load() 호출 필요');
+          window.kakao.maps.load(() => {
+            console.log('✅ kakao.maps.load() 완료');
+            if (isMounted) {
+              setTimeout(() => {
+                if (isMounted) {
+                  initializeMap();
+                }
+              }, 100);
+            }
+          });
           return;
         }
 
@@ -62,17 +80,22 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
         // 새 스크립트 로드 (autoload=true로 변경)
         const script = document.createElement('script');
         script.async = true;
-        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_KAKAO_MAP_KEY}`;
-        
+        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_KAKAO_MAP_KEY}`;
+        console.log('📍 로딩할 스크립트 URL:', script.src);
+
         script.onload = () => {
           console.log('✅ 카카오맵 스크립트 로드 완료');
-          
+
           // kakao.maps.load() 사용하여 초기화
           if (window.kakao && window.kakao.maps) {
             window.kakao.maps.load(() => {
               console.log('🗺️ 카카오맵 API 로드 완료');
               if (isMounted) {
-                initializeMap();
+                setTimeout(() => {
+                  if (isMounted) {
+                    initializeMap();
+                  }
+                }, 100);
               }
             });
           } else {
@@ -84,7 +107,7 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
             }
           }
         };
-        
+
         script.onerror = () => {
           console.error('❌ 카카오맵 스크립트 로드 실패');
           if (isMounted) {
@@ -93,9 +116,9 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
             onMapError?.();
           }
         };
-        
+
         document.head.appendChild(script);
-        
+
       } catch (error) {
         console.error('❌ 카카오맵 초기화 실패:', error);
         if (isMounted) {
@@ -108,27 +131,37 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
 
     // 맵 초기화 함수
     const initializeMap = () => {
+      console.log('🔍 디버그 - mapContainer.current:', !!mapContainer.current);
+      console.log('🔍 디버그 - window.kakao:', !!window.kakao);
+      console.log('🔍 디버그 - window.kakao.maps:', !!window.kakao?.maps);
+      console.log('🔍 디버그 - window.kakao.maps.Map:', !!window.kakao?.maps?.Map);
+      
       if (!mapContainer.current || !window.kakao?.maps) {
         console.error('❌ 맵 컨테이너 또는 kakao.maps 없음');
+        if (isMounted) {
+          setError('지도 컨테이너 또는 카카오맵 API를 찾을 수 없습니다.');
+          setIsLoading(false);
+          onMapError?.();
+        }
         return;
       }
 
       try {
         // 대한민국 중심 좌표 (서울)
         const center = new window.kakao.maps.LatLng(37.5665, 126.9780);
-        
+
         const options = {
           center,
           level: 7 // 적당한 줌 레벨
         };
-        
+
         console.log('🎯 Map 인스턴스 생성 중...');
         const mapInstance = new window.kakao.maps.Map(mapContainer.current, options);
         console.log('✅ Map 인스턴스 생성 완료');
-        
+
         setMap(mapInstance);
         setIsLoading(false);
-        
+
       } catch (error) {
         console.error('❌ 맵 초기화 실패:', error);
         const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
@@ -144,7 +177,8 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
       console.log('🧹 KakaoMapFix 정리 중');
       isMounted = false;
     };
-  }, [onMapError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 마커 생성 및 업데이트
   useEffect(() => {
@@ -162,7 +196,7 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
 
     stadiums.forEach((stadium) => {
       const position = new window.kakao.maps.LatLng(stadium.latitude, stadium.longitude);
-      
+
       // 마커 생성
       const marker = new window.kakao.maps.Marker({
         position,
@@ -196,10 +230,10 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
             markerData.infowindow.close();
           }
         });
-        
+
         // 현재 인포윈도우 열기
         infowindow.open(map, marker);
-        
+
         // 외부 콜백 호출
         if (onStadiumClick) {
           onStadiumClick(stadium);
