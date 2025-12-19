@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 interface Stadium {
   id: number;
@@ -25,10 +25,6 @@ const SimpleMap: React.FC<SimpleMapProps> = ({
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [selectedStadium, setSelectedStadium] = useState<Stadium | null>(null);
-
-  // 대한민국 중심 좌표
-  const centerLat = 37.5665;
-  const centerLng = 126.9780;
 
   // 위도/경도를 픽셀 좌표로 변환하는 간단한 함수
   const latLngToPixel = (lat: number, lng: number, mapWidth: number, mapHeight: number) => {

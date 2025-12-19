@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import TeamStadiumMap from './TeamStadiumMap';
 import KakaoMapFix from './KakaoMapFix';
 import SimpleMap from './SimpleMap';
 import StadiumDetailModal from './StadiumDetailModal';
@@ -30,7 +29,7 @@ const TeamMapSection: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredStadiums, setFilteredStadiums] = useState<Stadium[]>([]);
-  const [useKakaoMap, setUseKakaoMap] = useState(false);
+  const [useKakaoMap, setUseKakaoMap] = useState(true);
 
   // 스타디움 데이터 로드
   useEffect(() => {
@@ -173,7 +172,7 @@ const TeamMapSection: React.FC = () => {
                 stadiums={filteredStadiums}
                 onStadiumClick={handleStadiumClick}
                 onMapError={() => {
-                  console.log('🔄 카카오맵 실패, 간단한 지도로 전환');
+                  console.log('🔄 카카오맵 실패, SimpleMap으로 전환');
                   setUseKakaoMap(false);
                 }}
                 height="500px"
@@ -181,18 +180,20 @@ const TeamMapSection: React.FC = () => {
               />
             ) : (
               <div className="space-y-3">
-                {/* 지도 안내 */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex items-center space-x-2">
-                    <div className="text-blue-600">🗺️</div>
-                    <div className="text-sm text-blue-800">
-                      전국 축구팀 위치를 간단한 지도로 보여드립니다. 마커를 클릭하면 팀 상세정보를 확인할 수 있습니다.
+                {/* 카카오맵 실패 안내 */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="text-yellow-600">⚠️</div>
+                      <div className="text-sm text-yellow-800">
+                        카카오맵 연결에 문제가 있어 간단한 지도로 표시됩니다.
+                      </div>
                     </div>
                     <button
                       onClick={() => setUseKakaoMap(true)}
-                      className="ml-auto text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                     >
-                      카카오맵 시도
+                      카카오맵 재시도
                     </button>
                   </div>
                 </div>
