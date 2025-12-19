@@ -18,6 +18,7 @@ interface Stadium {
 interface TeamStadiumMapProps {
   stadiums: Stadium[];
   onStadiumClick?: (stadium: Stadium) => void;
+  onMapError?: () => void;
   height?: string;
   className?: string;
 }
@@ -25,6 +26,7 @@ interface TeamStadiumMapProps {
 const TeamStadiumMap: React.FC<TeamStadiumMapProps> = ({
   stadiums,
   onStadiumClick,
+  onMapError,
   height = '400px',
   className = ''
 }) => {
@@ -91,6 +93,7 @@ const TeamStadiumMap: React.FC<TeamStadiumMapProps> = ({
             if (isMounted) {
               setError('카카오맵을 초기화할 수 없습니다.');
               setIsLoading(false);
+              onMapError?.();
             }
           }
         };
@@ -100,6 +103,7 @@ const TeamStadiumMap: React.FC<TeamStadiumMapProps> = ({
           if (isMounted) {
             setError('카카오맵 스크립트를 불러오는데 실패했습니다.');
             setIsLoading(false);
+            onMapError?.();
           }
         };
         
@@ -129,6 +133,7 @@ const TeamStadiumMap: React.FC<TeamStadiumMapProps> = ({
           if (isMounted) {
             setError('카카오맵 객체를 찾을 수 없습니다.');
             setIsLoading(false);
+            onMapError?.();
           }
         }
       };
@@ -138,6 +143,7 @@ const TeamStadiumMap: React.FC<TeamStadiumMapProps> = ({
         if (isMounted) {
           setError('카카오맵 스크립트를 불러오는데 실패했습니다.');
           setIsLoading(false);
+          onMapError?.();
         }
       };
       

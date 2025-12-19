@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TeamStadiumMap from './TeamStadiumMap';
+import KakaoMapFix from './KakaoMapFix';
 import SimpleMap from './SimpleMap';
 import StadiumDetailModal from './StadiumDetailModal';
 import { stadiumService } from '../../services/stadiumService';
@@ -29,6 +30,7 @@ const TeamMapSection: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredStadiums, setFilteredStadiums] = useState<Stadium[]>([]);
+  const [useKakaoMap, setUseKakaoMap] = useState(false);
 
   // 스타디움 데이터 로드
   useEffect(() => {
@@ -166,21 +168,36 @@ const TeamMapSection: React.FC = () => {
           </div>
         ) : filteredStadiums.length > 0 ? (
           <div className="space-y-4">
-            {/* 카카오맵 로드 실패 시 임시 지도 사용 안내 */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <div className="flex items-center space-x-2">
-                <div className="text-yellow-600">⚠️</div>
-                <div className="text-sm text-yellow-800">
-                  지도 서비스 연결에 문제가 있어 간단한 지도로 표시됩니다. 정확한 위치는 각 팀의 상세 정보에서 확인하실 수 있습니다.
+            {useKakaoMap ? (
+              <KakaoMapFix
+                stadiums={filteredStadiums}
+                onStadiumClick={handleStadiumClick}
+                onMapError={() => {
+                  console.log('🔄 수정된 카카오맵 실패, 대체 지도로 전환');
+                  setUseKakaoMap(false);
+                }}
+                height="400px"
+                className="sm:h-[500px]"
+              />
+            ) : (
+              <>
+                {/* 카카오맵 로드 실패 시 안내 */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="text-yellow-600">⚠️</div>
+                    <div className="text-sm text-yellow-800">
+                      카카오맵 연결에 문제가 있어 간단한 지도로 표시됩니다. 정확한 위치는 각 팀의 상세 정보에서 확인하실 수 있습니다.
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <SimpleMap
-              stadiums={filteredStadiums}
-              onStadiumClick={handleStadiumClick}
-              height="400px"
-              className="sm:h-[500px]"
-            />
+                <SimpleMap
+                  stadiums={filteredStadiums}
+                  onStadiumClick={handleStadiumClick}
+                  height="400px"
+                  className="sm:h-[500px]"
+                />
+              </>
+            )}
           </div>
         ) : (
           <div className="h-96 sm:h-[500px] flex items-center justify-center bg-gray-100">
