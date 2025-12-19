@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // 카카오맵 타입 선언
 declare const window: Window & {
@@ -36,8 +36,14 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
   const [error, setError] = useState<string | null>(null);
   const markersRef = useRef<any[]>([]);
 
-  // 카카오맵 스크립트 로드
+  // mapContainer가 준비된 후 카카오맵 로드
   useEffect(() => {
+    if (!mapContainer.current) {
+      console.log('⏸️ mapContainer 아직 준비되지 않음, 대기 중...');
+      return;
+    }
+
+    console.log('✅ mapContainer 준비됨, 카카오맵 로드 시작');
     let isMounted = true;
 
     const loadKakaoMap = () => {
@@ -48,12 +54,7 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
         if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
           console.log('✅ 카카오맵이 완전히 로드됨');
           if (isMounted) {
-            // DOM 컨테이너가 준비될 때까지 잠깐 대기
-            setTimeout(() => {
-              if (isMounted) {
-                initializeMap();
-              }
-            }, 100);
+            initializeMap();
           }
           return;
         } else if (window.kakao && window.kakao.maps) {
@@ -61,11 +62,7 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
           window.kakao.maps.load(() => {
             console.log('✅ kakao.maps.load() 완료');
             if (isMounted) {
-              setTimeout(() => {
-                if (isMounted) {
-                  initializeMap();
-                }
-              }, 100);
+              initializeMap();
             }
           });
           return;
@@ -91,11 +88,7 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
             window.kakao.maps.load(() => {
               console.log('🗺️ 카카오맵 API 로드 완료');
               if (isMounted) {
-                setTimeout(() => {
-                  if (isMounted) {
-                    initializeMap();
-                  }
-                }, 100);
+                initializeMap();
               }
             });
           } else {
@@ -136,10 +129,20 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
       console.log('🔍 디버그 - window.kakao.maps:', !!window.kakao?.maps);
       console.log('🔍 디버그 - window.kakao.maps.Map:', !!window.kakao?.maps?.Map);
       
-      if (!mapContainer.current || !window.kakao?.maps) {
-        console.error('❌ 맵 컨테이너 또는 kakao.maps 없음');
+      if (!mapContainer.current) {
+        console.error('❌ DOM 컨테이너가 없음');
         if (isMounted) {
-          setError('지도 컨테이너 또는 카카오맵 API를 찾을 수 없습니다.');
+          setError('지도 컨테이너를 찾을 수 없습니다.');
+          setIsLoading(false);
+          onMapError?.();
+        }
+        return;
+      }
+      
+      if (!window.kakao?.maps) {
+        console.error('❌ kakao.maps 객체 없음');
+        if (isMounted) {
+          setError('카카오맵 API를 찾을 수 없습니다.');
           setIsLoading(false);
           onMapError?.();
         }
@@ -177,8 +180,7 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
       console.log('🧹 KakaoMapFix 정리 중');
       isMounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [mapContainer.current]); // mapContainer가 준비될 때까지 대기
 
   // 마커 생성 및 업데이트
   useEffect(() => {
