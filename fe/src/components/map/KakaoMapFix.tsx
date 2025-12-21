@@ -18,7 +18,6 @@ interface KakaoMapFixProps {
   className?: string;
 }
 
-
 const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
   stadiums,
   onStadiumClick,
@@ -29,14 +28,11 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  interface MarkerInfo {
-    marker: InstanceType<typeof window.kakao.maps.Marker>;
-    infowindow: InstanceType<typeof window.kakao.maps.InfoWindow>;
-  }
-  const markersRef = useRef<MarkerInfo[]>([]);
+  const markersRef = useRef<{ marker: any; infowindow: any }[]>([]);
 
   useEffect(() => {
     if (!mapContainer.current || stadiums.length === 0) {
+      setIsLoading(false);
       return;
     }
 
@@ -73,7 +69,7 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
       markersRef.current = [];
 
       // 새로운 마커들 생성
-      const newMarkers: MarkerInfo[] = [];
+      const newMarkers: { marker: any; infowindow: any }[] = [];
       const bounds = new window.kakao.maps.LatLngBounds();
 
       stadiums.forEach((stadium) => {
