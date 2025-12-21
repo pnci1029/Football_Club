@@ -68,14 +68,27 @@ jobs:
     - name: Stop and remove existing frontend container
       run: |
         ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
-          docker stop frontend 2>/dev/null || true &&
-          docker rm frontend 2>/dev/null || true
+          echo 'Stopping existing frontend container...' &&
+          docker stop frontend 2>/dev/null || echo 'No frontend container to stop' &&
+          docker rm frontend 2>/dev/null || echo 'No frontend container to remove' &&
+          echo 'Cleanup completed'
+        "
+
+    - name: Check Docker images
+      run: |
+        ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
+          echo 'Available Docker images:' &&
+          docker images | grep football-club-frontend || echo 'No frontend images found'
         "
 
     - name: Start new frontend container
       run: |
         ssh -i ~/.ssh/id_rsa root@${{ secrets.CAFE24_HOST }} "
-          docker run -d --name frontend -p 3000:3000 football-club-frontend:latest
+          echo 'Starting frontend container...' &&
+          docker run -d --name frontend -p 3000:3000 football-club-frontend:latest &&
+          echo 'Frontend container started successfully' &&
+          sleep 2 &&
+          docker ps | grep frontend || echo 'Frontend container not running after start'
         "
 
     - name: Verify frontend deployment

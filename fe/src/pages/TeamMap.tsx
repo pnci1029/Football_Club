@@ -2,6 +2,7 @@ import React from 'react';
 import TeamMapSection from '../components/map/TeamMapSection';
 
 const TeamMap: React.FC = () => {
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 섹션 */}
