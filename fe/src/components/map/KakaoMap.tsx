@@ -4,6 +4,7 @@ interface KakaoMap {
   setCenter(latlng: KakaoLatLng): void;
   setLevel(level: number): void;
   relayout(): void;
+  setBounds(bounds: KakaoLatLngBounds): void;
 }
 
 interface KakaoLatLng {
@@ -21,6 +22,10 @@ interface KakaoInfoWindow {
   close(): void;
 }
 
+interface KakaoLatLngBounds {
+  extend(latlng: KakaoLatLng): void;
+}
+
 interface KakaoMaps {
   load: (callback: () => void) => void;
   Map: new (container: HTMLElement, options: {
@@ -36,6 +41,7 @@ interface KakaoMaps {
     content: string;
     removable?: boolean;
   }) => KakaoInfoWindow;
+  LatLngBounds: new () => KakaoLatLngBounds;
   event: {
     addListener: (target: KakaoMap | KakaoMarker, type: string, handler: () => void) => void;
   };
