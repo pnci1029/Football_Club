@@ -169,6 +169,7 @@ const TeamMapSection: React.FC = () => {
           <div className="space-y-4">
             {useKakaoMap ? (
               <KakaoMapFix
+                key="kakao-map" // key 추가로 재마운트 방지
                 stadiums={filteredStadiums}
                 onStadiumClick={handleStadiumClick}
                 onMapError={() => {
