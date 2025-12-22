@@ -36,20 +36,46 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
       return;
     }
 
-    if (!window.kakao) {
-      setError('카카오맵 API가 로드되지 않았습니다.');
-      setIsLoading(false);
-      onMapError?.();
-      return;
-    }
+    // 카카오맵 API 로드 대기 (최대 10초)
+    const initWithRetry = () => {
+      let attempts = 0;
+      const maxAttempts = 50; // 10초 (200ms * 50)
 
-    // 카카오맵 API가 로드되었는지 확인
-    if (window.kakao.maps && window.kakao.maps.Map) {
-      initializeMap();
-    } else {
-      // API가 아직 로드되지 않았다면 로드될 때까지 기다림
-      window.kakao.maps?.load(initializeMap);
-    }
+      const tryInit = () => {
+        attempts++;
+        
+        if (!window.kakao) {
+          if (attempts < maxAttempts) {
+            setTimeout(tryInit, 200);
+            return;
+          }
+          setError('카카오맵 API가 로드되지 않았습니다.');
+          setIsLoading(false);
+          onMapError?.();
+          return;
+        }
+
+        // 카카오맵 API가 로드되었는지 확인
+        if (window.kakao.maps && window.kakao.maps.Map) {
+          initializeMap();
+        } else if (window.kakao.maps?.load) {
+          // API가 아직 로드되지 않았다면 로드될 때까지 기다림
+          window.kakao.maps.load(initializeMap);
+        } else {
+          if (attempts < maxAttempts) {
+            setTimeout(tryInit, 200);
+            return;
+          }
+          setError('카카오맵 초기화에 실패했습니다.');
+          setIsLoading(false);
+          onMapError?.();
+        }
+      };
+
+      tryInit();
+    };
+
+    initWithRetry();
 
     function initializeMap() {
       if (!mapContainer.current) return;
@@ -63,6 +89,12 @@ const KakaoMapFix: React.FC<KakaoMapFixProps> = ({
 
       // 지도 생성
       const map = new window.kakao.maps.Map(mapContainer.current, mapOption);
+
+      // 지도 크기 재조정 (KakaoMap 방식과 동일)
+      setTimeout(() => {
+        map.relayout();
+        map.setCenter(center);
+      }, 100);
 
       // 기존 마커 제거
       markersRef.current.forEach(item => item.marker.setMap(null));
