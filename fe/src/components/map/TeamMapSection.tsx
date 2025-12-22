@@ -36,12 +36,10 @@ const TeamMapSection: React.FC = () => {
     const loadStadiums = async () => {
       try {
         setIsLoading(true);
-        console.log('🏟️ 스타디움 데이터 로드 시작');
-        
+
         // 모든 스타디움 데이터를 가져옵니다 (페이지 크기를 크게 설정)
         const response = await stadiumService.getStadiums(0, 1000);
-        console.log('📊 스타디움 API 응답:', response);
-        
+
         // StadiumDto를 Stadium 인터페이스에 맞게 변환
         const transformedStadiums: Stadium[] = (response.content || []).map(stadium => ({
           id: stadium.id,
@@ -58,13 +56,11 @@ const TeamMapSection: React.FC = () => {
           teamContactPhone: stadium.teamContactPhone,
           teamKakaoId: stadium.teamKakaoId
         }));
-        
         console.log(`✅ ${transformedStadiums.length}개 스타디움 데이터 변환 완료:`, transformedStadiums);
-        
+
         setStadiums(transformedStadiums);
         setFilteredStadiums(transformedStadiums);
       } catch (err) {
-        console.error('❌ 스타디움 로드 실패:', err);
         setError('스타디움 정보를 불러오는데 실패했습니다.');
       } finally {
         setIsLoading(false);
@@ -107,7 +103,7 @@ const TeamMapSection: React.FC = () => {
           </svg>
           <p className="text-lg font-medium">{error}</p>
         </div>
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
@@ -138,7 +134,7 @@ const TeamMapSection: React.FC = () => {
               />
             </div>
           </div>
-          
+
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <span className="flex items-center gap-1">
               <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
@@ -173,7 +169,6 @@ const TeamMapSection: React.FC = () => {
                 stadiums={filteredStadiums}
                 onStadiumClick={handleStadiumClick}
                 onMapError={() => {
-                  console.log('🔄 카카오맵 실패, SimpleMap으로 전환');
                   setUseKakaoMap(false);
                 }}
                 height="500px"
