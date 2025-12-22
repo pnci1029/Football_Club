@@ -31,13 +31,27 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
   const markersRef = useRef<{ marker: any; infowindow: any }[]>([]);
 
   useEffect(() => {
-    if (!mapContainer.current || stadiums.length === 0) {
+    console.log('🗺️ KakaoMultiMap useEffect 실행:', { 
+      hasContainer: !!mapContainer.current, 
+      stadiumCount: stadiums.length,
+      hasKakao: !!window.kakao 
+    });
+
+    if (!mapContainer.current) {
+      console.log('❌ mapContainer가 없음');
+      setIsLoading(false);
+      return;
+    }
+
+    if (stadiums.length === 0) {
+      console.log('❌ stadiums 배열이 비어있음');
       setIsLoading(false);
       return;
     }
 
     // KakaoMap 방식과 동일하게 전역 window.kakao 사용
     if (!window.kakao) {
+      console.log('❌ window.kakao가 없음');
       setError('카카오맵 API가 로드되지 않았습니다.');
       setIsLoading(false);
       onMapError?.();
