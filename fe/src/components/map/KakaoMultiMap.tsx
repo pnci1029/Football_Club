@@ -19,65 +19,66 @@ interface KakaoMultiMapProps {
 }
 
 const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
-  stadiums,
-  onStadiumClick,
-  onMapError,
-  height = '400px',
-  className = ''
-}) => {
+                                                       stadiums,
+                                                       onStadiumClick,
+                                                       onMapError,
+                                                       height = '400px',
+                                                       className = ''
+                                                     }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const markersRef = useRef<{ marker: any; infowindow: any }[]>([]);
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
-    console.log('🗺️ KakaoMultiMap useEffect 실행:', { 
-      hasContainer: !!mapContainer.current, 
+    // 이미 초기화되었다면 리턴
+    if (isInitializedRef.current) {
+      console.log('🔄 이미 초기화됨, 스킵');
+      return;
+    }
+
+    console.log('🗺️ KakaoMultiMap useEffect 실행:', {
+      hasContainer: !!mapContainer.current,
       stadiumCount: stadiums.length,
-      hasKakao: !!window.kakao 
+      hasKakao: !!window.kakao
     });
 
-    // DOM이 완전히 로드될 때까지 잠시 대기
-    const timer = setTimeout(() => {
-      if (!mapContainer.current) {
-        console.log('❌ mapContainer가 여전히 없음');
-        setIsLoading(false);
-        return;
-      }
-      
-      initializeMapWithContainer();
-    }, 50);
+    if (!mapContainer.current) {
+      console.log('❌ mapContainer가 없음');
+      setIsLoading(false);
+      return;
+    }
 
-    return () => clearTimeout(timer);
+    if (stadiums.length === 0) {
+      console.log('❌ stadiums 배열이 비어있음');
+      setIsLoading(false);
+      return;
+    }
 
-    function initializeMapWithContainer() {
-      if (stadiums.length === 0) {
-        console.log('❌ stadiums 배열이 비어있음');
-        setIsLoading(false);
-        return;
-      }
+    // KakaoMap 방식과 동일하게 전역 window.kakao 사용
+    if (!window.kakao) {
+      console.log('❌ window.kakao가 없음');
+      setError('카카오맵 API가 로드되지 않았습니다.');
+      setIsLoading(false);
+      onMapError?.();
+      return;
+    }
 
-      // KakaoMap 방식과 동일하게 전역 window.kakao 사용
-      if (!window.kakao) {
-        console.log('❌ window.kakao가 없음');
-        setError('카카오맵 API가 로드되지 않았습니다.');
-        setIsLoading(false);
-        onMapError?.();
-        return;
-      }
+    // 초기화 플래그 설정
+    isInitializedRef.current = true;
 
-      // 카카오맵 API가 로드되었는지 확인
-      if (window.kakao.maps && window.kakao.maps.Map) {
-        initializeMap();
-      } else {
-        // API가 아직 로드되지 않았다면 로드될 때까지 기다림
-        window.kakao.maps?.load(initializeMap);
-      }
+    // 카카오맵 API가 로드되었는지 확인
+    if (window.kakao.maps && window.kakao.maps.Map) {
+      initializeMap();
+    } else {
+      // API가 아직 로드되지 않았다면 로드될 때까지 기다림
+      window.kakao.maps?.load(initializeMap);
     }
 
     function initializeMap() {
       if (!mapContainer.current) return;
-      
+
       // 서울 중심 좌표로 기본 설정
       const center = new window.kakao.maps.LatLng(37.5665, 126.9780);
       const mapOption = {
@@ -104,7 +105,7 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
 
       stadiums.forEach((stadium) => {
         const position = new window.kakao.maps.LatLng(stadium.latitude, stadium.longitude);
-        
+
         // 마커 생성
         const marker = new window.kakao.maps.Marker({
           position,
@@ -175,30 +176,30 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
 
   if (isLoading) {
     return (
-      <div className={`${className} flex items-center justify-center bg-gray-100 rounded-lg`} style={{ height }}>
-        <div className="flex items-center space-x-2">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <span className="text-gray-600">카카오맵을 불러오는 중...</span>
+        <div className={`${className} flex items-center justify-center bg-gray-100 rounded-lg`} style={{ height }}>
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span className="text-gray-600">카카오맵을 불러오는 중...</span>
+          </div>
         </div>
-      </div>
     );
   }
 
   if (error) {
     return (
-      <div className={`${className} flex items-center justify-center bg-red-50 rounded-lg border border-red-200`} style={{ height }}>
-        <div className="text-center">
-          <div className="text-red-600 mb-2">🗺️</div>
-          <div className="text-red-700 font-medium">{error}</div>
+        <div className={`${className} flex items-center justify-center bg-red-50 rounded-lg border border-red-200`} style={{ height }}>
+          <div className="text-center">
+            <div className="text-red-600 mb-2">🗺️</div>
+            <div className="text-red-700 font-medium">{error}</div>
+          </div>
         </div>
-      </div>
     );
   }
 
   return (
-    <div className={`${className} rounded-lg overflow-hidden shadow-lg`}>
-      <div ref={mapContainer} style={{ width: '100%', height }} />
-    </div>
+      <div className={`${className} rounded-lg overflow-hidden shadow-lg`}>
+        <div ref={mapContainer} style={{ width: '100%', height }} />
+      </div>
   );
 };
 
