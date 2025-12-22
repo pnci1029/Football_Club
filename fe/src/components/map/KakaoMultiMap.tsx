@@ -37,33 +37,42 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
       hasKakao: !!window.kakao 
     });
 
-    if (!mapContainer.current) {
-      console.log('❌ mapContainer가 없음');
-      setIsLoading(false);
-      return;
-    }
+    // DOM이 완전히 로드될 때까지 잠시 대기
+    const timer = setTimeout(() => {
+      if (!mapContainer.current) {
+        console.log('❌ mapContainer가 여전히 없음');
+        setIsLoading(false);
+        return;
+      }
+      
+      initializeMapWithContainer();
+    }, 50);
 
-    if (stadiums.length === 0) {
-      console.log('❌ stadiums 배열이 비어있음');
-      setIsLoading(false);
-      return;
-    }
+    return () => clearTimeout(timer);
 
-    // KakaoMap 방식과 동일하게 전역 window.kakao 사용
-    if (!window.kakao) {
-      console.log('❌ window.kakao가 없음');
-      setError('카카오맵 API가 로드되지 않았습니다.');
-      setIsLoading(false);
-      onMapError?.();
-      return;
-    }
+    function initializeMapWithContainer() {
+      if (stadiums.length === 0) {
+        console.log('❌ stadiums 배열이 비어있음');
+        setIsLoading(false);
+        return;
+      }
 
-    // 카카오맵 API가 로드되었는지 확인
-    if (window.kakao.maps && window.kakao.maps.Map) {
-      initializeMap();
-    } else {
-      // API가 아직 로드되지 않았다면 로드될 때까지 기다림
-      window.kakao.maps?.load(initializeMap);
+      // KakaoMap 방식과 동일하게 전역 window.kakao 사용
+      if (!window.kakao) {
+        console.log('❌ window.kakao가 없음');
+        setError('카카오맵 API가 로드되지 않았습니다.');
+        setIsLoading(false);
+        onMapError?.();
+        return;
+      }
+
+      // 카카오맵 API가 로드되었는지 확인
+      if (window.kakao.maps && window.kakao.maps.Map) {
+        initializeMap();
+      } else {
+        // API가 아직 로드되지 않았다면 로드될 때까지 기다림
+        window.kakao.maps?.load(initializeMap);
+      }
     }
 
     function initializeMap() {
