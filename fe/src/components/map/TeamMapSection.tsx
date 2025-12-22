@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import KakaoMapFix from './KakaoMapFix';
+import KakaoMultiMap from './KakaoMultiMap';
 import SimpleMap from './SimpleMap';
 import StadiumDetailModal from './StadiumDetailModal';
 import { stadiumService } from '../../services/stadiumService';
@@ -168,8 +168,8 @@ const TeamMapSection: React.FC = () => {
         ) : filteredStadiums.length > 0 ? (
           <div className="space-y-4">
             {useKakaoMap ? (
-              <KakaoMapFix
-                key="kakao-map" // key 추가로 재마운트 방지
+              <KakaoMultiMap
+                key="kakao-multi-map" // key 추가로 재마운트 방지
                 stadiums={filteredStadiums}
                 onStadiumClick={handleStadiumClick}
                 onMapError={() => {
