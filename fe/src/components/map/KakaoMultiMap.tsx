@@ -32,24 +32,24 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
   const mapRef = useRef<any>(null);
 
   useEffect(() => {
-    // 짧은 지연으로 DOM이 완전히 렌더링될 때까지 기다림
-    const timer = setTimeout(() => {
-      initializeMapWhenReady();
-    }, 100);
+    let retryCount = 0;
+    const maxRetries = 5;
 
-    return () => clearTimeout(timer);
-  }, [stadiums, onStadiumClick, onMapError]);
-
-  // 추가로 컨테이너가 준비된 후에도 체크
-  useEffect(() => {
-    if (mapContainer.current && stadiums.length > 0) {
-      const timer = setTimeout(() => {
+    const tryInitialize = () => {
+      if (mapContainer.current) {
         initializeMapWhenReady();
-      }, 200);
+      } else if (retryCount < maxRetries) {
+        retryCount++;
+        setTimeout(tryInitialize, 100 * retryCount); // 증가하는 지연
+      } else {
+        console.log('❌ mapContainer 초기화 포기');
+        setIsLoading(false);
+      }
+    };
 
-      return () => clearTimeout(timer);
-    }
-  }, [mapContainer.current, stadiums.length]);
+    // 즉시 시도
+    tryInitialize();
+  }, [stadiums, onStadiumClick, onMapError]);
 
   const initializeMapWhenReady = () => {
     console.log('🗺️ KakaoMultiMap 초기화 시작:', {

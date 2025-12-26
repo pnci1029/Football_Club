@@ -161,7 +161,24 @@ const TeamMapSection: React.FC = () => {
               <p className="text-gray-600">전국 축구팀 정보를 불러오는 중...</p>
             </div>
           </div>
-        ) : filteredStadiums.length > 0 ? (
+        ) : filteredStadiums.length === 0 ? (
+          <div className="h-96 sm:h-[500px] flex items-center justify-center bg-gray-100">
+            <div className="text-center">
+              <div className="text-6xl mb-4">🏟️</div>
+              <p className="text-gray-600 text-lg">
+                {searchQuery ? '검색 결과가 없습니다' : '등록된 축구팀이 없습니다'}
+              </p>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  모든 팀 보기
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
           <div className="space-y-4">
             {useKakaoMap ? (
               <KakaoMultiMap
@@ -201,23 +218,6 @@ const TeamMapSection: React.FC = () => {
                 />
               </div>
             )}
-          </div>
-        ) : (
-          <div className="h-96 sm:h-[500px] flex items-center justify-center bg-gray-100">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🏟️</div>
-              <p className="text-gray-600 text-lg">
-                {searchQuery ? '검색 결과가 없습니다' : '등록된 축구팀이 없습니다'}
-              </p>
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  모든 팀 보기
-                </button>
-              )}
-            </div>
           </div>
         )}
       </div>
