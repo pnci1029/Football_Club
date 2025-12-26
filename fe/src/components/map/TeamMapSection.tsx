@@ -182,7 +182,7 @@ const TeamMapSection: React.FC = () => {
           <div className="space-y-4">
             {useKakaoMap ? (
               <KakaoMultiMap
-                key={`kakao-multi-map-${filteredStadiums.length}-${useKakaoMap}`}
+                key="kakao-multi-map"
                 stadiums={filteredStadiums}
                 onStadiumClick={handleStadiumClick}
                 onMapError={() => {

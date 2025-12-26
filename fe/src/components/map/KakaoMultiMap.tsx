@@ -32,27 +32,7 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
   const mapRef = useRef<any>(null);
 
   useEffect(() => {
-    let retryCount = 0;
-    const maxRetries = 5;
-
-    const tryInitialize = () => {
-      if (mapContainer.current) {
-        initializeMapWhenReady();
-      } else if (retryCount < maxRetries) {
-        retryCount++;
-        setTimeout(tryInitialize, 100 * retryCount); // 증가하는 지연
-      } else {
-        console.log('❌ mapContainer 초기화 포기');
-        setIsLoading(false);
-      }
-    };
-
-    // 즉시 시도
-    tryInitialize();
-  }, [stadiums, onStadiumClick, onMapError]);
-
-  const initializeMapWhenReady = () => {
-    console.log('🗺️ KakaoMultiMap 초기화 시작:', {
+    console.log('🗺️ KakaoMultiMap useEffect 실행:', {
       hasContainer: !!mapContainer.current,
       stadiumCount: stadiums.length,
       hasKakao: !!window.kakao
@@ -70,6 +50,7 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
       return;
     }
 
+    // KakaoMap 방식과 동일하게 전역 window.kakao 사용
     if (!window.kakao) {
       console.log('❌ window.kakao가 없음');
       setError('카카오맵 API가 로드되지 않았습니다.');
@@ -85,7 +66,13 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
       // API가 아직 로드되지 않았다면 로드될 때까지 기다림
       window.kakao.maps?.load(initializeMap);
     }
-  };
+
+    // cleanup function
+    return () => {
+      cleanupMarkers();
+    };
+  }, [stadiums, onStadiumClick, onMapError]);
+
 
   const initializeMap = () => {
     if (!mapContainer.current) return;
@@ -214,9 +201,9 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
   }
 
   return (
-    <div 
-      ref={mapContainer} 
-      style={{ width: '100%', height, minHeight: '300px' }} 
+    <div
+      ref={mapContainer}
+      style={{ width: '100%', height, minHeight: '300px' }}
       className={`rounded-lg overflow-hidden ${className}`}
     />
   );
