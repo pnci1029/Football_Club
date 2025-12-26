@@ -32,7 +32,16 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
   const mapRef = useRef<any>(null);
 
   useEffect(() => {
-    console.log('🗺️ KakaoMultiMap useEffect 실행:', {
+    // 짧은 지연으로 DOM이 완전히 렌더링될 때까지 기다림
+    const timer = setTimeout(() => {
+      initializeMapWhenReady();
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [stadiums, onStadiumClick, onMapError]);
+
+  const initializeMapWhenReady = () => {
+    console.log('🗺️ KakaoMultiMap 초기화 시작:', {
       hasContainer: !!mapContainer.current,
       stadiumCount: stadiums.length,
       hasKakao: !!window.kakao
@@ -50,7 +59,6 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
       return;
     }
 
-    // KakaoMap 방식과 동일하게 전역 window.kakao 사용
     if (!window.kakao) {
       console.log('❌ window.kakao가 없음');
       setError('카카오맵 API가 로드되지 않았습니다.');
