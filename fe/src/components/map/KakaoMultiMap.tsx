@@ -29,15 +29,9 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const markersRef = useRef<{ marker: any; infowindow: any }[]>([]);
-  const isInitializedRef = useRef(false);
+  const mapRef = useRef<any>(null);
 
   useEffect(() => {
-    // 이미 초기화되었다면 리턴
-    if (isInitializedRef.current) {
-      console.log('🔄 이미 초기화됨, 스킵');
-      return;
-    }
-
     console.log('🗺️ KakaoMultiMap useEffect 실행:', {
       hasContainer: !!mapContainer.current,
       stadiumCount: stadiums.length,
@@ -65,9 +59,6 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
       return;
     }
 
-    // 초기화 플래그 설정
-    isInitializedRef.current = true;
-
     // 카카오맵 API가 로드되었는지 확인
     if (window.kakao.maps && window.kakao.maps.Map) {
       initializeMap();
@@ -79,6 +70,10 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
     function initializeMap() {
       if (!mapContainer.current) return;
 
+      // 기존 마커 제거
+      markersRef.current.forEach(item => item.marker.setMap(null));
+      markersRef.current = [];
+
       // 서울 중심 좌표로 기본 설정
       const center = new window.kakao.maps.LatLng(37.5665, 126.9780);
       const mapOption = {
@@ -86,18 +81,17 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
         level: 7 // 지도의 확대 레벨
       };
 
-      // 지도 생성
-      const map = new window.kakao.maps.Map(mapContainer.current, mapOption);
+      // 지도 생성 또는 재사용
+      if (!mapRef.current) {
+        mapRef.current = new window.kakao.maps.Map(mapContainer.current, mapOption);
+      }
+      const map = mapRef.current;
 
       // KakaoMap 방식과 동일하게 지도 크기 재조정
       setTimeout(() => {
         map.relayout();
         map.setCenter(center);
       }, 100);
-
-      // 기존 마커 제거
-      markersRef.current.forEach(item => item.marker.setMap(null));
-      markersRef.current = [];
 
       // 새로운 마커들 생성
       const newMarkers: { marker: any; infowindow: any }[] = [];
@@ -172,6 +166,12 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
       setIsLoading(false);
       setError(null);
     }
+
+    // cleanup function
+    return () => {
+      markersRef.current.forEach(item => item.marker.setMap(null));
+      markersRef.current = [];
+    };
   }, [stadiums, onStadiumClick, onMapError]);
 
   if (isLoading) {
