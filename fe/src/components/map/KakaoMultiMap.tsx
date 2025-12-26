@@ -33,48 +33,35 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
   const markersRef = useRef<{ marker: any; infowindow: any }[]>([]);
 
   useEffect(() => {
-    if (!mapContainer.current) {
-      setIsLoading(false);
+    if (!window.kakao || !mapContainer.current) {
       return;
     }
 
-    const initializeMap = () => {
+    if (window.kakao.maps && window.kakao.maps.Map) {
+      initializeMap();
+    } else {
+      window.kakao.maps?.load(initializeMap);
+    }
+
+    function initializeMap() {
       if (!mapContainer.current) return;
       
-      const center = new window.kakao.maps.LatLng(37.5665, 126.9780);
       const mapOption = {
-        center,
-        level: 7
+        center: new window.kakao.maps.LatLng(37.5665, 126.9780),
+        level: 3
       };
 
       const mapInstance = new window.kakao.maps.Map(mapContainer.current, mapOption);
 
       setTimeout(() => {
         mapInstance.relayout();
-        mapInstance.setCenter(center);
+        mapInstance.setCenter(new window.kakao.maps.LatLng(37.5665, 126.9780));
       }, 100);
 
       setMap(mapInstance);
       setIsLoading(false);
-    };
-
-    if (!window.kakao) {
-      setError('카카오맵 API가 로드되지 않았습니다.');
-      setIsLoading(false);
-      onMapError?.();
-      return;
     }
-
-    if (window.kakao.maps && window.kakao.maps.Map) {
-      initializeMap();
-    } else if (window.kakao.maps) {
-      window.kakao.maps.load(initializeMap);
-    } else {
-      setError('카카오맵 API 초기화에 실패했습니다.');
-      setIsLoading(false);
-      onMapError?.();
-    }
-  }, [onMapError]);
+  }, []);
 
   useEffect(() => {
     if (!map || !stadiums.length) return;
