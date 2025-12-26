@@ -39,9 +39,17 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
     });
 
     if (!mapContainer.current) {
-      console.log('❌ mapContainer가 없음');
-      setIsLoading(false);
-      return;
+      console.log('❌ mapContainer가 없음, 50ms 후 재시도');
+      const timer = setTimeout(() => {
+        if (mapContainer.current) {
+          console.log('✅ mapContainer 재시도 성공');
+          initializeMapDirectly();
+        } else {
+          console.log('❌ mapContainer 재시도 실패');
+          setIsLoading(false);
+        }
+      }, 50);
+      return () => clearTimeout(timer);
     }
 
     if (stadiums.length === 0) {
@@ -73,6 +81,29 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
     };
   }, [stadiums, onStadiumClick, onMapError]);
 
+  const initializeMapDirectly = () => {
+    if (stadiums.length === 0) {
+      console.log('❌ stadiums 배열이 비어있음');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!window.kakao) {
+      console.log('❌ window.kakao가 없음');
+      setError('카카오맵 API가 로드되지 않았습니다.');
+      setIsLoading(false);
+      onMapError?.();
+      return;
+    }
+
+    // 카카오맵 API가 로드되었는지 확인
+    if (window.kakao.maps && window.kakao.maps.Map) {
+      initializeMap();
+    } else {
+      // API가 아직 로드되지 않았다면 로드될 때까지 기다림
+      window.kakao.maps?.load(initializeMap);
+    }
+  };
 
   const initializeMap = () => {
     if (!mapContainer.current) return;
