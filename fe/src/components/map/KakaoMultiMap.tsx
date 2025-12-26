@@ -35,10 +35,21 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
     // 짧은 지연으로 DOM이 완전히 렌더링될 때까지 기다림
     const timer = setTimeout(() => {
       initializeMapWhenReady();
-    }, 50);
+    }, 100);
 
     return () => clearTimeout(timer);
   }, [stadiums, onStadiumClick, onMapError]);
+
+  // 추가로 컨테이너가 준비된 후에도 체크
+  useEffect(() => {
+    if (mapContainer.current && stadiums.length > 0) {
+      const timer = setTimeout(() => {
+        initializeMapWhenReady();
+      }, 200);
+
+      return () => clearTimeout(timer);
+    }
+  }, [mapContainer.current, stadiums.length]);
 
   const initializeMapWhenReady = () => {
     console.log('🗺️ KakaoMultiMap 초기화 시작:', {
