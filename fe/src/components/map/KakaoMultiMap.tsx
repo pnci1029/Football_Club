@@ -74,113 +74,111 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
       // API가 아직 로드되지 않았다면 로드될 때까지 기다림
       window.kakao.maps?.load(initializeMap);
     }
+  };
 
-    function initializeMap() {
-      if (!mapContainer.current) return;
+  const initializeMap = () => {
+    if (!mapContainer.current) return;
 
-      // 기존 마커 제거
-      markersRef.current.forEach(item => item.marker.setMap(null));
-      markersRef.current = [];
+    // 기존 마커 제거
+    cleanupMarkers();
 
-      // 서울 중심 좌표로 기본 설정
-      const center = new window.kakao.maps.LatLng(37.5665, 126.9780);
-      const mapOption = {
-        center,
-        level: 7 // 지도의 확대 레벨
-      };
+    // 서울 중심 좌표로 기본 설정
+    const center = new window.kakao.maps.LatLng(37.5665, 126.9780);
+    const mapOption = {
+      center,
+      level: 7 // 지도의 확대 레벨
+    };
 
-      // 지도 생성 또는 재사용
-      if (!mapRef.current) {
-        mapRef.current = new window.kakao.maps.Map(mapContainer.current, mapOption);
-      }
-      const map = mapRef.current;
+    // 지도 생성 또는 재사용
+    if (!mapRef.current) {
+      mapRef.current = new window.kakao.maps.Map(mapContainer.current, mapOption);
+    }
+    const map = mapRef.current;
 
-      // KakaoMap 방식과 동일하게 지도 크기 재조정
-      setTimeout(() => {
-        map.relayout();
-        map.setCenter(center);
-      }, 100);
+    // KakaoMap 방식과 동일하게 지도 크기 재조정
+    setTimeout(() => {
+      map.relayout();
+      map.setCenter(center);
+    }, 100);
 
-      // 새로운 마커들 생성
-      const newMarkers: { marker: any; infowindow: any }[] = [];
-      const bounds = new window.kakao.maps.LatLngBounds();
+    // 새로운 마커들 생성
+    const newMarkers: { marker: any; infowindow: any }[] = [];
+    const bounds = new window.kakao.maps.LatLngBounds();
 
-      stadiums.forEach((stadium) => {
-        const position = new window.kakao.maps.LatLng(stadium.latitude, stadium.longitude);
+    stadiums.forEach((stadium) => {
+      const position = new window.kakao.maps.LatLng(stadium.latitude, stadium.longitude);
 
-        // 마커 생성
-        const marker = new window.kakao.maps.Marker({
-          position,
-          map
-        });
-
-        // 인포윈도우 내용
-        const infoContent = `
-          <div style="padding: 10px; min-width: 200px;">
-            <div style="font-weight: bold; color: #2563eb; margin-bottom: 5px;">
-              ${stadium.teamName}
-            </div>
-            <div style="font-size: 14px; margin-bottom: 3px;">
-              📍 ${stadium.name}
-            </div>
-            <div style="font-size: 12px; color: #666;">
-              ${stadium.address}
-            </div>
-          </div>
-        `;
-
-        const infowindow = new window.kakao.maps.InfoWindow({
-          content: infoContent
-        });
-
-        // 마커 클릭 이벤트
-        window.kakao.maps.event.addListener(marker, 'click', () => {
-          // 다른 인포윈도우 모두 닫기
-          markersRef.current.forEach((markerData) => {
-            markerData.infowindow.close();
-          });
-
-          // 현재 인포윈도우 열기
-          infowindow.open(map, marker);
-
-          // 외부 콜백 호출
-          if (onStadiumClick) {
-            onStadiumClick(stadium);
-          }
-        });
-
-        // 마커 호버 효과
-        window.kakao.maps.event.addListener(marker, 'mouseover', () => {
-          infowindow.open(map, marker);
-        });
-
-        window.kakao.maps.event.addListener(marker, 'mouseout', () => {
-          infowindow.close();
-        });
-
-        newMarkers.push({ marker, infowindow });
-        bounds.extend(position);
+      // 마커 생성
+      const marker = new window.kakao.maps.Marker({
+        position,
+        map
       });
 
-      markersRef.current = newMarkers;
+      // 인포윈도우 내용
+      const infoContent = `
+        <div style="padding: 10px; min-width: 200px;">
+          <div style="font-weight: bold; color: #2563eb; margin-bottom: 5px;">
+            ${stadium.teamName}
+          </div>
+          <div style="font-size: 14px; margin-bottom: 3px;">
+            📍 ${stadium.name}
+          </div>
+          <div style="font-size: 12px; color: #666;">
+            ${stadium.address}
+          </div>
+        </div>
+      `;
 
-      // 모든 마커가 보이도록 지도 범위 조정
-      if (stadiums.length > 0) {
-        setTimeout(() => {
-          map.setBounds(bounds);
-        }, 100);
-      }
+      const infowindow = new window.kakao.maps.InfoWindow({
+        content: infoContent
+      });
 
-      setIsLoading(false);
-      setError(null);
+      // 마커 클릭 이벤트
+      window.kakao.maps.event.addListener(marker, 'click', () => {
+        // 다른 인포윈도우 모두 닫기
+        markersRef.current.forEach((markerData) => {
+          markerData.infowindow.close();
+        });
+
+        // 현재 인포윈도우 열기
+        infowindow.open(map, marker);
+
+        // 외부 콜백 호출
+        if (onStadiumClick) {
+          onStadiumClick(stadium);
+        }
+      });
+
+      // 마커 호버 효과
+      window.kakao.maps.event.addListener(marker, 'mouseover', () => {
+        infowindow.open(map, marker);
+      });
+
+      window.kakao.maps.event.addListener(marker, 'mouseout', () => {
+        infowindow.close();
+      });
+
+      newMarkers.push({ marker, infowindow });
+      bounds.extend(position);
+    });
+
+    markersRef.current = newMarkers;
+
+    // 모든 마커가 보이도록 지도 범위 조정
+    if (stadiums.length > 0) {
+      setTimeout(() => {
+        map.setBounds(bounds);
+      }, 100);
     }
 
-    // cleanup function
-    return () => {
-      markersRef.current.forEach(item => item.marker.setMap(null));
-      markersRef.current = [];
-    };
-  }, [stadiums, onStadiumClick, onMapError]);
+    setIsLoading(false);
+    setError(null);
+  };
+
+  const cleanupMarkers = () => {
+    markersRef.current.forEach(item => item.marker.setMap(null));
+    markersRef.current = [];
+  };
 
   if (isLoading) {
     return (
