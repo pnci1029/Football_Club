@@ -214,9 +214,11 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
   }
 
   return (
-      <div className={`${className} rounded-lg overflow-hidden shadow-lg`}>
-        <div ref={mapContainer} style={{ width: '100%', height }} />
-      </div>
+    <div 
+      ref={mapContainer} 
+      style={{ width: '100%', height, minHeight: '300px' }} 
+      className={`rounded-lg overflow-hidden ${className}`}
+    />
   );
 };
 
