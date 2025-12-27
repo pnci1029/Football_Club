@@ -21,6 +21,7 @@ export interface StadiumDto {
   longitude: number;
   teamId: number;
   teamName: string;
+  teamCode?: string | null;
   facilities?: string[] | null;
   hourlyRate?: number | null;
   availableHours?: string | null;

@@ -88,13 +88,13 @@ const Home: React.FC = React.memo(() => {
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex items-center justify-center h-full">
           <div className="text-center max-w-5xl mx-auto">
-            <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-bold mb-4 sm:mb-6 lg:mb-8 leading-tight drop-shadow-lg transition-all duration-1000 ${
+            <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 lg:mb-8 leading-tight drop-shadow-lg transition-all duration-1000 ${
               hasAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}>
               {currentHero.title}
             </h1>
 
-            <p className={`text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl mb-8 sm:mb-10 lg:mb-12 leading-relaxed drop-shadow-md transition-all duration-1000 delay-300 ${
+            <p className={`text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-8 sm:mb-10 lg:mb-12 leading-relaxed drop-shadow-md transition-all duration-1000 delay-300 ${
               hasAnimated ? 'opacity-95 translate-y-0' : 'opacity-0 translate-y-8'
             }`}>
               {currentHero.subtitle}
@@ -156,12 +156,12 @@ const Home: React.FC = React.memo(() => {
         </div>
 
         {/* Main Squad - 모바일 최적화 */}
-        <div className="text-center mb-10 sm:mb-12 lg:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4 sm:mb-6">
+        <div className="text-center mb-8 sm:mb-10 lg:mb-12">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3 sm:mb-4">
             주전 선수단
           </h2>
-          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-xl lg:max-w-2xl mx-auto leading-relaxed">
-            우리 팀의 핵심 선수들을 소개합니다. 각자의 특별한 재능으로 팀의 승리를 이끌어갑니다.
+          <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-lg lg:max-w-xl mx-auto leading-relaxed">
+            우리 팀의 핵심 선수들을 소개합니다.
           </p>
         </div>
 
@@ -198,28 +198,28 @@ const Home: React.FC = React.memo(() => {
         )}
 
         {/* Quick Navigation - 모바일 최적화 */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 lg:p-12 text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-indigo-50 opacity-50"></div>
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-5 sm:p-6 lg:p-8 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-50 to-accent-50 opacity-30"></div>
           <div className="relative z-10">
-            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">더 알아보기</h3>
-            <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-6 sm:mb-8">우리 팀의 다양한 정보를 확인해보세요</p>
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">더 알아보기</h3>
+            <p className="text-sm lg:text-base text-gray-600 mb-4 sm:mb-6">우리 팀의 다양한 정보를 확인해보세요</p>
 
-            <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:justify-center lg:gap-6">
+            <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:justify-center lg:gap-4">
               <a
                 href="/players"
-                className="bg-blue-600 text-white px-6 sm:px-8 lg:px-10 py-3 sm:py-4 rounded-lg sm:rounded-xl hover:bg-blue-700 transition-colors duration-300 text-sm sm:text-base lg:text-lg font-medium shadow-lg touch-manipulation"
+                className="bg-primary-600 text-white px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-lg hover:bg-primary-700 transition-colors duration-300 text-sm lg:text-base font-medium shadow-md touch-manipulation"
               >
                 전체 선수단
               </a>
               <a
                 href="/matches"
-                className="border-2 border-blue-600 text-blue-600 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 rounded-lg sm:rounded-xl hover:bg-blue-50 transition-colors duration-300 text-sm sm:text-base lg:text-lg font-medium shadow-lg touch-manipulation"
+                className="border border-primary-600 text-primary-700 bg-white px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-lg hover:bg-primary-50 transition-colors duration-300 text-sm lg:text-base font-medium shadow-md touch-manipulation"
               >
                 경기 일정
               </a>
               <a
                 href="/stadiums"
-                className="bg-green-600 text-white px-6 sm:px-8 lg:px-10 py-3 sm:py-4 rounded-lg sm:rounded-xl hover:bg-green-700 transition-colors duration-300 text-sm sm:text-base lg:text-lg font-medium shadow-lg touch-manipulation"
+                className="bg-accent-600 text-white px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-lg hover:bg-accent-700 transition-colors duration-300 text-sm lg:text-base font-medium shadow-md touch-manipulation"
               >
                 구장 정보
               </a>
