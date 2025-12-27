@@ -165,7 +165,7 @@ const TeamMapSection: React.FC = () => {
               <div className="space-y-4">
                 {useKakaoMap ? (
                     <KakaoMultiMap
-                        key="kakao-multi-map" // key 추가로 재마운트 방지
+                        key="kakao-multi-map"
                         stadiums={filteredStadiums}
                         onStadiumClick={handleStadiumClick}
                         onMapError={() => {
