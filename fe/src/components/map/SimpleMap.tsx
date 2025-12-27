@@ -8,6 +8,7 @@ interface Stadium {
   longitude: number;
   teamId: number;
   teamName: string;
+  teamSubdomain?: string | null;
 }
 
 interface SimpleMapProps {
@@ -82,8 +83,14 @@ const SimpleMap: React.FC<SimpleMapProps> = ({
             className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
             style={{ left: x, top: y }}
             onClick={() => {
-              setSelectedStadium(stadium);
-              onStadiumClick?.(stadium);
+              // 서브도메인으로 이동
+              if (stadium.teamSubdomain) {
+                window.location.href = `http://${stadium.teamSubdomain}.football-club.kr`;
+              } else {
+                // 서브도메인이 없으면 모달 오픈
+                setSelectedStadium(stadium);
+                onStadiumClick?.(stadium);
+              }
             }}
           >
             {/* 마커 아이콘 */}

@@ -8,6 +8,7 @@ interface Stadium {
   longitude: number;
   teamId: number;
   teamName: string;
+  teamSubdomain?: string | null;
 }
 
 interface KakaoMultiMapProps {
@@ -107,15 +108,16 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
             content: infoContent
           });
 
-          // 마커 클릭 이벤트 - KakaoMap과 동일한 패턴
+          // 마커 클릭 이벤트 - 서브도메인으로 이동
           window.kakao.maps.event.addListener(marker, 'click', function() {
-            // 카카오맵 앱에서 열기
-            const kakaoMapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(stadium.name)},${stadium.latitude},${stadium.longitude}`;
-            window.open(kakaoMapUrl, '_blank');
-
-            // 외부 콜백 호출
-            if (onStadiumClick) {
-              onStadiumClick(stadium);
+            // 서브도메인으로 이동
+            if (stadium.teamSubdomain) {
+              window.location.href = `http://${stadium.teamSubdomain}.football-club.kr`;
+            } else {
+              // 서브도메인이 없으면 외부 콜백 호출 (모달 오픈)
+              if (onStadiumClick) {
+                onStadiumClick(stadium);
+              }
             }
           });
 
