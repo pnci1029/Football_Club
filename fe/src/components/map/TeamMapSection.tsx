@@ -12,6 +12,7 @@ interface Stadium {
   longitude: number;
   teamId: number;
   teamName: string;
+  teamCode?: string | null;
   facilities?: string[] | null;
   hourlyRate?: number | null;
   contactNumber?: string | null;
@@ -49,6 +50,7 @@ const TeamMapSection: React.FC = () => {
           longitude: stadium.longitude,
           teamId: stadium.teamId,
           teamName: stadium.teamName,
+          teamCode: stadium.teamCode,
           facilities: stadium.facilities,
           hourlyRate: stadium.hourlyRate,
           contactNumber: stadium.contactNumber,
@@ -105,7 +107,7 @@ const TeamMapSection: React.FC = () => {
           </div>
           <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
           >
             다시 시도
           </button>
@@ -130,20 +132,20 @@ const TeamMapSection: React.FC = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="팀명, 구장명, 지역으로 검색..."
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-4 text-sm text-gray-600">
             <span className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+              <div className="w-3 h-3 bg-primary-600 rounded-full"></div>
               전체 {filteredStadiums.length}개 팀
             </span>
               {searchQuery && (
                   <button
                       onClick={() => setSearchQuery('')}
-                      className="text-blue-600 hover:text-blue-700 underline"
+                      className="text-primary-600 hover:text-primary-700 underline"
                   >
                     검색 초기화
                   </button>
@@ -187,7 +189,7 @@ const TeamMapSection: React.FC = () => {
                           </div>
                           <button
                               onClick={() => setUseKakaoMap(true)}
-                              className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                              className="text-xs px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 shadow-sm"
                           >
                             카카오맵 재시도
                           </button>
@@ -212,7 +214,7 @@ const TeamMapSection: React.FC = () => {
                   {searchQuery && (
                       <button
                           onClick={() => setSearchQuery('')}
-                          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
                       >
                         모든 팀 보기
                       </button>
