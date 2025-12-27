@@ -3,6 +3,7 @@ import KakaoMultiMap from './KakaoMultiMap';
 import SimpleMap from './SimpleMap';
 import StadiumDetailModal from './StadiumDetailModal';
 import { stadiumService } from '../../services/stadiumService';
+import { Teams } from '../../api';
 
 interface Stadium {
   id: number;
@@ -13,6 +14,7 @@ interface Stadium {
   teamId: number;
   teamName: string;
   teamCode?: string | null;
+  teamSubdomain?: string | null; // 서브도메인 추가
   facilities?: string[] | null;
   hourlyRate?: number | null;
   contactNumber?: string | null;
@@ -22,8 +24,16 @@ interface Stadium {
   teamKakaoId?: string | null;
 }
 
+interface TeamInfo {
+  id: number;
+  name: string;
+  subdomain: string;
+  description: string;
+}
+
 const TeamMapSection: React.FC = () => {
   const [stadiums, setStadiums] = useState<Stadium[]>([]);
+  const [teams, setTeams] = useState<TeamInfo[]>([]);
   const [selectedStadium, setSelectedStadium] = useState<Stadium | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,44 +42,70 @@ const TeamMapSection: React.FC = () => {
   const [filteredStadiums, setFilteredStadiums] = useState<Stadium[]>([]);
   const [useKakaoMap, setUseKakaoMap] = useState(true);
 
-  // 스타디움 데이터 로드
+  // 데이터 로드
   useEffect(() => {
-    const loadStadiums = async () => {
+    const loadData = async () => {
       try {
         setIsLoading(true);
 
-        // 모든 스타디움 데이터를 가져옵니다 (페이지 크기를 크게 설정)
-        const response = await stadiumService.getStadiums(0, 1000);
+        // 병렬로 스타디움과 팀 데이터를 가져옵니다
+        const [stadiumResponse, teamsResponse] = await Promise.all([
+          stadiumService.getStadiums(0, 1000),
+          Teams.public.getAll()
+        ]);
 
-        // StadiumDto를 Stadium 인터페이스에 맞게 변환
-        const transformedStadiums: Stadium[] = (response.content || []).map(stadium => ({
-          id: stadium.id,
-          name: stadium.name,
-          address: stadium.address,
-          latitude: stadium.latitude,
-          longitude: stadium.longitude,
-          teamId: stadium.teamId,
-          teamName: stadium.teamName,
-          teamCode: stadium.teamCode,
-          facilities: stadium.facilities,
-          hourlyRate: stadium.hourlyRate,
-          contactNumber: stadium.contactNumber,
-          imageUrls: stadium.imageUrls,
-          teamContactPhone: stadium.teamContactPhone,
-          teamKakaoId: stadium.teamKakaoId
-        }));
+        console.log('✅ Teams API 응답:', teamsResponse);
+
+        // Team 타입을 TeamInfo 타입으로 변환하고 맵으로 만들어서 빠른 조회 가능하게 합니다
+        const teamsMap = new Map<number, TeamInfo>();
+        teamsResponse.forEach((team) => {
+          // Team 타입에서 subdomain 필드가 없으므로 code를 subdomain으로 사용
+          const teamInfo: TeamInfo = {
+            id: team.id,
+            name: team.name,
+            subdomain: team.code, // code를 subdomain으로 사용
+            description: team.description
+          };
+          teamsMap.set(team.id, teamInfo);
+        });
+
+        // StadiumDto를 Stadium 인터페이스에 맞게 변환하면서 팀 서브도메인 추가
+        const transformedStadiums: Stadium[] = (stadiumResponse.content || []).map(stadium => {
+          const teamInfo = teamsMap.get(stadium.teamId);
+          return {
+            id: stadium.id,
+            name: stadium.name,
+            address: stadium.address,
+            latitude: stadium.latitude,
+            longitude: stadium.longitude,
+            teamId: stadium.teamId,
+            teamName: stadium.teamName,
+            teamCode: stadium.teamCode || null,
+            teamSubdomain: teamInfo?.subdomain || null,
+            facilities: stadium.facilities,
+            hourlyRate: stadium.hourlyRate,
+            contactNumber: stadium.contactNumber,
+            imageUrls: stadium.imageUrls,
+            teamContactPhone: stadium.teamContactPhone,
+            teamKakaoId: stadium.teamKakaoId
+          };
+        });
+
         console.log(`✅ ${transformedStadiums.length}개 스타디움 데이터 변환 완료:`, transformedStadiums);
 
+        const convertedTeams = Array.from(teamsMap.values());
+        setTeams(convertedTeams);
         setStadiums(transformedStadiums);
         setFilteredStadiums(transformedStadiums);
       } catch (err) {
-        setError('스타디움 정보를 불러오는데 실패했습니다.');
+        console.error('데이터 로딩 실패:', err);
+        setError('팀 정보를 불러오는데 실패했습니다.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadStadiums();
+    loadData();
   }, []);
 
   // 검색 필터링

@@ -10,6 +10,7 @@ interface Stadium {
   teamId: number;
   teamName: string;
   teamCode?: string | null;
+  teamSubdomain?: string | null;
   facilities?: string[] | null;
   hourlyRate?: number | null;
   contactNumber?: string | null;
@@ -155,23 +156,12 @@ const StadiumDetailModal: React.FC<StadiumDetailModalProps> = ({
 
           {/* 액션 버튼들 */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
-            {stadium.teamCode ? (
+            {stadium.teamSubdomain ? (
               <button
-                onClick={async () => {
-                  if (!stadium.teamCode) {
-                    alert('팀 코드가 없습니다.');
-                    return;
-                  }
-                  
-                  try {
-                    // 팀 정보 API 호출로 유효성 확인
-                    await Teams.public.getByCode(stadium.teamCode);
-                    // 팀 페이지로 이동
-                    window.location.href = `http://${stadium.teamCode.toLowerCase()}.localhost:3000`;
-                    onClose();
-                  } catch (error) {
-                    alert('해당 팀의 페이지를 찾을 수 없습니다.');
-                  }
+                onClick={() => {
+                  // 서브도메인으로 이동
+                  window.location.href = `http://${stadium.teamSubdomain}.football-club.kr`;
+                  onClose();
                 }}
                 className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-center shadow-sm"
               >
