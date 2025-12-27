@@ -135,6 +135,10 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
           // 현재 인포윈도우 열기
           infowindow.open(map, marker);
 
+          // 카카오맵 앱에서 열기
+          const kakaoMapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(stadium.name)},${stadium.latitude},${stadium.longitude}`;
+          window.open(kakaoMapUrl, '_blank');
+
           // 외부 콜백 호출
           if (onStadiumClick) {
             onStadiumClick(stadium);
