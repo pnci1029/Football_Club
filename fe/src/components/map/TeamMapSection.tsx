@@ -234,6 +234,7 @@ const TeamMapSection: React.FC = () => {
           </div>
         </div>
 
+
         {/* 스타디움 상세 모달 */}
         <StadiumDetailModal
             stadium={selectedStadium}
