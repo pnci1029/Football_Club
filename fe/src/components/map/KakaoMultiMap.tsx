@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 
 interface Stadium {
   id: number;
@@ -31,7 +31,7 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
   const markersRef = useRef<{ marker: any; infowindow: any }[]>([]);
   const mapRef = useRef<any>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     console.log('🗺️ KakaoMultiMap useEffect 실행:', {
       hasContainer: !!mapContainer.current,
       stadiumCount: stadiums.length,
