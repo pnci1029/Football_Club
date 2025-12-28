@@ -143,4 +143,4 @@ const SimpleMap: React.FC<SimpleMapProps> = ({
   );
 };
 
-export default React.memo(SimpleMap);
+export default SimpleMap;

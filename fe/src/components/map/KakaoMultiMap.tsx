@@ -177,4 +177,4 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
   );
 };
 
-export default React.memo(KakaoMultiMap);
+export default KakaoMultiMap;
