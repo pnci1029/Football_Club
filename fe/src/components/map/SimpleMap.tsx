@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 interface Stadium {
   id: number;
@@ -26,6 +26,12 @@ const SimpleMap: React.FC<SimpleMapProps> = ({
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [selectedStadium, setSelectedStadium] = useState<Stadium | null>(null);
+  const onStadiumClickRef = useRef(onStadiumClick);
+
+  // 콜백 ref 업데이트
+  useEffect(() => {
+    onStadiumClickRef.current = onStadiumClick;
+  }, [onStadiumClick]);
 
   // 위도/경도를 픽셀 좌표로 변환하는 간단한 함수
   const latLngToPixel = (lat: number, lng: number, mapWidth: number, mapHeight: number) => {
@@ -85,7 +91,7 @@ const SimpleMap: React.FC<SimpleMapProps> = ({
             onClick={() => {
               // 모든 경우에 모달을 먼저 보여줌
               setSelectedStadium(stadium);
-              onStadiumClick?.(stadium);
+              onStadiumClickRef.current?.(stadium);
             }}
           >
             {/* 마커 아이콘 */}

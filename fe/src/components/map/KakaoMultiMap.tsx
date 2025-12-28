@@ -27,6 +27,12 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
   className = ''
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
+  const onStadiumClickRef = useRef(onStadiumClick);
+
+  // 콜백 ref 업데이트
+  useEffect(() => {
+    onStadiumClickRef.current = onStadiumClick;
+  }, [onStadiumClick]);
 
   useEffect(() => {
     console.log('🗺️ KakaoMultiMap useEffect 시작:', {
@@ -111,8 +117,8 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
           // 마커 클릭 이벤트 - 모달 오픈
           window.kakao.maps.event.addListener(marker, 'click', function() {
             // 모든 경우에 모달을 먼저 보여줌
-            if (onStadiumClick) {
-              onStadiumClick(stadium);
+            if (onStadiumClickRef.current) {
+              onStadiumClickRef.current(stadium);
             }
           });
 
@@ -160,7 +166,7 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
         onMapError?.();
       }
     }
-  }, [stadiums, onStadiumClick, onMapError]);
+  }, [stadiums, onMapError]);
 
   return (
     <div 
