@@ -177,8 +177,13 @@ const StadiumDetailModal: React.FC<StadiumDetailModalProps> = ({
             )}
             <button
               onClick={() => {
-                // 구장 정보 페이지로 이동 (localhost:3000/stadiums에서 해당 구장 정보)
-                window.location.href = `/stadiums?stadium=${stadium.id}`;
+                if (stadium.teamSubdomain) {
+                  // 서브도메인 + 구장 상세 경로로 이동
+                  window.location.href = `http://${stadium.teamSubdomain}.football-club.kr/stadiums?stadium=${stadium.id}`;
+                } else {
+                  // 서브도메인이 없으면 기본 경로로 이동
+                  window.location.href = `/stadiums?stadium=${stadium.id}`;
+                }
                 onClose();
               }}
               className="flex-1 border border-secondary-300 text-secondary-700 bg-white px-4 py-2 rounded-lg hover:bg-secondary-50 transition-colors text-center shadow-sm"
