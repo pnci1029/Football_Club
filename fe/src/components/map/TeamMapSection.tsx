@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import KakaoMultiMap from './KakaoMultiMap';
 import SimpleMap from './SimpleMap';
 import StadiumDetailModal from './StadiumDetailModal';
@@ -39,7 +39,6 @@ const TeamMapSection: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredStadiums, setFilteredStadiums] = useState<Stadium[]>([]);
   const [useKakaoMap, setUseKakaoMap] = useState(true);
 
   // 데이터 로드
@@ -96,7 +95,6 @@ const TeamMapSection: React.FC = () => {
         const convertedTeams = Array.from(teamsMap.values());
         setTeams(convertedTeams);
         setStadiums(transformedStadiums);
-        setFilteredStadiums(transformedStadiums);
       } catch (err) {
         console.error('데이터 로딩 실패:', err);
         setError('팀 정보를 불러오는데 실패했습니다.');
@@ -108,17 +106,16 @@ const TeamMapSection: React.FC = () => {
     loadData();
   }, []);
 
-  // 검색 필터링
-  useEffect(() => {
+  // 검색 필터링 (useMemo로 최적화)
+  const filteredStadiums = useMemo(() => {
     if (!searchQuery.trim()) {
-      setFilteredStadiums(stadiums);
+      return stadiums;
     } else {
-      const filtered = stadiums.filter(stadium =>
+      return stadiums.filter(stadium =>
           stadium.teamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           stadium.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           stadium.address.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      setFilteredStadiums(filtered);
     }
   }, [searchQuery, stadiums]);
 
@@ -130,6 +127,10 @@ const TeamMapSection: React.FC = () => {
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedStadium(null);
+  }, []);
+
+  const handleMapError = useCallback(() => {
+    setUseKakaoMap(false);
   }, []);
 
   if (error) {
@@ -206,9 +207,7 @@ const TeamMapSection: React.FC = () => {
                         key="kakao-multi-map"
                         stadiums={filteredStadiums}
                         onStadiumClick={handleStadiumClick}
-                        onMapError={() => {
-                          setUseKakaoMap(false);
-                        }}
+                        onMapError={handleMapError}
                         height="500px"
                         className="w-full"
                     />
