@@ -83,14 +83,9 @@ const SimpleMap: React.FC<SimpleMapProps> = ({
             className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
             style={{ left: x, top: y }}
             onClick={() => {
-              // 서브도메인으로 이동
-              if (stadium.teamSubdomain) {
-                window.location.href = `http://${stadium.teamSubdomain}.football-club.kr`;
-              } else {
-                // 서브도메인이 없으면 모달 오픈
-                setSelectedStadium(stadium);
-                onStadiumClick?.(stadium);
-              }
+              // 모든 경우에 모달을 먼저 보여줌
+              setSelectedStadium(stadium);
+              onStadiumClick?.(stadium);
             }}
           >
             {/* 마커 아이콘 */}
@@ -98,8 +93,8 @@ const SimpleMap: React.FC<SimpleMapProps> = ({
               <div className="w-2 h-2 bg-white rounded-full"></div>
             </div>
             
-            {/* 호버 시 팀명 표시 */}
-            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+            {/* 호버 시 팀명 표시 (안정화) */}
+            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-150 whitespace-nowrap z-10 pointer-events-none">
               {stadium.teamName}
             </div>
           </div>
@@ -142,4 +137,4 @@ const SimpleMap: React.FC<SimpleMapProps> = ({
   );
 };
 
-export default SimpleMap;
+export default React.memo(SimpleMap);
