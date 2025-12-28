@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import KakaoMultiMap from './KakaoMultiMap';
 import SimpleMap from './SimpleMap';
 import StadiumDetailModal from './StadiumDetailModal';
@@ -122,15 +122,15 @@ const TeamMapSection: React.FC = () => {
     }
   }, [searchQuery, stadiums]);
 
-  const handleStadiumClick = (stadium: Stadium) => {
+  const handleStadiumClick = useCallback((stadium: Stadium) => {
     setSelectedStadium(stadium);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedStadium(null);
-  };
+  }, []);
 
   if (error) {
     return (
