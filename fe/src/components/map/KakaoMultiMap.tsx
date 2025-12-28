@@ -108,26 +108,40 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
             content: infoContent
           });
 
-          // 마커 클릭 이벤트 - 서브도메인으로 이동
+          // 마커 클릭 이벤트 - 모달 오픈
           window.kakao.maps.event.addListener(marker, 'click', function() {
-            // 서브도메인으로 이동
-            if (stadium.teamSubdomain) {
-              window.location.href = `http://${stadium.teamSubdomain}.football-club.kr`;
-            } else {
-              // 서브도메인이 없으면 외부 콜백 호출 (모달 오픈)
-              if (onStadiumClick) {
-                onStadiumClick(stadium);
-              }
+            // 모든 경우에 모달을 먼저 보여줌
+            if (onStadiumClick) {
+              onStadiumClick(stadium);
             }
           });
 
-          // 마커 호버 효과
+          // 마커 호버 효과 (안정화)
+          let hoverTimeout: NodeJS.Timeout;
+          let isHovering = false;
+
           window.kakao.maps.event.addListener(marker, 'mouseover', () => {
-            infowindow.open(map, marker);
+            isHovering = true;
+            clearTimeout(hoverTimeout);
+            
+            // 약간의 딜레이 후 인포윈도우 오픈 (깜빡임 방지)
+            hoverTimeout = setTimeout(() => {
+              if (isHovering) {
+                infowindow.open(map, marker);
+              }
+            }, 150);
           });
 
           window.kakao.maps.event.addListener(marker, 'mouseout', () => {
-            infowindow.close();
+            isHovering = false;
+            clearTimeout(hoverTimeout);
+            
+            // 딜레이 후 닫기 (마우스가 인포윈도우로 이동할 시간 확보)
+            hoverTimeout = setTimeout(() => {
+              if (!isHovering) {
+                infowindow.close();
+              }
+            }, 300);
           });
 
           bounds.extend(position);
@@ -157,4 +171,4 @@ const KakaoMultiMap: React.FC<KakaoMultiMapProps> = ({
   );
 };
 
-export default KakaoMultiMap;
+export default React.memo(KakaoMultiMap);
