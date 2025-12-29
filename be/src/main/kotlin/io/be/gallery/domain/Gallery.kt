@@ -7,13 +7,13 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(
-    name = "gallery",
+    name = "galleries",
     indexes = [
-        Index(name = "idx_gallery_team_subdomain", columnList = "teamSubdomain"),
-        Index(name = "idx_gallery_category", columnList = "category"),
-        Index(name = "idx_gallery_created_at", columnList = "createdAt"),
-        Index(name = "idx_gallery_featured", columnList = "isFeatured"),
-        Index(name = "idx_gallery_active", columnList = "isActive")
+        Index(name = "idx_gallery_team_subdomain", columnList = "TEAM_SUBDOMAIN"),
+        Index(name = "idx_gallery_category", columnList = "CATEGORY"),
+        Index(name = "idx_gallery_created_at", columnList = "CREATED_AT"),
+        Index(name = "idx_gallery_featured", columnList = "IS_FEATURED"),
+        Index(name = "idx_gallery_active", columnList = "IS_ACTIVE")
     ]
 )
 data class Gallery(
@@ -21,40 +21,40 @@ data class Gallery(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
     
-    @Column(name = "team_id", nullable = false)
+    @Column(name = "TEAM_ID", nullable = false)
     val teamId: Long,
     
-    @Column(name = "team_subdomain", nullable = false, length = 50)
+    @Column(name = "TEAM_SUBDOMAIN", nullable = false, length = 50)
     val teamSubdomain: String,
     
-    @Column(nullable = false, length = 200)
+    @Column(name = "TITLE", nullable = false, length = 200)
     val title: String,
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "DESCRIPTION", columnDefinition = "TEXT")
     val description: String? = null,
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(name = "CATEGORY", nullable = false, length = 50)
     val category: GalleryCategory,
     
-    @Column(name = "created_by", length = 100)
+    @Column(name = "CREATED_BY", length = 100)
     val createdBy: String? = null,
     
-    @Column(name = "view_count")
+    @Column(name = "VIEW_COUNT")
     val viewCount: Int = 0,
     
-    @Column(name = "is_featured")
+    @Column(name = "IS_FEATURED")
     val isFeatured: Boolean = false,
     
-    @Column(name = "is_active")
+    @Column(name = "IS_ACTIVE")
     val isActive: Boolean = true,
     
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "CREATED_AT", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
     
     @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "UPDATED_AT", nullable = false)
     val updatedAt: LocalDateTime = LocalDateTime.now(),
     
     @OneToMany(mappedBy = "gallery", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
