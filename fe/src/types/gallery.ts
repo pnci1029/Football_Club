@@ -19,39 +19,52 @@ export enum PlayType {
   ASSIST = 'ASSIST',
   SAVE = 'SAVE',
   TACKLE = 'TACKLE',
-  PASS = 'PASS',
-  SHOT = 'SHOT',
-  FOUL = 'FOUL',
+  SKILL = 'SKILL',
+  TEAM_PLAY = 'TEAM_PLAY',
   CARD = 'CARD',
-  SUBSTITUTION = 'SUBSTITUTION',
-  ETC = 'ETC'
+  CELEBRATION = 'CELEBRATION',
+  FOUL = 'FOUL',
+  FREE_KICK = 'FREE_KICK',
+  CORNER_KICK = 'CORNER_KICK',
+  PENALTY = 'PENALTY',
+  OTHER = 'OTHER'
 }
 
-export interface GalleryMedia {
+export interface GalleryMediaDto {
   id: number;
   fileName: string;
+  originalFileName: string;
   fileUrl: string;
-  mediaType: MediaType;
-  filePath: string;
-  mimeType: string;
-  fileSize: number;
-  duration?: number;
   thumbnailUrl?: string;
+  fileSize: number;
+  fileSizeFormatted: string;
+  mediaType: MediaType;
   width?: number;
   height?: number;
+  duration?: number;
+  durationFormatted?: string;
   isCover: boolean;
   sortOrder: number;
-  createdAt: Date;
+  uploadedAt: string;
 }
 
-export interface HighlightMetadata {
+// 백워드 호환성을 위한 별칭
+export type GalleryMedia = GalleryMediaDto;
+
+export interface HighlightMetadataDto {
   id: number;
+  matchId?: number;
   playType: PlayType;
+  playTypeDisplayName: string;
   playerNames?: string;
   gameMinute?: number;
-  highlightRating: number;
+  gameMinuteFormatted?: string;
   description?: string;
+  highlightRating: number;
 }
+
+// 백워드 호환성을 위한 별칭
+export type HighlightMetadata = HighlightMetadataDto;
 
 export interface GalleryTag {
   id: number;
@@ -59,21 +72,41 @@ export interface GalleryTag {
   color?: string;
 }
 
-export interface Gallery {
+export interface GalleryDto {
   id: number;
-  teamId: number;
-  teamSubdomain: string;
   title: string;
   description?: string;
   category: GalleryCategory;
+  categoryDisplayName: string;
+  coverImageUrl?: string;
+  mediaCount: number;
+  imageCount: number;
+  videoCount: number;
   viewCount: number;
-  mediaFiles: GalleryMedia[];
-  tags: GalleryTag[];
-  highlightMetadata?: HighlightMetadata;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  isFeatured: boolean;
+  createdBy?: string;
+  createdAt: string;
+  tags: string[];
 }
+
+export interface GalleryDetailDto {
+  id: number;
+  title: string;
+  description?: string;
+  category: GalleryCategory;
+  categoryDisplayName: string;
+  viewCount: number;
+  isFeatured: boolean;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+  mediaFiles: GalleryMediaDto[];
+  tags: string[];
+  highlightMetadata?: HighlightMetadataDto;
+}
+
+// 백워드 호환성을 위한 별칭
+export type Gallery = GalleryDto;
 
 export interface GalleryListParams {
   page?: number;

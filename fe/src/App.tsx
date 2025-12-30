@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import Players from './pages/Players';
 import Matches from './pages/Matches';
 import Stadiums from './pages/Stadiums';
+import Gallery from './pages/Gallery';
 import Community from './pages/Community';
 import CommunityWrite from './pages/CommunityWrite';
 import CommunityDetail from './pages/CommunityDetail';
@@ -23,6 +24,7 @@ import AdminTeams from './pages/admin/AdminTeams';
 import AdminTeamDetail from './pages/admin/AdminTeamDetail';
 import AdminMatches from './pages/admin/AdminMatches';
 import AdminStadiums from './pages/admin/AdminStadiums';
+import AdminGallery from './pages/admin/AdminGallery';
 import AdminInquiries from './pages/admin/AdminInquiries';
 import AdminHeroSlides from './pages/admin/AdminHeroSlides';
 import TenantManagement from './pages/admin/TenantManagement';
@@ -88,6 +90,7 @@ const AppContent: React.FC = () => {
                 <Route path="/teams/:teamId" element={<AdminTeamDetail />} />
                 <Route path="/matches" element={<AdminMatches />} />
                 <Route path="/stadiums" element={<AdminStadiums />} />
+                <Route path="/gallery" element={<AdminGallery />} />
                 <Route path="/inquiries" element={<AdminInquiries />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
@@ -189,6 +192,7 @@ const AppContent: React.FC = () => {
           <Route path="/players" element={<Players />} />
           <Route path="/matches" element={<Matches />} />
           <Route path="/stadiums" element={<Stadiums />} />
+          <Route path="/gallery" element={<Gallery />} />
           <Route path="/community" element={<Community />} />
           <Route path="/community/write" element={<CommunityWrite />} />
           <Route path="/community/:postId" element={<CommunityDetail />} />
