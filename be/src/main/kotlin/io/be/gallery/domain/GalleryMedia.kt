@@ -19,9 +19,8 @@ data class GalleryMedia(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "GALLERY_ID", nullable = false)
-    val gallery: Gallery,
+    @Column(name = "GALLERY_ID", nullable = false)
+    val galleryId: Long,
 
     @Column(name = "FILE_NAME", nullable = false, length = 255)
     val fileName: String,

@@ -57,11 +57,6 @@ data class Gallery(
     @Column(name = "UPDATED_AT", nullable = false)
     val updatedAt: LocalDateTime = LocalDateTime.now(),
     
-    @OneToMany(mappedBy = "gallery", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    val mediaFiles: List<GalleryMedia> = emptyList(),
-    
-    @OneToMany(mappedBy = "gallery", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    val tags: List<GalleryTag> = emptyList()
 )
 
 enum class GalleryCategory(
