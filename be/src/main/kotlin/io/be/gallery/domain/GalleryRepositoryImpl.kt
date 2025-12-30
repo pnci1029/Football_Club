@@ -7,7 +7,6 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 @Repository
 class GalleryRepositoryImpl(
@@ -57,23 +56,28 @@ class GalleryRepositoryImpl(
             builder.and(gallery.createdAt.lt(it.plusDays(1).atStartOfDay()))
         }
         
-        var query = queryFactory
-            .selectFrom(gallery)
-            .where(builder)
-        
-        // 태그 필터가 있는 경우
+        // 태그 필터가 있는 경우 - 조인 대신 서브쿼리 사용
         if (!tags.isNullOrEmpty()) {
-            query = query
-                .join(gallery.tags, galleryTag)
+            val galleryIdsWithTags = queryFactory
+                .select(galleryTag.galleryId)
+                .from(galleryTag)
                 .where(galleryTag.tagName.`in`(tags))
-                .groupBy(gallery.id)
-                .having(gallery.id.count().eq(tags.size.toLong())) // AND 조건
+                .groupBy(galleryTag.galleryId)
+                .having(galleryTag.galleryId.count().eq(tags.size.toLong())) // AND 조건
+                .fetch()
+            
+            if (galleryIdsWithTags.isNotEmpty()) {
+                builder.and(gallery.id.`in`(galleryIdsWithTags))
+            } else {
+                // 해당하는 갤러리가 없으면 빈 결과 반환
+                builder.and(gallery.id.eq(-1L))
+            }
         }
         
-        // 정렬
-        query = query.orderBy(gallery.createdAt.desc())
-        
-        val results = query
+        val results = queryFactory
+            .selectFrom(gallery)
+            .where(builder)
+            .orderBy(gallery.createdAt.desc())
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
             .fetch()
@@ -92,29 +96,36 @@ class GalleryRepositoryImpl(
         tags: List<String>,
         pageable: Pageable
     ): Page<Gallery> {
+        // OR 조건으로 태그 검색 - 서브쿼리 사용
+        val galleryIdsWithAnyTag = queryFactory
+            .select(galleryTag.galleryId)
+            .from(galleryTag)
+            .where(galleryTag.tagName.`in`(tags))
+            .distinct()
+            .fetch()
+        
+        val builder = BooleanBuilder()
+        builder.and(gallery.teamSubdomain.eq(teamSubdomain))
+        builder.and(gallery.isActive.isTrue)
+        
+        if (galleryIdsWithAnyTag.isNotEmpty()) {
+            builder.and(gallery.id.`in`(galleryIdsWithAnyTag))
+        } else {
+            builder.and(gallery.id.eq(-1L))
+        }
+        
         val results = queryFactory
             .selectFrom(gallery)
-            .join(gallery.tags, galleryTag)
-            .where(
-                gallery.teamSubdomain.eq(teamSubdomain)
-                    .and(gallery.isActive.isTrue)
-                    .and(galleryTag.tagName.`in`(tags))
-            )
-            .distinct()
+            .where(builder)
             .orderBy(gallery.createdAt.desc())
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
             .fetch()
         
         val total = queryFactory
-            .select(gallery.countDistinct())
+            .select(gallery.count())
             .from(gallery)
-            .join(gallery.tags, galleryTag)
-            .where(
-                gallery.teamSubdomain.eq(teamSubdomain)
-                    .and(gallery.isActive.isTrue)
-                    .and(galleryTag.tagName.`in`(tags))
-            )
+            .where(builder)
             .fetchOne() ?: 0L
         
         return PageImpl(results, pageable, total)
@@ -145,16 +156,25 @@ class GalleryRepositoryImpl(
         builder.and(gallery.isActive.isTrue)
         builder.and(gallery.category.eq(GalleryCategory.HIGHLIGHT))
         
+        // 하이라이트 메타데이터 필터 - 서브쿼리 사용
         playType?.let {
-            builder.and(highlightMetadata.playType.eq(it))
+            val galleryIdsWithPlayType = queryFactory
+                .select(highlightMetadata.galleryId)
+                .from(highlightMetadata)
+                .where(highlightMetadata.playType.eq(it))
+                .fetch()
+            
+            if (galleryIdsWithPlayType.isNotEmpty()) {
+                builder.and(gallery.id.`in`(galleryIdsWithPlayType))
+            } else {
+                builder.and(gallery.id.eq(-1L))
+            }
         }
         
         val results = queryFactory
             .selectFrom(gallery)
-            .leftJoin(gallery.mediaFiles, galleryMedia).on(galleryMedia.gallery.eq(gallery))
-            .leftJoin(highlightMetadata).on(highlightMetadata.gallery.eq(gallery))
             .where(builder)
-            .orderBy(highlightMetadata.highlightRating.desc(), gallery.createdAt.desc())
+            .orderBy(gallery.createdAt.desc())
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
             .fetch()
@@ -162,7 +182,6 @@ class GalleryRepositoryImpl(
         val total = queryFactory
             .select(gallery.count())
             .from(gallery)
-            .leftJoin(highlightMetadata).on(highlightMetadata.gallery.eq(gallery))
             .where(builder)
             .fetchOne() ?: 0L
         
@@ -202,16 +221,25 @@ class GalleryRepositoryImpl(
             )
             .fetchOne() ?: 0
         
-        // 총 미디어 파일 수
-        val totalMediaCount = queryFactory
-            .select(galleryMedia.count())
-            .from(galleryMedia)
-            .join(galleryMedia.gallery, gallery)
+        // 총 미디어 파일 수 - 서브쿼리 사용
+        val activeGalleryIds = queryFactory
+            .select(gallery.id)
+            .from(gallery)
             .where(
                 gallery.teamSubdomain.eq(teamSubdomain)
                     .and(gallery.isActive.isTrue)
             )
-            .fetchOne() ?: 0L
+            .fetch()
+        
+        val totalMediaCount = if (activeGalleryIds.isNotEmpty()) {
+            queryFactory
+                .select(galleryMedia.count())
+                .from(galleryMedia)
+                .where(galleryMedia.galleryId.`in`(activeGalleryIds))
+                .fetchOne() ?: 0L
+        } else {
+            0L
+        }
         
         // 이번 달 생성된 갤러리 수
         val thisMonthStart = LocalDate.now().withDayOfMonth(1).atStartOfDay()
