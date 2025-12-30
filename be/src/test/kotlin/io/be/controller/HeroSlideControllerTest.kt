@@ -41,7 +41,7 @@ class HeroSlideControllerTest {
     @Test
     fun `getActiveSlides should return active slides for valid team`() {
         // Given
-        val teamDto = TeamDto(1L, "test-team", "Test Team", "Test Description", "logo.jpg")
+        val teamDto = TeamDto(1L, "test-team", "Test Team", "Test Description", "logo.jpg", null, null)
         val heroSlideDto = HeroSlideDto(
             id = 1L,
             teamId = 1L,

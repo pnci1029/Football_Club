@@ -31,9 +31,9 @@ class MatchControllerTest {
     @Test
     fun `getMatches should return paginated matches`() {
         // Given
-        val homeTeam = TeamDto(1L, "HOME", "Home Team", "Home Description", "logo1.jpg")
-        val awayTeam = TeamDto(2L, "AWAY", "Away Team", "Away Description", "logo2.jpg")
-        val stadium = StadiumDto(1L, "Test Stadium", "Test Address", 37.5665, 126.9780, 1L, "Home Team", listOf("Test facilities"), 50000, "09:00-22:00", listOf("월", "화", "수", "목", "금"), "010-1234-5678", listOf("image1.jpg"))
+        val homeTeam = TeamDto(1L, "HOME", "Home Team", "Home Description", "logo1.jpg", null, null)
+        val awayTeam = TeamDto(2L, "AWAY", "Away Team", "Away Description", "logo2.jpg", null, null)
+        val stadium = StadiumDto(1L, "Test Stadium", "Test Address", 37.5665, 126.9780, 1L, "Home Team", listOf("Test facilities"), 50000, "09:00-22:00", listOf("월", "화", "수", "목", "금"), "010-1234-5678", listOf("image1.jpg"), null, null)
         val matchDto = MatchDto(
             id = 1L,
             homeTeam = homeTeam,
@@ -61,9 +61,9 @@ class MatchControllerTest {
     @Test
     fun `getMatch should return match when found`() {
         // Given
-        val homeTeam = TeamDto(1L, "HOME", "Home Team", "Home Description", "logo1.jpg")
-        val awayTeam = TeamDto(2L, "AWAY", "Away Team", "Away Description", "logo2.jpg")
-        val stadium = StadiumDto(1L, "Test Stadium", "Test Address", 37.5665, 126.9780, 1L, "Home Team", listOf("Test facilities"), 50000, "09:00-22:00", listOf("월", "화", "수", "목", "금"), "010-1234-5678", listOf("image1.jpg"))
+        val homeTeam = TeamDto(1L, "HOME", "Home Team", "Home Description", "logo1.jpg", null, null)
+        val awayTeam = TeamDto(2L, "AWAY", "Away Team", "Away Description", "logo2.jpg", null, null)
+        val stadium = StadiumDto(1L, "Test Stadium", "Test Address", 37.5665, 126.9780, 1L, "Home Team", listOf("Test facilities"), 50000, "09:00-22:00", listOf("월", "화", "수", "목", "금"), "010-1234-5678", listOf("image1.jpg"), null, null)
         val matchDto = MatchDto(
             id = 1L,
             homeTeam = homeTeam,

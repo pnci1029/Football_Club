@@ -42,7 +42,7 @@ class PlayerControllerTest {
 
     @Test
     fun `getPlayers should return players for valid team`() {
-        val teamDto = TeamDto(1L, "TT", "Test Team", "Test description", "logo.jpg")
+        val teamDto = TeamDto(1L, "TT", "Test Team", "Test description", "logo.jpg", null, null)
         val playerDto = PlayerDto(1L, "Test Player", "Forward", "profile.jpg", 1, 1L, "Test Team", true)
         val page = PageImpl(listOf(playerDto), PageRequest.of(0, 10), 1)
         
@@ -71,7 +71,7 @@ class PlayerControllerTest {
 
     @Test
     fun `getPlayer should return player when found and belongs to team`() {
-        val teamDto = TeamDto(1L, "TT", "Test Team", "Test description", "logo.jpg")
+        val teamDto = TeamDto(1L, "TT", "Test Team", "Test description", "logo.jpg", null, null)
         val playerDto = PlayerDto(1L, "Test Player", "Forward", "profile.jpg", 1, 1L, "Test Team", true)
         
         given(subdomainService.getTeamBySubdomain("test-team.localhost")).willReturn(teamDto)
@@ -86,7 +86,7 @@ class PlayerControllerTest {
 
     @Test
     fun `getPlayer should return 404 when player not found`() {
-        val teamDto = TeamDto(1L, "TT", "Test Team", "Test description", "logo.jpg")
+        val teamDto = TeamDto(1L, "TT", "Test Team", "Test description", "logo.jpg", null, null)
         
         given(subdomainService.getTeamBySubdomain("test-team.localhost")).willReturn(teamDto)
         given(playerService.findPlayerById(1L)).willReturn(null)
@@ -98,7 +98,7 @@ class PlayerControllerTest {
 
     @Test
     fun `getPlayer should return 404 when player belongs to different team`() {
-        val teamDto = TeamDto(1L, "TT", "Test Team", "Test description", "logo.jpg")
+        val teamDto = TeamDto(1L, "TT", "Test Team", "Test description", "logo.jpg", null, null)
         val playerDto = PlayerDto(1L, "Test Player", "Forward", "profile.jpg", 1, 2L, "Other Team", true) // Different team
         
         given(subdomainService.getTeamBySubdomain("test-team.localhost")).willReturn(teamDto)
@@ -111,7 +111,7 @@ class PlayerControllerTest {
 
     @Test
     fun `getActivePlayers should return active players for team`() {
-        val teamDto = TeamDto(1L, "TT", "Test Team", "Test description", "logo.jpg")
+        val teamDto = TeamDto(1L, "TT", "Test Team", "Test description", "logo.jpg", null, null)
         val playerDto = PlayerDto(1L, "Test Player", "Forward", "profile.jpg", 1, 1L, "Test Team", true)
         
         given(subdomainService.getTeamBySubdomain("test-team.localhost")).willReturn(teamDto)

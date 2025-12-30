@@ -243,6 +243,8 @@ class TenantSecurityInterceptorTest {
         code = "barcelona",
         name = "FC Barcelona",
         description = "Football Club Barcelona",
-        logoUrl = null
+        logoUrl = null,
+        contactPhone = null,
+        kakaoId = null
     )
 }
