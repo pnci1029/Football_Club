@@ -1,28 +1,16 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Gallery, GalleryCategory, MediaType, PlayType } from '../../types/gallery';
+import React, { useState } from 'react';
+import { Gallery, GalleryCategory } from '../../types/gallery';
+import GalleryDetailModal from './GalleryDetailModal';
 
 interface GalleryCardProps {
   gallery: Gallery;
 }
 
 const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
-  const coverMedia = gallery.mediaFiles.find(media => media.isCover) || gallery.mediaFiles[0];
-  const mediaCount = gallery.mediaFiles.length;
-  const hasVideo = gallery.mediaFiles.some(media => media.mediaType === MediaType.VIDEO);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  const getCategoryLabel = (category: GalleryCategory): string => {
-    const categoryLabels = {
-      [GalleryCategory.MATCH]: '경기',
-      [GalleryCategory.TRAINING]: '훈련',
-      [GalleryCategory.EVENT]: '이벤트',
-      [GalleryCategory.PLAYER]: '선수',
-      [GalleryCategory.FACILITY]: '시설',
-      [GalleryCategory.ACHIEVEMENT]: '성취',
-      [GalleryCategory.HIGHLIGHT]: '하이라이트',
-      [GalleryCategory.ETC]: '기타'
-    };
-    return categoryLabels[category] || category;
+  const handleCardClick = () => {
+    setIsDetailModalOpen(true);
   };
 
   const getCategoryColor = (category: GalleryCategory): string => {
@@ -39,23 +27,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
     return categoryColors[category] || 'bg-gray-100 text-gray-800';
   };
 
-  const getPlayTypeLabel = (playType: PlayType): string => {
-    const playTypeLabels = {
-      [PlayType.GOAL]: '골',
-      [PlayType.ASSIST]: '어시스트',
-      [PlayType.SAVE]: '세이브',
-      [PlayType.TACKLE]: '태클',
-      [PlayType.PASS]: '패스',
-      [PlayType.SHOT]: '슛',
-      [PlayType.FOUL]: '파울',
-      [PlayType.CARD]: '카드',
-      [PlayType.SUBSTITUTION]: '교체',
-      [PlayType.ETC]: '기타'
-    };
-    return playTypeLabels[playType] || playType;
-  };
-
-  const formatDate = (date: Date): string => {
+  const formatDate = (date: string): string => {
     return new Date(date).toLocaleDateString('ko-KR', {
       year: 'numeric',
       month: 'short',
@@ -64,20 +36,23 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
   };
 
   return (
-    <Link to={`/gallery/${gallery.id}`}>
-      <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group">
+    <>
+      <div 
+        onClick={handleCardClick}
+        className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer"
+      >
         {/* 이미지/썸네일 */}
         <div className="relative aspect-video bg-gray-100">
-          {coverMedia ? (
+          {gallery.coverImageUrl ? (
             <>
               <img
-                src={coverMedia.thumbnailUrl || coverMedia.fileUrl}
+                src={gallery.coverImageUrl}
                 alt={gallery.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
               {/* 미디어 타입 표시 */}
               <div className="absolute top-2 left-2 flex gap-2">
-                {hasVideo && (
+                {gallery.videoCount > 0 && (
                   <span className="bg-black bg-opacity-70 text-white px-2 py-1 text-xs rounded-md flex items-center">
                     <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z"/>
@@ -85,12 +60,12 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
                     VIDEO
                   </span>
                 )}
-                {mediaCount > 1 && (
+                {gallery.mediaCount > 1 && (
                   <span className="bg-black bg-opacity-70 text-white px-2 py-1 text-xs rounded-md flex items-center">
                     <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L8 7v10l2.5-3L12 16l2.5-2L17 17V7l-2.5 3L12 8l-1.5 2z"/>
                     </svg>
-                    {mediaCount}
+                    {gallery.mediaCount}
                   </span>
                 )}
               </div>
@@ -104,6 +79,15 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
                   {gallery.viewCount}
                 </span>
               </div>
+              
+              {/* 추천 배지 */}
+              {gallery.isFeatured && (
+                <div className="absolute bottom-2 left-2">
+                  <span className="bg-yellow-500 text-white px-2 py-1 text-xs rounded-md flex items-center font-medium">
+                    ⭐ 추천
+                  </span>
+                </div>
+              )}
             </>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-200">
@@ -116,25 +100,11 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
 
         {/* 컨텐츠 */}
         <div className="p-4">
-          {/* 카테고리와 하이라이트 정보 */}
+          {/* 카테고리 */}
           <div className="flex items-center justify-between mb-2">
             <span className={`inline-block px-2 py-1 text-xs font-medium rounded-md ${getCategoryColor(gallery.category)}`}>
-              {getCategoryLabel(gallery.category)}
+              {gallery.categoryDisplayName}
             </span>
-            
-            {gallery.highlightMetadata && (
-              <div className="flex items-center text-xs text-gray-600">
-                <span className="bg-pink-100 text-pink-800 px-2 py-1 rounded-md mr-2">
-                  {getPlayTypeLabel(gallery.highlightMetadata.playType)}
-                </span>
-                <div className="flex items-center">
-                  <svg className="w-3 h-3 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                  </svg>
-                  {gallery.highlightMetadata.highlightRating}/5
-                </div>
-              </div>
-            )}
           </div>
 
           {/* 제목 */}
@@ -152,13 +122,12 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
           {/* 태그 */}
           {gallery.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
-              {gallery.tags.slice(0, 3).map(tag => (
+              {gallery.tags.slice(0, 3).map((tag, index) => (
                 <span
-                  key={tag.id}
+                  key={index}
                   className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-md"
-                  style={{ backgroundColor: tag.color ? `${tag.color}20` : undefined }}
                 >
-                  #{tag.tagName}
+                  #{tag}
                 </span>
               ))}
               {gallery.tags.length > 3 && (
@@ -169,13 +138,23 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
             </div>
           )}
 
-          {/* 날짜 */}
-          <div className="text-xs text-gray-500">
-            {formatDate(gallery.createdAt)}
+          {/* 하단 정보 */}
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <span>{formatDate(gallery.createdAt)}</span>
+            {gallery.createdBy && (
+              <span>✏️ {gallery.createdBy}</span>
+            )}
           </div>
         </div>
       </div>
-    </Link>
+
+      {/* 상세 모달 */}
+      <GalleryDetailModal
+        galleryId={gallery.id}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+      />
+    </>
   );
 };
 

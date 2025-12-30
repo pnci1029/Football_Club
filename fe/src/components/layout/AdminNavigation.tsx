@@ -30,6 +30,7 @@ const AdminNavigation: React.FC = () => {
       ]
     },
     { path: '/matches', label: '경기 관리', icon: '⚽' },
+    { path: '/gallery', label: '갤러리 관리', icon: '📸' },
   ];
 
   const isActive = (path: string, subItems?: NavigationItem[]) => {
