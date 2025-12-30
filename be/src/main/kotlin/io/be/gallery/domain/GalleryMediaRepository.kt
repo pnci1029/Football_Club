@@ -37,28 +37,7 @@ interface GalleryMediaRepository : JpaRepository<GalleryMedia, Long> {
     fun countByGalleryIdAndMediaType(galleryId: Long, mediaType: MediaType): Long
     
     /**
-     * 팀별 전체 미디어 파일 크기 조회 (용량 관리용)
+     * 특정 갤러리의 미디어 파일 삭제
      */
-    @Query("""
-        SELECT COALESCE(SUM(gm.fileSize), 0) 
-        FROM GalleryMedia gm 
-        JOIN gm.gallery g 
-        WHERE g.teamSubdomain = :teamSubdomain
-    """)
-    fun getTotalFileSizeByTeam(@Param("teamSubdomain") teamSubdomain: String): Long
-    
-    /**
-     * 최근 업로드된 미디어 파일 조회 (홈 대시보드용)
-     */
-    @Query("""
-        SELECT gm FROM GalleryMedia gm 
-        JOIN gm.gallery g 
-        WHERE g.teamSubdomain = :teamSubdomain 
-        AND g.isActive = true 
-        ORDER BY gm.uploadedAt DESC
-    """)
-    fun findRecentMediaByTeam(
-        @Param("teamSubdomain") teamSubdomain: String,
-        limit: org.springframework.data.domain.Pageable
-    ): List<GalleryMedia>
+    fun deleteByGalleryId(galleryId: Long)
 }
