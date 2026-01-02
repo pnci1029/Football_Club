@@ -6,7 +6,7 @@ import io.be.shared.service.SubdomainService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -23,7 +23,7 @@ class StadiumController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<Page<StadiumDto>> {
+    ): ApiResponse<Page<StadiumDto>> {
         // 서브도메인에서 팀 코드 추출
         val teamCode = subdomainService.extractTeamCodeFromRequest(httpRequest)
 
@@ -40,27 +40,27 @@ class StadiumController(
             stadiumService.findAllStadiums(PageRequest.of(page, size))
         }
 
-        return ResponseEntity.ok(stadiums)
+        return ApiResponse.success(stadiums)
     }
 
     @GetMapping("/{id}")
-    fun getStadium(@PathVariable id: Long): ResponseEntity<StadiumDto> {
+    fun getStadium(@PathVariable id: Long): ApiResponse<StadiumDto> {
         val stadium = stadiumService.findStadiumById(id)
-            ?: return ResponseEntity.notFound().build()
-        return ResponseEntity.ok(stadium)
+            ?: return ApiResponse.error("NOT_FOUND", "찾을 수 없습니다.")
+        return ApiResponse.success(stadium)
     }
 
     @GetMapping("/search")
     fun searchStadiums(
         @RequestParam(required = false) name: String?,
         @RequestParam(required = false) address: String?
-    ): ResponseEntity<List<StadiumDto>> {
+    ): ApiResponse<List<StadiumDto>> {
         val stadiums = when {
             !name.isNullOrBlank() -> stadiumService.searchStadiumsByName(name)
             !address.isNullOrBlank() -> stadiumService.searchStadiumsByAddress(address)
             else -> emptyList()
         }
 
-        return ResponseEntity.ok(stadiums)
+        return ApiResponse.success(stadiums)
     }
 }

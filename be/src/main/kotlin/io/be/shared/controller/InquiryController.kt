@@ -4,7 +4,7 @@ import io.be.inquiry.dto.CreateInquiryRequest
 import io.be.inquiry.dto.InquiryDto
 import io.be.inquiry.application.InquiryService
 import jakarta.validation.Valid
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -20,9 +20,9 @@ class InquiryController(
     @PostMapping
     fun createInquiry(
         @Valid @RequestBody request: CreateInquiryRequest
-    ): ResponseEntity<InquiryDto> {
+    ): ApiResponse<InquiryDto> {
         val inquiry = inquiryService.createInquiry(request)
-        return ResponseEntity.ok(inquiry)
+        return ApiResponse.success(inquiry)
     }
 
     /**
@@ -31,9 +31,9 @@ class InquiryController(
     @GetMapping("/email/{email}")
     fun getInquiriesByEmail(
         @PathVariable email: String
-    ): ResponseEntity<List<InquiryDto>> {
+    ): ApiResponse<List<InquiryDto>> {
         val inquiries = inquiryService.findInquiriesByEmail(email)
-        return ResponseEntity.ok(inquiries)
+        return ApiResponse.success(inquiries)
     }
 
     /**
@@ -42,8 +42,8 @@ class InquiryController(
     @GetMapping("/check-email/{email}")
     fun checkEmailExists(
         @PathVariable email: String
-    ): ResponseEntity<Map<String, Boolean>> {
+    ): ApiResponse<Map<String, Boolean>> {
         val exists = inquiryService.existsByEmail(email)
-        return ResponseEntity.ok(mapOf("exists" to exists))
+        return ApiResponse.success(mapOf("exists" to exists))
     }
 }

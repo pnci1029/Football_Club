@@ -2,6 +2,7 @@ package io.be.shared.controller
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.io.File

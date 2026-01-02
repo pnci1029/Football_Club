@@ -5,7 +5,7 @@ import io.be.shared.exception.BadRequestException
 import io.be.shared.dto.*
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -24,7 +24,7 @@ class ProfanityFilterController(
     @PostMapping("/words")
     fun addProfanityWord(
         @Valid @RequestBody request: AddWordRequest
-    ): ResponseEntity<String> {
+    ): ApiResponse<String> {
         logger.info("Adding profanity word: ${request.word}")
         
         val success = profanityFilterService.addProfanityWord(request.word)
@@ -32,7 +32,7 @@ class ProfanityFilterController(
         if (!success) {
             throw BadRequestException("비속어 단어 추가에 실패했습니다.")
         }
-        return ResponseEntity.ok("비속어 단어가 추가되었습니다.")
+        return ApiResponse.success("비속어 단어가 추가되었습니다.")
     }
 
     /**
@@ -41,7 +41,7 @@ class ProfanityFilterController(
     @DeleteMapping("/words")
     fun removeProfanityWord(
         @Valid @RequestBody request: RemoveWordRequest
-    ): ResponseEntity<String> {
+    ): ApiResponse<String> {
         logger.info("Removing profanity word: ${request.word}")
         
         val success = profanityFilterService.removeProfanityWord(request.word)
@@ -49,7 +49,7 @@ class ProfanityFilterController(
         if (!success) {
             throw BadRequestException("비속어 단어 제거에 실패했습니다.")
         }
-        return ResponseEntity.ok("비속어 단어가 제거되었습니다.")
+        return ApiResponse.success("비속어 단어가 제거되었습니다.")
     }
 
     /**
@@ -58,7 +58,7 @@ class ProfanityFilterController(
     @PostMapping("/check")
     fun checkAndFilterText(
         @Valid @RequestBody request: CheckTextRequest
-    ): ResponseEntity<FilterTextResponse> {
+    ): ApiResponse<FilterTextResponse> {
         logger.info("Checking text for profanity: ${request.text.take(50)}...")
         
         val containsProfanity = profanityFilterService.containsProfanity(request.text)
@@ -70,28 +70,28 @@ class ProfanityFilterController(
             containsProfanity = containsProfanity
         )
         
-        return ResponseEntity.ok(response)
+        return ApiResponse.success(response)
     }
 
     /**
      * 비속어 필터 통계 조회
      */
     @GetMapping("/stats")
-    fun getProfanityStats(): ResponseEntity<ProfanityStatsResponse> {
+    fun getProfanityStats(): ApiResponse<ProfanityStatsResponse> {
         val totalCount = profanityFilterService.getProfanityWordsCount()
         
         val response = ProfanityStatsResponse(
             totalWordsCount = totalCount
         )
         
-        return ResponseEntity.ok(response)
+        return ApiResponse.success(response)
     }
 
     /**
      * 비속어 필터 테스트용 엔드포인트
      */
     @GetMapping("/test")
-    fun test(): ResponseEntity<String> {
-        return ResponseEntity.ok("Profanity Filter API is working!")
+    fun test(): ApiResponse<String> {
+        return ApiResponse.success("Profanity Filter API is working!")
     }
 }

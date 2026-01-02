@@ -3,7 +3,7 @@ package io.be.shared.controller
 import io.be.team.dto.TeamDto
 import io.be.shared.exception.TeamNotFoundException
 import io.be.team.application.TeamService
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -14,25 +14,25 @@ class PublicTeamController(
 ) {
 
     @GetMapping
-    fun getAllTeams(): ResponseEntity<List<TeamDto>> {
+    fun getAllTeams(): ApiResponse<List<TeamDto>> {
         val teams = teamService.getAllTeams()
-        return ResponseEntity.ok(teams)
+        return ApiResponse.success(teams)
     }
 
     @GetMapping("/code/{code}")
-    fun getTeamByCode(@PathVariable code: String): ResponseEntity<TeamDto> {
+    fun getTeamByCode(@PathVariable code: String): ApiResponse<TeamDto> {
         val team = teamService.findTeamByCode(code)
             ?: throw TeamNotFoundException(code)
 
-        return ResponseEntity.ok(team)
+        return ApiResponse.success(team)
     }
 
     @GetMapping("/{id}")
-    fun getTeamById(@PathVariable id: String): ResponseEntity<TeamDto> {
+    fun getTeamById(@PathVariable id: String): ApiResponse<TeamDto> {
         val teamId = id.toLongOrNull() ?: throw TeamNotFoundException(id)
         val team = teamService.findTeamById(id)
             ?: throw TeamNotFoundException(teamId)
 
-        return ResponseEntity.ok(team)
+        return ApiResponse.success(team)
     }
 }

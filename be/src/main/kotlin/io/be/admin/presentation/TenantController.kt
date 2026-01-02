@@ -4,7 +4,7 @@ import io.be.team.dto.TeamDto
 import io.be.team.application.TeamService
 import io.be.player.application.PlayerService
 import io.be.stadium.application.StadiumService
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -17,7 +17,7 @@ class TenantController(
 ) {
     
     @GetMapping
-    fun getAllTenants(): ResponseEntity<List<Map<String, Any>>> {
+    fun getAllTenants(): ApiResponse<List<Map<String, Any>>> {
         val allTeamsStats = teamService.getAllTeamsStats()
         @Suppress("UNCHECKED_CAST")
         val teamsData = allTeamsStats["teams"] as List<Map<String, Any>>
@@ -33,13 +33,13 @@ class TenantController(
             ) as Map<String, Any>
         }
         
-        return ResponseEntity.ok(tenants)
+        return ApiResponse.success(tenants)
     }
     
     @GetMapping("/{teamCode}")
-    fun getTenantByCode(@PathVariable teamCode: String): ResponseEntity<Map<String, Any>> {
+    fun getTenantByCode(@PathVariable teamCode: String): ApiResponse<Map<String, Any>> {
         val team = teamService.findTeamByCode(teamCode)
-            ?: return ResponseEntity.notFound().build()
+            ?: return ApiResponse.error("TEAM_NOT_FOUND", "팀을 찾을 수 없습니다.")
             
         val stats = teamService.getTeamStats(team.id)
         
@@ -50,13 +50,13 @@ class TenantController(
             "status" to "active"
         )
         
-        return ResponseEntity.ok(tenantInfo)
+        return ApiResponse.success(tenantInfo)
     }
     
     @GetMapping("/{teamCode}/dashboard")
-    fun getTenantDashboard(@PathVariable teamCode: String): ResponseEntity<Map<String, Any>> {
+    fun getTenantDashboard(@PathVariable teamCode: String): ApiResponse<Map<String, Any>> {
         val team = teamService.findTeamByCode(teamCode)
-            ?: return ResponseEntity.notFound().build()
+            ?: return ApiResponse.error("TEAM_NOT_FOUND", "팀을 찾을 수 없습니다.")
             
         val stats = teamService.getTeamStats(team.id)
         val players = playerService.findActivePlayersByTeam(team.id)
@@ -70,7 +70,7 @@ class TenantController(
             "url" to "${team.code}.localhost:3000"
         )
         
-        return ResponseEntity.ok(dashboard)
+        return ApiResponse.success(dashboard)
     }
     
     @GetMapping("/{teamCode}/players")
@@ -78,9 +78,9 @@ class TenantController(
         @PathVariable teamCode: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int
-    ): ResponseEntity<Map<String, Any>> {
+    ): ApiResponse<Map<String, Any>> {
         val team = teamService.findTeamByCode(teamCode)
-            ?: return ResponseEntity.notFound().build()
+            ?: return ApiResponse.error("TEAM_NOT_FOUND", "팀을 찾을 수 없습니다.")
             
         val players = playerService.findActivePlayersByTeam(team.id)
         
@@ -90,7 +90,7 @@ class TenantController(
             "url" to "${team.code}.localhost:3000"
         )
         
-        return ResponseEntity.ok(result)
+        return ApiResponse.success(result)
     }
     
     @GetMapping("/{teamCode}/stadiums")
@@ -98,9 +98,9 @@ class TenantController(
         @PathVariable teamCode: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int
-    ): ResponseEntity<Map<String, Any>> {
+    ): ApiResponse<Map<String, Any>> {
         val team = teamService.findTeamByCode(teamCode)
-            ?: return ResponseEntity.notFound().build()
+            ?: return ApiResponse.error("TEAM_NOT_FOUND", "팀을 찾을 수 없습니다.")
             
         val stadiums = stadiumService.findStadiumsByTeam(team.id)
         
@@ -110,21 +110,21 @@ class TenantController(
             "url" to "${team.code}.localhost:3000"
         )
         
-        return ResponseEntity.ok(result)
+        return ApiResponse.success(result)
     }
     
     @PutMapping("/{teamCode}/settings")
     fun updateTenantSettings(
         @PathVariable teamCode: String,
         @RequestBody settings: Map<String, Any>
-    ): ResponseEntity<String> {
+    ): ApiResponse<String> {
         // TODO: 테넌트 설정 업데이트 로직 구현
-        return ResponseEntity.ok("Settings updated successfully")
+        return ApiResponse.success("Settings updated successfully")
     }
     
     @PostMapping
-    fun createTenant(@RequestBody request: Map<String, Any>): ResponseEntity<String> {
+    fun createTenant(@RequestBody request: Map<String, Any>): ApiResponse<String> {
         // TODO: 새 테넌트 생성 로직 구현
-        return ResponseEntity.ok("Tenant created successfully")
+        return ApiResponse.success("Tenant created successfully")
     }
 }

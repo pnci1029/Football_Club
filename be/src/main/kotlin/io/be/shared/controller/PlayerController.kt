@@ -8,7 +8,7 @@ import io.be.player.application.PlayerService
 import io.be.shared.util.PagedResponse
 import io.be.shared.util.PageMetadata
 import org.springframework.data.domain.PageRequest
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -25,7 +25,7 @@ class PlayerController(
         @RequestParam(required = false) position: String?,
         @RequestParam(required = false) search: String?,
         @RequestAttribute("team", required = false) team: TeamDto?
-    ): ResponseEntity<PagedResponse<PlayerDto>> {
+    ): ApiResponse<PagedResponse<PlayerDto>> {
         team ?: throw TeamNotFoundException("Team not found for subdomain")
         
         val players = playerService.findPlayersByTeam(team.id, PageRequest.of(page, size))
@@ -41,14 +41,14 @@ class PlayerController(
         )
         
         val pagedResponse = PagedResponse.of(players, metadata)
-        return ResponseEntity.ok(pagedResponse)
+        return ApiResponse.success(pagedResponse)
     }
     
     @GetMapping("/{id}")
     fun getPlayer(
         @PathVariable id: Long,
         @RequestAttribute("team", required = false) team: TeamDto?
-    ): ResponseEntity<PlayerDto> {
+    ): ApiResponse<PlayerDto> {
         team ?: throw TeamNotFoundException("Team not found for subdomain")
         
         val player = playerService.findPlayerById(id)
@@ -59,16 +59,16 @@ class PlayerController(
             throw PlayerNotFoundException(id) // 보안상 404로 처리
         }
         
-        return ResponseEntity.ok(player)
+        return ApiResponse.success(player)
     }
     
     @GetMapping("/active")
     fun getActivePlayers(
         @RequestAttribute("team", required = false) team: TeamDto?
-    ): ResponseEntity<List<PlayerDto>> {
+    ): ApiResponse<List<PlayerDto>> {
         team ?: throw TeamNotFoundException("Team not found for subdomain")
         
         val players = playerService.findActivePlayersByTeam(team.id)
-        return ResponseEntity.ok(players)
+        return ApiResponse.success(players)
     }
 }
