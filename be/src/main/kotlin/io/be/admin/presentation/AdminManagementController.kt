@@ -3,7 +3,7 @@ package io.be.admin.presentation
 import io.be.admin.application.AdminManagementService
 import io.be.admin.dto.AdminBasicInfo
 import io.be.admin.dto.CreateAdminRequest
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
@@ -16,22 +16,22 @@ class AdminManagementController(
 
     @GetMapping("/admins")
     @PreAuthorize("hasAnyRole('MASTER', 'SUPER_ADMIN')")
-    fun getAdminsByTeam(@RequestParam("teamId") teamId: Long): ResponseEntity<List<AdminBasicInfo>> {
+    fun getAdminsByTeam(@RequestParam("teamId") teamId: Long): ApiResponse<List<AdminBasicInfo>> {
         val admins = adminManagementService.getAdminsByTeam(teamId)
-        return ResponseEntity.ok(admins)
+        return ApiResponse.success(admins)
     }
 
     @PostMapping("/admins")
     @PreAuthorize("hasAnyRole('MASTER', 'SUPER_ADMIN')")
-    fun createAdmin(@RequestBody request: CreateAdminRequest): ResponseEntity<AdminBasicInfo> {
+    fun createAdmin(@RequestBody request: CreateAdminRequest): ApiResponse<AdminBasicInfo> {
         val newAdmin = adminManagementService.createAdmin(request)
-        return ResponseEntity.ok(newAdmin)
+        return ApiResponse.success(newAdmin)
     }
 
     @DeleteMapping("/admins/{adminId}")
     @PreAuthorize("hasAnyRole('MASTER', 'SUPER_ADMIN')")
-    fun deleteAdmin(@PathVariable("adminId") adminId: Long): ResponseEntity<Unit> {
+    fun deleteAdmin(@PathVariable("adminId") adminId: Long): ApiResponse<Unit> {
         adminManagementService.deleteAdmin(adminId)
-        return ResponseEntity.ok(Unit)
+        return ApiResponse.success(Unit)
     }
 }

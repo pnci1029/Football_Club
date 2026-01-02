@@ -13,7 +13,7 @@ import io.be.shared.util.PagedResponse
 import io.be.shared.util.PageMetadata
 import io.be.team.application.TeamService
 import jakarta.validation.Valid
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -37,7 +37,7 @@ class AdminInquiryController(
         @RequestParam(required = false) name: String?,
         @RequestParam(required = false) email: String?,
         @RequestParam(required = false) teamName: String?
-    ): ResponseEntity<PagedResponse<InquiryDto>> {
+    ): ApiResponse<PagedResponse<InquiryDto>> {
         
         // 권한별 teamName 결정
         val actualTeamName = when (adminInfo.adminLevel) {
@@ -84,7 +84,7 @@ class AdminInquiryController(
         )
         
         val pagedResponse = PagedResponse.of(inquiries, metadata)
-        return ResponseEntity.ok(pagedResponse)
+        return ApiResponse.success(pagedResponse)
     }
 
     /**
@@ -95,7 +95,7 @@ class AdminInquiryController(
     fun getInquiry(
         adminInfo: AdminInfo,
         @PathVariable id: Long
-    ): ResponseEntity<InquiryDto> {
+    ): ApiResponse<InquiryDto> {
         val inquiry = inquiryService.findInquiryById(id)
         
         // 서브도메인 관리자는 자신의 팀 문의만 조회 가능
@@ -108,7 +108,7 @@ class AdminInquiryController(
             }
         }
         
-        return ResponseEntity.ok(inquiry)
+        return ApiResponse.success(inquiry)
     }
 
     /**
@@ -120,7 +120,7 @@ class AdminInquiryController(
         adminInfo: AdminInfo,
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdateInquiryStatusRequest
-    ): ResponseEntity<InquiryDto> {
+    ): ApiResponse<InquiryDto> {
         // 서브도메인 관리자는 자신의 팀 문의만 수정 가능
         if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
             val inquiry = inquiryService.findInquiryById(id)
@@ -133,7 +133,7 @@ class AdminInquiryController(
         }
         
         val updatedInquiry = inquiryService.updateInquiryStatus(id, request)
-        return ResponseEntity.ok(updatedInquiry)
+        return ApiResponse.success(updatedInquiry)
     }
 
     /**
@@ -146,7 +146,7 @@ class AdminInquiryController(
         @PathVariable status: InquiryStatus,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int
-    ): ResponseEntity<PagedResponse<InquiryDto>> {
+    ): ApiResponse<PagedResponse<InquiryDto>> {
         val inquiries = inquiryService.findInquiriesByStatus(status, page, size)
         
         val metadata = PageMetadata(
@@ -155,7 +155,7 @@ class AdminInquiryController(
         )
         
         val pagedResponse = PagedResponse.of(inquiries, metadata)
-        return ResponseEntity.ok(pagedResponse)
+        return ApiResponse.success(pagedResponse)
     }
 
     /**
@@ -165,9 +165,9 @@ class AdminInquiryController(
     @GetMapping("/stats")
     fun getInquiryStats(
         adminInfo: AdminInfo
-    ): ResponseEntity<Map<String, Any>> {
+    ): ApiResponse<Map<String, Any>> {
         val stats = inquiryService.getInquiryStats()
-        return ResponseEntity.ok(stats)
+        return ApiResponse.success(stats)
     }
 
     /**
@@ -178,9 +178,9 @@ class AdminInquiryController(
     fun getRecentInquiries(
         adminInfo: AdminInfo,
         @RequestParam(defaultValue = "5") limit: Int
-    ): ResponseEntity<List<InquiryDto>> {
+    ): ApiResponse<List<InquiryDto>> {
         val inquiries = inquiryService.findAllInquiries(0, limit)
-        return ResponseEntity.ok(inquiries.content)
+        return ApiResponse.success(inquiries.content)
     }
 
     /**
@@ -191,7 +191,7 @@ class AdminInquiryController(
     fun deleteInquiry(
         adminInfo: AdminInfo,
         @PathVariable id: Long
-    ): ResponseEntity<Unit> {
+    ): ApiResponse<Unit> {
         // 서브도메인 관리자는 자신의 팀 문의만 삭제 가능
         if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
             val inquiry = inquiryService.findInquiryById(id)
@@ -204,6 +204,6 @@ class AdminInquiryController(
         }
         
         inquiryService.deleteInquiry(id)
-        return ResponseEntity.ok(Unit)
+        return ApiResponse.success(Unit)
     }
 }

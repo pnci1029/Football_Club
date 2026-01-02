@@ -10,7 +10,7 @@ import io.be.team.application.TeamService
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -33,7 +33,7 @@ class AdminNoticeController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
         @RequestParam(required = false) keyword: String?
-    ): ResponseEntity<Page<AllNoticeResponse>> {
+    ): ApiResponse<Page<AllNoticeResponse>> {
         logger.info("Admin GET /notices request - page: $page, size: $size, keyword: $keyword")
         
         val notices = when (adminInfo.adminLevel) {
@@ -51,7 +51,7 @@ class AdminNoticeController(
         }
         
         logger.info("Returning ${notices.content.size} notices out of ${notices.totalElements} total")
-        return ResponseEntity.ok(notices)
+        return ApiResponse.success(notices)
     }
 
     /**
@@ -65,7 +65,7 @@ class AdminNoticeController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
         @RequestParam(required = false) keyword: String?
-    ): ResponseEntity<Page<NoticeResponse>> {
+    ): ApiResponse<Page<NoticeResponse>> {
         logger.info("Admin GET /notices/team/$teamId request - page: $page, size: $size, keyword: $keyword")
         
         // 서브도메인 관리자는 자신의 팀만 접근 가능
@@ -80,7 +80,7 @@ class AdminNoticeController(
         
         val notices = noticeService.getNotices(teamId, page, size, keyword)
         logger.info("Returning ${notices.content.size} notices out of ${notices.totalElements} total")
-        return ResponseEntity.ok(notices)
+        return ApiResponse.success(notices)
     }
 
     /**
@@ -92,7 +92,7 @@ class AdminNoticeController(
         @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @PathVariable noticeId: Long,
         @RequestParam teamId: Long
-    ): ResponseEntity<NoticeDetailResponse> {
+    ): ApiResponse<NoticeDetailResponse> {
         logger.info("Admin GET /notices/$noticeId request - teamId: $teamId")
         
         // 서브도메인 관리자는 자신의 팀만 접근 가능
@@ -106,7 +106,7 @@ class AdminNoticeController(
         }
         
         val notice = noticeService.getNotice(teamId, noticeId)
-        return ResponseEntity.ok(notice)
+        return ApiResponse.success(notice)
     }
 
     /**
@@ -117,7 +117,7 @@ class AdminNoticeController(
     fun createNotice(
         @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @Valid @RequestBody request: CreateNoticeRequestDto
-    ): ResponseEntity<NoticeResponse> {
+    ): ApiResponse<NoticeResponse> {
         logger.info("Admin POST /notices request - teamId: ${request.teamId}, title: ${request.title}")
         
         // 서브도메인 관리자는 자신의 팀에만 공지사항 작성 가능
@@ -141,7 +141,7 @@ class AdminNoticeController(
             isGlobalVisible = request.isGlobalVisible
         )
         val notice = noticeService.createNotice(serviceRequest)
-        return ResponseEntity.ok(notice)
+        return ApiResponse.success(notice)
     }
 
     /**
@@ -151,10 +151,10 @@ class AdminNoticeController(
     fun updateNotice(
         @PathVariable noticeId: Long,
         @Valid @RequestBody request: AdminUpdateNoticeRequestDto
-    ): ResponseEntity<NoticeResponse> {
+    ): ApiResponse<NoticeResponse> {
         logger.info("Admin PUT /notices/$noticeId request - teamId: ${request.teamId}")
         val notice = noticeService.adminUpdateNotice(noticeId, request.teamId, request.title, request.content, request.isGlobalVisible)
-        return ResponseEntity.ok(notice)
+        return ApiResponse.success(notice)
     }
 
     /**
@@ -166,7 +166,7 @@ class AdminNoticeController(
         @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @PathVariable noticeId: Long,
         @RequestParam teamId: Long
-    ): ResponseEntity<String> {
+    ): ApiResponse<String> {
         logger.info("Admin DELETE /notices/$noticeId request - teamId: $teamId")
         
         // 서브도메인 관리자는 자신의 팀 공지사항만 삭제 가능
@@ -180,7 +180,7 @@ class AdminNoticeController(
         }
         
         noticeService.adminDeleteNotice(teamId, noticeId)
-        return ResponseEntity.ok("공지사항이 삭제되었습니다.")
+        return ApiResponse.success("공지사항이 삭제되었습니다.")
     }
 
     /**
@@ -192,7 +192,7 @@ class AdminNoticeController(
         @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @PathVariable commentId: Long,
         @RequestParam teamId: Long
-    ): ResponseEntity<String> {
+    ): ApiResponse<String> {
         logger.info("Admin DELETE /notices/comments/$commentId request - teamId: $teamId")
         
         // 서브도메인 관리자는 자신의 팀 댓글만 삭제 가능
@@ -206,6 +206,6 @@ class AdminNoticeController(
         }
         
         noticeService.adminDeleteComment(teamId, commentId)
-        return ResponseEntity.ok("댓글이 삭제되었습니다.")
+        return ApiResponse.success("댓글이 삭제되었습니다.")
     }
 }

@@ -13,7 +13,7 @@ import io.be.shared.exception.BadRequestException
 import io.be.team.application.TeamService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -25,15 +25,15 @@ class AdminHeroSlideController(
 ) {
     
     @GetMapping("/active")
-    fun getActiveSlides(@RequestParam teamId: Long): ResponseEntity<List<HeroSlideDto>> {
+    fun getActiveSlides(@RequestParam teamId: Long): ApiResponse<List<HeroSlideDto>> {
         val slides = heroSlideService.getActiveSlidesForTeam(teamId)
-        return ResponseEntity.ok(slides)
+        return ApiResponse.success(slides)
     }
     
     @GetMapping
-    fun getAllSlides(@RequestParam teamId: Long): ResponseEntity<List<HeroSlideDto>> {
+    fun getAllSlides(@RequestParam teamId: Long): ApiResponse<List<HeroSlideDto>> {
         val slides = heroSlideService.getAllSlidesForTeam(teamId)
-        return ResponseEntity.ok(slides)
+        return ApiResponse.success(slides)
     }
     
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
@@ -41,9 +41,9 @@ class AdminHeroSlideController(
     fun getSlide(
         adminInfo: AdminInfo,
         @PathVariable id: Long
-    ): ResponseEntity<HeroSlideDto> {
+    ): ApiResponse<HeroSlideDto> {
         val slide = heroSlideService.getSlideById(id)
-            ?: return ResponseEntity.notFound().build()
+            ?: return ApiResponse.error("NOT_FOUND", "찾을 수 없습니다.")
         
         // 서브도메인 관리자는 자신의 팀 슬라이드만 조회 가능
         if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
@@ -55,7 +55,7 @@ class AdminHeroSlideController(
             }
         }
         
-        return ResponseEntity.ok(slide)
+        return ApiResponse.success(slide)
     }
     
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
@@ -64,7 +64,7 @@ class AdminHeroSlideController(
         adminInfo: AdminInfo,
         @RequestParam teamId: Long,
         @Valid @RequestBody request: CreateHeroSlideRequest
-    ): ResponseEntity<HeroSlideDto> {
+    ): ApiResponse<HeroSlideDto> {
         // 서브도메인 관리자는 자신의 팀에만 슬라이드 생성 가능
         if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
             val team = teamService.findByCode(adminInfo.teamSubdomain!!)
@@ -77,8 +77,7 @@ class AdminHeroSlideController(
         
         try {
             val slide = heroSlideService.createSlideForTeam(teamId, request)
-            return ResponseEntity.status(HttpStatus.CREATED)
-                .body(slide)
+            return ApiResponse.success(slide)
         } catch (e: IllegalArgumentException) {
             throw BadRequestException(e.message ?: "Invalid request")
         }
@@ -90,7 +89,7 @@ class AdminHeroSlideController(
         adminInfo: AdminInfo,
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdateHeroSlideRequest
-    ): ResponseEntity<HeroSlideDto> {
+    ): ApiResponse<HeroSlideDto> {
         // 서브도메인 관리자는 자신의 팀 슬라이드만 수정 가능
         if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
             val existingSlide = heroSlideService.getSlideById(id)
@@ -106,7 +105,7 @@ class AdminHeroSlideController(
         
         try {
             val slide = heroSlideService.updateSlide(id, request)
-            return ResponseEntity.ok(slide)
+            return ApiResponse.success(slide)
         } catch (e: IllegalArgumentException) {
             throw BadRequestException(e.message ?: "Invalid request")
         }
@@ -117,7 +116,7 @@ class AdminHeroSlideController(
     fun deleteSlide(
         adminInfo: AdminInfo,
         @PathVariable id: Long
-    ): ResponseEntity<String> {
+    ): ApiResponse<String> {
         // 서브도메인 관리자는 자신의 팀 슬라이드만 삭제 가능
         if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
             val existingSlide = heroSlideService.getSlideById(id)
@@ -133,7 +132,7 @@ class AdminHeroSlideController(
         
         try {
             heroSlideService.deleteSlide(id)
-            return ResponseEntity.ok("deleted")
+            return ApiResponse.success("deleted")
         } catch (e: IllegalArgumentException) {
             throw BadRequestException(e.message ?: "Invalid request")
         }
@@ -144,7 +143,7 @@ class AdminHeroSlideController(
     fun updateSortOrder(
         adminInfo: AdminInfo,
         @Valid @RequestBody request: UpdateSortOrderRequest
-    ): ResponseEntity<String> {
+    ): ApiResponse<String> {
         // 서브도메인 관리자는 자신의 팀 슬라이드 순서만 변경 가능
         if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
             val team = teamService.findByCode(adminInfo.teamSubdomain!!)
@@ -163,7 +162,7 @@ class AdminHeroSlideController(
         
         try {
             heroSlideService.updateSortOrder(request)
-            return ResponseEntity.ok("updated")
+            return ApiResponse.success("updated")
         } catch (e: IllegalArgumentException) {
             throw BadRequestException(e.message ?: "Invalid request")
         }

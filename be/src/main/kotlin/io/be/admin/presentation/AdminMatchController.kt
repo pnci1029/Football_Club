@@ -19,7 +19,7 @@ import io.be.team.application.TeamService
 import jakarta.validation.Valid
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -39,7 +39,7 @@ class AdminMatchController(
         @RequestParam(required = false) teamId: Long?,
         @RequestParam(required = false) stadiumId: Long?,
         @RequestParam(required = false) status: MatchStatus?
-    ): ResponseEntity<PagedResponse<MatchDto>> {
+    ): ApiResponse<PagedResponse<MatchDto>> {
         val pageable = PageRequest.of(page, size)
 
         val matches = when (adminInfo.adminLevel) {
@@ -70,7 +70,7 @@ class AdminMatchController(
         }
 
         val pagedResponse = PagedResponse.of(matches)
-        return ResponseEntity.ok(pagedResponse)
+        return ApiResponse.success(pagedResponse)
     }
 
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
@@ -78,7 +78,7 @@ class AdminMatchController(
     fun getMatch(
         @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @PathVariable id: Long
-    ): ResponseEntity<MatchDto> {
+    ): ApiResponse<MatchDto> {
         val match = matchService.findMatchById(id)
             ?: throw MatchNotFoundException(id)
 
@@ -90,17 +90,16 @@ class AdminMatchController(
             }
         }
 
-        return ResponseEntity.ok(match)
+        return ApiResponse.success(match)
     }
 
     @AdminPermissionRequired(level = AdminLevel.MASTER)
     @PostMapping
     fun createMatch(
         @Valid @RequestBody request: CreateMatchRequest
-    ): ResponseEntity<MatchDto> {
+    ): ApiResponse<MatchDto> {
         val match = matchService.createMatch(request)
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(match)
+        return ApiResponse.success(match)
     }
 
     @AdminPermissionRequired(level = AdminLevel.MASTER)
@@ -108,9 +107,9 @@ class AdminMatchController(
     fun updateMatch(
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdateMatchRequest
-    ): ResponseEntity<MatchDto> {
+    ): ApiResponse<MatchDto> {
         val updatedMatch = matchService.updateMatch(id, request)
-        return ResponseEntity.ok(updatedMatch)
+        return ApiResponse.success(updatedMatch)
     }
 
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
@@ -119,7 +118,7 @@ class AdminMatchController(
         @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @PathVariable id: Long,
         @Valid @RequestBody request: MatchScoreRequest
-    ): ResponseEntity<MatchDto> {
+    ): ApiResponse<MatchDto> {
         val match = matchService.findMatchById(id)
             ?: throw MatchNotFoundException(id)
 
@@ -132,13 +131,13 @@ class AdminMatchController(
         }
 
         val updatedMatch = matchService.updateMatchScore(id, request.homeTeamScore, request.awayTeamScore)
-        return ResponseEntity.ok(updatedMatch)
+        return ApiResponse.success(updatedMatch)
     }
 
     @AdminPermissionRequired(level = AdminLevel.MASTER)
     @DeleteMapping("/{id}")
-    fun deleteMatch(@PathVariable id: Long): ResponseEntity<String> {
+    fun deleteMatch(@PathVariable id: Long): ApiResponse<String> {
         matchService.deleteMatch(id)
-        return ResponseEntity.ok("deleted")
+        return ApiResponse.success("deleted")
     }
 }
