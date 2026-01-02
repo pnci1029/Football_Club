@@ -6,7 +6,6 @@ import io.be.community.dto.*
 import io.be.community.domain.CommunityCategory
 import io.be.shared.dto.ViewCount
 import io.be.shared.dto.IncreaseViewCountRequest
-import io.be.shared.util.ApiResponse
 import io.be.shared.enums.ContentType
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -31,22 +30,22 @@ class CommunityController(
      * 테스트용 엔드포인트
      */
     @GetMapping("/test")
-    fun test(): ResponseEntity<ApiResponse<String>> {
-        return ResponseEntity.ok(ApiResponse.success("Community API is working!"))
+    fun test(): ResponseEntity<String> {
+        return ResponseEntity.ok("Community API is working!")
     }
 
     /**
      * 커뮤니티 카테고리 목록 조회
      */
     @GetMapping("/categories")
-    fun getCategories(): ResponseEntity<ApiResponse<List<Map<String, String>>>> {
+    fun getCategories(): ResponseEntity<List<Map<String, String>>> {
         val categories = CommunityCategory.getActiveCategories().map { 
             mapOf(
                 "value" to it.name,
                 "displayName" to it.displayName
             )
         }
-        return ResponseEntity.ok(ApiResponse.success(categories))
+        return ResponseEntity.ok(categories)
     }
 
     /**
@@ -59,11 +58,11 @@ class CommunityController(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) category: String?,
         @RequestParam teamId: Long
-    ): ResponseEntity<ApiResponse<Page<CommunityPostResponse>>> {
+    ): ResponseEntity<Page<CommunityPostResponse>> {
         logger.info("GET /posts request - teamId: $teamId, page: $page, size: $size, keyword: $keyword, category: $category")
         val posts = communityService.getPosts(teamId, page, size, keyword, category)
         logger.info("Returning ${posts.content.size} posts out of ${posts.totalElements} total")
-        return ResponseEntity.ok(ApiResponse.success(posts))
+        return ResponseEntity.ok(posts)
     }
 
     /**
@@ -74,7 +73,7 @@ class CommunityController(
         @PathVariable postId: Long,
         @RequestParam teamId: Long,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<CommunityPostDetailResponse>> {
+    ): ResponseEntity<CommunityPostDetailResponse> {
         val post = communityService.getPost(teamId, postId)
 
         // 조회수 자동 증가 처리
@@ -82,7 +81,7 @@ class CommunityController(
         val userAgent = httpRequest.getHeader("User-Agent") ?: ""
         viewCountService.increaseViewCount(ContentType.COMMUNITY, postId, clientIp, userAgent)
 
-        return ResponseEntity.ok(ApiResponse.success(post))
+        return ResponseEntity.ok(post)
     }
 
     /**
@@ -91,7 +90,7 @@ class CommunityController(
     @PostMapping("/posts")
     fun createPost(
         @Valid @RequestBody request: CreatePostRequest
-    ): ResponseEntity<ApiResponse<CommunityPostResponse>> {
+    ): ResponseEntity<CommunityPostResponse> {
         val serviceRequest = CreateCommunityPostRequest(
             title = request.title,
             content = request.content,
@@ -103,7 +102,7 @@ class CommunityController(
             teamId = request.teamId
         )
         val post = communityService.createPost(serviceRequest)
-        return ResponseEntity.ok(ApiResponse.success(post))
+        return ResponseEntity.ok(post)
     }
 
     /**
@@ -113,7 +112,7 @@ class CommunityController(
     fun updatePost(
         @PathVariable postId: Long,
         @Valid @RequestBody request: UpdatePostRequest
-    ): ResponseEntity<ApiResponse<CommunityPostResponse>> {
+    ): ResponseEntity<CommunityPostResponse> {
         val serviceRequest = UpdateCommunityPostRequest(
             title = request.title,
             content = request.content,
@@ -121,7 +120,7 @@ class CommunityController(
             teamId = request.teamId
         )
         val post = communityService.updatePost(postId, serviceRequest)
-        return ResponseEntity.ok(ApiResponse.success(post))
+        return ResponseEntity.ok(post)
     }
 
     /**
@@ -132,9 +131,9 @@ class CommunityController(
         @PathVariable postId: Long,
         @RequestParam teamId: Long,
         @RequestParam authorPassword: String
-    ): ResponseEntity<ApiResponse<String>> {
+    ): ResponseEntity<String> {
         communityService.deletePost(teamId, postId, authorPassword)
-        return ResponseEntity.ok(ApiResponse.success("게시글이 삭제되었습니다."))
+        return ResponseEntity.ok("게시글이 삭제되었습니다.")
     }
 
     /**
@@ -144,7 +143,7 @@ class CommunityController(
     fun createComment(
         @PathVariable postId: Long,
         @Valid @RequestBody request: CreateCommentRequest
-    ): ResponseEntity<ApiResponse<CommunityCommentResponse>> {
+    ): ResponseEntity<CommunityCommentResponse> {
         val serviceRequest = CreateCommunityCommentRequest(
             content = request.content,
             authorName = request.authorName,
@@ -153,7 +152,7 @@ class CommunityController(
             teamId = request.teamId
         )
         val comment = communityService.createComment(postId, serviceRequest)
-        return ResponseEntity.ok(ApiResponse.success(comment))
+        return ResponseEntity.ok(comment)
     }
 
     /**
@@ -164,9 +163,9 @@ class CommunityController(
         @PathVariable commentId: Long,
         @RequestParam teamId: Long,
         @RequestParam authorPassword: String
-    ): ResponseEntity<ApiResponse<String>> {
+    ): ResponseEntity<String> {
         communityService.deleteComment(teamId, commentId, authorPassword)
-        return ResponseEntity.ok(ApiResponse.success("댓글이 삭제되었습니다."))
+        return ResponseEntity.ok("댓글이 삭제되었습니다.")
     }
 
     /**
@@ -177,17 +176,17 @@ class CommunityController(
         @PathVariable postId: Long,
         @RequestBody ownershipRequest: OwnershipCheckRequest,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<OwnershipCheckResponse>> {
+    ): ResponseEntity<OwnershipCheckResponse> {
         val clientIp = getClientIpAddress(httpRequest)
         logger.info("Post ownership check attempt - postId: $postId, teamId: ${ownershipRequest.teamId}, clientIp: $clientIp")
 
         val isOwner = communityService.checkPostOwnership(postId, ownershipRequest.teamId, ownershipRequest.authorPassword, clientIp)
 
-        return ResponseEntity.ok(ApiResponse.success(OwnershipCheckResponse(
+        return ResponseEntity.ok(OwnershipCheckResponse(
             isOwner = isOwner,
             canEdit = isOwner,
             canDelete = isOwner
-        )))
+        ))
     }
 
     /**
@@ -198,17 +197,17 @@ class CommunityController(
         @PathVariable commentId: Long,
         @RequestBody ownershipRequest: OwnershipCheckRequest,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<OwnershipCheckResponse>> {
+    ): ResponseEntity<OwnershipCheckResponse> {
         val clientIp = getClientIpAddress(httpRequest)
         logger.info("Comment ownership check attempt - commentId: $commentId, teamId: ${ownershipRequest.teamId}, clientIp: $clientIp")
 
         val isOwner = communityService.checkCommentOwnership(commentId, ownershipRequest.teamId, ownershipRequest.authorPassword, clientIp)
 
-        return ResponseEntity.ok(ApiResponse.success(OwnershipCheckResponse(
+        return ResponseEntity.ok(OwnershipCheckResponse(
             isOwner = isOwner,
             canEdit = false, // 댓글은 수정 불가
             canDelete = isOwner
-        )))
+        ))
     }
 
     private fun getClientIpAddress(request: HttpServletRequest): String {
