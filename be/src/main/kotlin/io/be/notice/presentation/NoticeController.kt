@@ -4,7 +4,6 @@ import io.be.notice.application.NoticeService
 import io.be.shared.service.ViewCountService
 import io.be.notice.dto.*
 import io.be.shared.dto.ViewCount
-import io.be.shared.util.ApiResponse
 import io.be.shared.enums.ContentType
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -27,8 +26,8 @@ class NoticeController(
      * 테스트용 엔드포인트
      */
     @GetMapping("/test")
-    fun test(): ResponseEntity<ApiResponse<String>> {
-        return ResponseEntity.ok(ApiResponse.success("Notice API is working!"))
+    fun test(): ResponseEntity<String> {
+        return ResponseEntity.ok("Notice API is working!")
     }
 
     /**
@@ -40,11 +39,11 @@ class NoticeController(
         @RequestParam(defaultValue = "20") size: Int,
         @RequestParam(required = false) keyword: String?,
         @RequestParam teamId: Long
-    ): ResponseEntity<ApiResponse<Page<NoticeResponse>>> {
+    ): ResponseEntity<Page<NoticeResponse>> {
         logger.info("GET /notices request - teamId: $teamId, page: $page, size: $size, keyword: $keyword")
         val notices = noticeService.getNotices(teamId, page, size, keyword)
         logger.info("Returning ${notices.content.size} notices out of ${notices.totalElements} total")
-        return ResponseEntity.ok(ApiResponse.success(notices))
+        return ResponseEntity.ok(notices)
     }
 
     /**
@@ -55,7 +54,7 @@ class NoticeController(
         @PathVariable noticeId: Long,
         @RequestParam teamId: Long,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<NoticeDetailResponse>> {
+    ): ResponseEntity<NoticeDetailResponse> {
         val notice = noticeService.getNotice(teamId, noticeId)
         
         // 조회수 자동 증가 처리
@@ -63,7 +62,7 @@ class NoticeController(
         val userAgent = httpRequest.getHeader("User-Agent") ?: ""
         viewCountService.increaseViewCount(ContentType.NOTICE, noticeId, clientIp, userAgent)
         
-        return ResponseEntity.ok(ApiResponse.success(notice))
+        return ResponseEntity.ok(notice)
     }
 
 
@@ -73,7 +72,7 @@ class NoticeController(
     @PostMapping
     fun createNotice(
         @Valid @RequestBody request: CreateNoticeRequestDto
-    ): ResponseEntity<ApiResponse<NoticeResponse>> {
+    ): ResponseEntity<NoticeResponse> {
         val serviceRequest = CreateNoticeRequest(
             title = request.title,
             content = request.content,
@@ -84,7 +83,7 @@ class NoticeController(
             teamId = request.teamId
         )
         val notice = noticeService.createNotice(serviceRequest)
-        return ResponseEntity.ok(ApiResponse.success(notice))
+        return ResponseEntity.ok(notice)
     }
 
     /**
@@ -94,7 +93,7 @@ class NoticeController(
     fun updateNotice(
         @PathVariable noticeId: Long,
         @Valid @RequestBody request: UpdateNoticeRequestDto
-    ): ResponseEntity<ApiResponse<NoticeResponse>> {
+    ): ResponseEntity<NoticeResponse> {
         val serviceRequest = UpdateNoticeRequest(
             title = request.title,
             content = request.content,
@@ -102,7 +101,7 @@ class NoticeController(
             teamId = request.teamId
         )
         val notice = noticeService.updateNotice(noticeId, serviceRequest)
-        return ResponseEntity.ok(ApiResponse.success(notice))
+        return ResponseEntity.ok(notice)
     }
 
     /**
@@ -113,9 +112,9 @@ class NoticeController(
         @PathVariable noticeId: Long,
         @RequestParam teamId: Long,
         @RequestParam authorPassword: String
-    ): ResponseEntity<ApiResponse<String>> {
+    ): ResponseEntity<String> {
         noticeService.deleteNotice(teamId, noticeId, authorPassword)
-        return ResponseEntity.ok(ApiResponse.success("공지사항이 삭제되었습니다."))
+        return ResponseEntity.ok("공지사항이 삭제되었습니다.")
     }
 
     /**
@@ -125,7 +124,7 @@ class NoticeController(
     fun createComment(
         @PathVariable noticeId: Long,
         @Valid @RequestBody request: CreateNoticeCommentRequestDto
-    ): ResponseEntity<ApiResponse<NoticeCommentResponse>> {
+    ): ResponseEntity<NoticeCommentResponse> {
         val serviceRequest = CreateNoticeCommentRequest(
             content = request.content,
             authorName = request.authorName,
@@ -134,7 +133,7 @@ class NoticeController(
             teamId = request.teamId
         )
         val comment = noticeService.createComment(noticeId, serviceRequest)
-        return ResponseEntity.ok(ApiResponse.success(comment))
+        return ResponseEntity.ok(comment)
     }
 
     /**
@@ -145,9 +144,9 @@ class NoticeController(
         @PathVariable commentId: Long,
         @RequestParam teamId: Long,
         @RequestParam authorPassword: String
-    ): ResponseEntity<ApiResponse<String>> {
+    ): ResponseEntity<String> {
         noticeService.deleteComment(teamId, commentId, authorPassword)
-        return ResponseEntity.ok(ApiResponse.success("댓글이 삭제되었습니다."))
+        return ResponseEntity.ok("댓글이 삭제되었습니다.")
     }
 
     /**
@@ -158,17 +157,17 @@ class NoticeController(
         @PathVariable noticeId: Long,
         @RequestBody ownershipRequest: NoticeOwnershipCheckRequest,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<NoticeOwnershipCheckResponse>> {
+    ): ResponseEntity<NoticeOwnershipCheckResponse> {
         val clientIp = getClientIpAddress(httpRequest)
         logger.info("Notice ownership check attempt - noticeId: $noticeId, teamId: ${ownershipRequest.teamId}, clientIp: $clientIp")
 
         val isOwner = noticeService.checkNoticeOwnership(noticeId, ownershipRequest.teamId, ownershipRequest.authorPassword, clientIp)
 
-        return ResponseEntity.ok(ApiResponse.success(NoticeOwnershipCheckResponse(
+        return ResponseEntity.ok(NoticeOwnershipCheckResponse(
             isOwner = isOwner,
             canEdit = isOwner,
             canDelete = isOwner
-        )))
+        ))
     }
 
     /**
@@ -179,17 +178,17 @@ class NoticeController(
         @PathVariable commentId: Long,
         @RequestBody ownershipRequest: NoticeOwnershipCheckRequest,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<NoticeOwnershipCheckResponse>> {
+    ): ResponseEntity<NoticeOwnershipCheckResponse> {
         val clientIp = getClientIpAddress(httpRequest)
         logger.info("Comment ownership check attempt - commentId: $commentId, teamId: ${ownershipRequest.teamId}, clientIp: $clientIp")
 
         val isOwner = noticeService.checkCommentOwnership(commentId, ownershipRequest.teamId, ownershipRequest.authorPassword, clientIp)
 
-        return ResponseEntity.ok(ApiResponse.success(NoticeOwnershipCheckResponse(
+        return ResponseEntity.ok(NoticeOwnershipCheckResponse(
             isOwner = isOwner,
             canEdit = false, // 댓글은 수정 불가
             canDelete = isOwner
-        )))
+        ))
     }
 
     private fun getClientIpAddress(request: HttpServletRequest): String {

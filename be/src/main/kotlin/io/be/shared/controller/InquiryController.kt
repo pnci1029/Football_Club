@@ -3,7 +3,6 @@ package io.be.shared.controller
 import io.be.inquiry.dto.CreateInquiryRequest
 import io.be.inquiry.dto.InquiryDto
 import io.be.inquiry.application.InquiryService
-import io.be.shared.util.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -21,14 +20,9 @@ class InquiryController(
     @PostMapping
     fun createInquiry(
         @Valid @RequestBody request: CreateInquiryRequest
-    ): ResponseEntity<ApiResponse<InquiryDto>> {
+    ): ResponseEntity<InquiryDto> {
         val inquiry = inquiryService.createInquiry(request)
-        return ResponseEntity.ok(
-            ApiResponse.success(
-                data = inquiry,
-                message = "무료 체험 신청이 완료되었습니다. 빠른 시일 내에 연락드리겠습니다."
-            )
-        )
+        return ResponseEntity.ok(inquiry)
     }
 
     /**
@@ -37,14 +31,9 @@ class InquiryController(
     @GetMapping("/email/{email}")
     fun getInquiriesByEmail(
         @PathVariable email: String
-    ): ResponseEntity<ApiResponse<List<InquiryDto>>> {
+    ): ResponseEntity<List<InquiryDto>> {
         val inquiries = inquiryService.findInquiriesByEmail(email)
-        return ResponseEntity.ok(
-            ApiResponse.success(
-                data = inquiries,
-                message = "문의 내역 조회 성공"
-            )
-        )
+        return ResponseEntity.ok(inquiries)
     }
 
     /**
@@ -53,13 +42,8 @@ class InquiryController(
     @GetMapping("/check-email/{email}")
     fun checkEmailExists(
         @PathVariable email: String
-    ): ResponseEntity<ApiResponse<Map<String, Boolean>>> {
+    ): ResponseEntity<Map<String, Boolean>> {
         val exists = inquiryService.existsByEmail(email)
-        return ResponseEntity.ok(
-            ApiResponse.success(
-                data = mapOf("exists" to exists),
-                message = if (exists) "이미 신청된 이메일입니다" else "신청 가능한 이메일입니다"
-            )
-        )
+        return ResponseEntity.ok(mapOf("exists" to exists))
     }
 }

@@ -3,7 +3,6 @@ package io.be.shared.controller
 import io.be.stadium.dto.StadiumDto
 import io.be.stadium.application.StadiumService
 import io.be.shared.service.SubdomainService
-import io.be.shared.util.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -24,7 +23,7 @@ class StadiumController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<Page<StadiumDto>>> {
+    ): ResponseEntity<Page<StadiumDto>> {
         // 서브도메인에서 팀 코드 추출
         val teamCode = subdomainService.extractTeamCodeFromRequest(httpRequest)
 
@@ -41,27 +40,27 @@ class StadiumController(
             stadiumService.findAllStadiums(PageRequest.of(page, size))
         }
 
-        return ResponseEntity.ok(ApiResponse.success(stadiums))
+        return ResponseEntity.ok(stadiums)
     }
 
     @GetMapping("/{id}")
-    fun getStadium(@PathVariable id: Long): ResponseEntity<ApiResponse<StadiumDto>> {
+    fun getStadium(@PathVariable id: Long): ResponseEntity<StadiumDto> {
         val stadium = stadiumService.findStadiumById(id)
             ?: return ResponseEntity.notFound().build()
-        return ResponseEntity.ok(ApiResponse.success(stadium))
+        return ResponseEntity.ok(stadium)
     }
 
     @GetMapping("/search")
     fun searchStadiums(
         @RequestParam(required = false) name: String?,
         @RequestParam(required = false) address: String?
-    ): ResponseEntity<ApiResponse<List<StadiumDto>>> {
+    ): ResponseEntity<List<StadiumDto>> {
         val stadiums = when {
             !name.isNullOrBlank() -> stadiumService.searchStadiumsByName(name)
             !address.isNullOrBlank() -> stadiumService.searchStadiumsByAddress(address)
             else -> emptyList()
         }
 
-        return ResponseEntity.ok(ApiResponse.success(stadiums))
+        return ResponseEntity.ok(stadiums)
     }
 }

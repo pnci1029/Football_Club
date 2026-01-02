@@ -8,7 +8,6 @@ import io.be.match.dto.UpdateMatchRequest
 import io.be.match.domain.MatchStatus
 import io.be.shared.exception.TeamNotFoundException
 import io.be.match.application.MatchService
-import io.be.shared.util.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -27,20 +26,20 @@ class MatchController(
     fun getMatches(
         @RequestParam(required = false) status: MatchStatus?,
         pageable: Pageable
-    ): ResponseEntity<ApiResponse<Page<MatchDto>>> {
+    ): ResponseEntity<Page<MatchDto>> {
         val matches = if (status != null) {
             matchService.findMatchesByStatus(status, pageable)
         } else {
             matchService.findAllMatches(pageable)
         }
-        return ResponseEntity.ok(ApiResponse.success(matches))
+        return ResponseEntity.ok(matches)
     }
     
     @GetMapping("/{id}")
-    fun getMatch(@PathVariable id: Long): ResponseEntity<ApiResponse<MatchDto>> {
+    fun getMatch(@PathVariable id: Long): ResponseEntity<MatchDto> {
         val match = matchService.findMatchById(id)
             ?: return ResponseEntity.notFound().build()
-        return ResponseEntity.ok(ApiResponse.success(match))
+        return ResponseEntity.ok(match)
     }
     
     @GetMapping("/my-team")
@@ -48,7 +47,7 @@ class MatchController(
         @RequestParam(required = false) status: MatchStatus?,
         @RequestAttribute("team", required = false) team: TeamDto?,
         pageable: Pageable
-    ): ResponseEntity<ApiResponse<Page<MatchDto>>> {
+    ): ResponseEntity<Page<MatchDto>> {
         team ?: throw TeamNotFoundException("Team not found for subdomain")
         
         val matches = if (status != null) {
@@ -56,65 +55,65 @@ class MatchController(
         } else {
             matchService.findMatchesByTeam(team.id, pageable)
         }
-        return ResponseEntity.ok(ApiResponse.success(matches))
+        return ResponseEntity.ok(matches)
     }
     
     @GetMapping("/my-team/upcoming")
-    fun getUpcomingMatches(@RequestAttribute("team", required = false) team: TeamDto?): ResponseEntity<ApiResponse<List<MatchDto>>> {
+    fun getUpcomingMatches(@RequestAttribute("team", required = false) team: TeamDto?): ResponseEntity<List<MatchDto>> {
         team ?: throw TeamNotFoundException("Team not found for subdomain")
         
         val matches = matchService.findUpcomingMatches(team.id)
-        return ResponseEntity.ok(ApiResponse.success(matches))
+        return ResponseEntity.ok(matches)
     }
     
     @GetMapping("/stadium/{stadiumId}")
     fun getMatchesByStadium(
         @PathVariable stadiumId: Long,
         pageable: Pageable
-    ): ResponseEntity<ApiResponse<Page<MatchDto>>> {
+    ): ResponseEntity<Page<MatchDto>> {
         val matches = matchService.findMatchesByStadium(stadiumId, pageable)
-        return ResponseEntity.ok(ApiResponse.success(matches))
+        return ResponseEntity.ok(matches)
     }
     
     @PostMapping
     fun createMatch(
         @Valid @RequestBody request: CreateMatchRequest
-    ): ResponseEntity<ApiResponse<MatchDto>> {
+    ): ResponseEntity<MatchDto> {
         val match = matchService.createMatch(request)
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success(match))
+            .body(match)
     }
     
     @PutMapping("/{id}")
     fun updateMatch(
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdateMatchRequest
-    ): ResponseEntity<ApiResponse<MatchDto>> {
+    ): ResponseEntity<MatchDto> {
         val match = matchService.updateMatch(id, request)
-        return ResponseEntity.ok(ApiResponse.success(match))
+        return ResponseEntity.ok(match)
     }
     
     @PatchMapping("/{id}/score")
     fun updateMatchScore(
         @PathVariable id: Long,
         @Valid @RequestBody request: MatchScoreRequest
-    ): ResponseEntity<ApiResponse<MatchDto>> {
+    ): ResponseEntity<MatchDto> {
         val match = matchService.updateMatchScore(id, request.homeTeamScore, request.awayTeamScore)
-        return ResponseEntity.ok(ApiResponse.success(match))
+        return ResponseEntity.ok(match)
     }
     
     @PatchMapping("/{id}/status")
     fun updateMatchStatus(
         @PathVariable id: Long,
         @RequestParam status: MatchStatus
-    ): ResponseEntity<ApiResponse<MatchDto>> {
+    ): ResponseEntity<MatchDto> {
         val match = matchService.updateMatchStatus(id, status)
-        return ResponseEntity.ok(ApiResponse.success(match))
+        return ResponseEntity.ok(match)
     }
     
     @DeleteMapping("/{id}")
-    fun deleteMatch(@PathVariable id: Long): ResponseEntity<ApiResponse<String>> {
+    fun deleteMatch(@PathVariable id: Long): ResponseEntity<String> {
         matchService.deleteMatch(id)
-        return ResponseEntity.ok(ApiResponse.success("경기가 성공적으로 삭제되었습니다"))
+        return ResponseEntity.ok("경기가 성공적으로 삭제되었습니다")
     }
 }

@@ -7,7 +7,6 @@ import io.be.admin.dto.RecentActivityResponse
 import io.be.admin.dto.AdminInfo
 import io.be.admin.domain.AdminLevel
 import io.be.admin.dto.ComprehensiveDashboardResponse
-import io.be.shared.util.ApiResponse
 import io.be.shared.security.AdminPermissionRequired
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -30,46 +29,46 @@ class MasterDashboardController(
      * 전체 시스템 개요 통계 조회
      */
     @GetMapping("/overview")
-    fun getSystemOverview(request: HttpServletRequest): ResponseEntity<ApiResponse<SystemOverviewResponse>> {
+    fun getSystemOverview(request: HttpServletRequest): ResponseEntity<SystemOverviewResponse> {
         
         val adminInfo = request.getAttribute("adminInfo") as AdminInfo
         logger.info("Master admin ${adminInfo.username} requested system overview")
         
         val overview = masterDashboardService.getSystemOverview()
-        return ResponseEntity.ok(ApiResponse.success(overview))
+        return ResponseEntity.ok(overview)
     }
     
     /**
      * 서브도메인별 상세 통계 조회
      */
     @GetMapping("/subdomains")
-    fun getSubdomainStats(request: HttpServletRequest): ResponseEntity<ApiResponse<List<SubdomainStatsResponse>>> {
+    fun getSubdomainStats(request: HttpServletRequest): ResponseEntity<List<SubdomainStatsResponse>> {
         
         val adminInfo = request.getAttribute("adminInfo") as AdminInfo
         logger.info("Master admin ${adminInfo.username} requested subdomain statistics")
         
         val subdomainStats = masterDashboardService.getSubdomainStats()
-        return ResponseEntity.ok(ApiResponse.success(subdomainStats))
+        return ResponseEntity.ok(subdomainStats)
     }
     
     /**
      * 최근 시스템 활동 조회
      */
     @GetMapping("/activities")
-    fun getRecentActivities(request: HttpServletRequest): ResponseEntity<ApiResponse<List<RecentActivityResponse>>> {
+    fun getRecentActivities(request: HttpServletRequest): ResponseEntity<List<RecentActivityResponse>> {
         
         val adminInfo = request.getAttribute("adminInfo") as AdminInfo
         logger.info("Master admin ${adminInfo.username} requested recent activities")
         
         val activities = masterDashboardService.getRecentActivities()
-        return ResponseEntity.ok(ApiResponse.success(activities))
+        return ResponseEntity.ok(activities)
     }
     
     /**
      * 종합 대시보드 데이터 조회 (한 번에 모든 데이터)
      */
     @GetMapping("/comprehensive")
-    fun getComprehensiveDashboard(request: HttpServletRequest): ResponseEntity<ApiResponse<ComprehensiveDashboardResponse>> {
+    fun getComprehensiveDashboard(request: HttpServletRequest): ResponseEntity<ComprehensiveDashboardResponse> {
         
         val adminInfo = request.getAttribute("adminInfo") as AdminInfo
         logger.info("Master admin ${adminInfo.username} requested comprehensive dashboard")
@@ -84,7 +83,7 @@ class MasterDashboardController(
             recentActivities = activities
         )
         
-        return ResponseEntity.ok(ApiResponse.success(comprehensiveData))
+        return ResponseEntity.ok(comprehensiveData)
     }
 }
 

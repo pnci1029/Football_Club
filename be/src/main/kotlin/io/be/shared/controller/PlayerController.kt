@@ -5,7 +5,6 @@ import io.be.team.dto.TeamDto
 import io.be.shared.exception.TeamNotFoundException
 import io.be.shared.exception.PlayerNotFoundException
 import io.be.player.application.PlayerService
-import io.be.shared.util.ApiResponse
 import io.be.shared.util.PagedResponse
 import io.be.shared.util.PageMetadata
 import org.springframework.data.domain.PageRequest
@@ -26,7 +25,7 @@ class PlayerController(
         @RequestParam(required = false) position: String?,
         @RequestParam(required = false) search: String?,
         @RequestAttribute("team", required = false) team: TeamDto?
-    ): ResponseEntity<ApiResponse<PagedResponse<PlayerDto>>> {
+    ): ResponseEntity<PagedResponse<PlayerDto>> {
         team ?: throw TeamNotFoundException("Team not found for subdomain")
         
         val players = playerService.findPlayersByTeam(team.id, PageRequest.of(page, size))
@@ -42,14 +41,14 @@ class PlayerController(
         )
         
         val pagedResponse = PagedResponse.of(players, metadata)
-        return ResponseEntity.ok(ApiResponse.success(pagedResponse))
+        return ResponseEntity.ok(pagedResponse)
     }
     
     @GetMapping("/{id}")
     fun getPlayer(
         @PathVariable id: Long,
         @RequestAttribute("team", required = false) team: TeamDto?
-    ): ResponseEntity<ApiResponse<PlayerDto>> {
+    ): ResponseEntity<PlayerDto> {
         team ?: throw TeamNotFoundException("Team not found for subdomain")
         
         val player = playerService.findPlayerById(id)
@@ -60,16 +59,16 @@ class PlayerController(
             throw PlayerNotFoundException(id) // 보안상 404로 처리
         }
         
-        return ResponseEntity.ok(ApiResponse.success(player))
+        return ResponseEntity.ok(player)
     }
     
     @GetMapping("/active")
     fun getActivePlayers(
         @RequestAttribute("team", required = false) team: TeamDto?
-    ): ResponseEntity<ApiResponse<List<PlayerDto>>> {
+    ): ResponseEntity<List<PlayerDto>> {
         team ?: throw TeamNotFoundException("Team not found for subdomain")
         
         val players = playerService.findActivePlayersByTeam(team.id)
-        return ResponseEntity.ok(ApiResponse.success(players, "Active players retrieved successfully"))
+        return ResponseEntity.ok(players)
     }
 }
