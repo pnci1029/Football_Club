@@ -23,12 +23,12 @@ const AllTeamsCommunity: React.FC = () => {
       });
 
       if (reset) {
-        setPosts(response.content);
+        setPosts(response.content || []);
       } else {
-        setPosts(prev => [...prev, ...response.content]);
+        setPosts(prev => [...prev, ...(response.content || [])]);
       }
 
-      setCurrentPage(page);
+      setCurrentPage(response.number || page);
       setHasMore(!response.last);
     } catch (error) {
       console.error('Failed to load community posts:', error);
@@ -128,7 +128,7 @@ const AllTeamsCommunity: React.FC = () => {
           >
             전체
           </button>
-          {teams.map((team) => (
+          {(teams || []).map((team) => (
             <button
               key={team.id}
               onClick={() => setSelectedTeamId(team.id)}
@@ -163,13 +163,13 @@ const AllTeamsCommunity: React.FC = () => {
 
       {/* 게시글 목록 */}
       <div className="space-y-4">
-        {posts.length === 0 && !loading ? (
+        {(posts || []).length === 0 && !loading ? (
           <div className="text-center py-8 text-gray-500">
             <div className="text-4xl mb-3">📝</div>
             <p>게시글이 없습니다.</p>
           </div>
         ) : (
-          posts.map((post) => (
+          (posts || []).map((post) => (
             <div
               key={post.id}
               className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
@@ -242,7 +242,7 @@ const AllTeamsCommunity: React.FC = () => {
       )}
 
       {/* 로딩 상태 */}
-      {loading && posts.length === 0 && (
+      {loading && (posts || []).length === 0 && (
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
           <p className="text-gray-500">게시글을 불러오는 중...</p>

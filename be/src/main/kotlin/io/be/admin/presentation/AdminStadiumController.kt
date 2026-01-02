@@ -16,7 +16,7 @@ import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -35,7 +35,7 @@ class AdminStadiumController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
         @RequestParam(required = false) teamId: Long?
-    ): ResponseEntity<Page<StadiumDto>> {
+    ): ApiResponse<Page<StadiumDto>> {
         val stadiums = when (adminInfo.adminLevel) {
             AdminLevel.MASTER -> {
                 if (teamId != null) {
@@ -56,7 +56,7 @@ class AdminStadiumController(
                 stadiumService.findStadiumsByTeam(team.id, PageRequest.of(page, size))
             }
         }
-        return ResponseEntity.ok(stadiums)
+        return ApiResponse.success(stadiums)
     }
 
     @PostMapping
@@ -64,7 +64,7 @@ class AdminStadiumController(
         @Valid @RequestBody request: CreateStadiumRequest,
         @RequestParam(required = false) teamId: Long?,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<StadiumDto> {
+    ): ApiResponse<StadiumDto> {
         // 관리자 페이지에서는 teamId 파라미터 사용
         val finalTeamId = if (teamId != null) {
             teamId
@@ -81,43 +81,42 @@ class AdminStadiumController(
 
         val requestWithTeam = request.copy(teamId = finalTeamId)
         val stadium = stadiumService.createStadium(requestWithTeam)
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(stadium)
+        return ApiResponse.success(stadium)
     }
 
     @GetMapping("/{id}")
-    fun getStadium(@PathVariable id: Long): ResponseEntity<StadiumDto> {
+    fun getStadium(@PathVariable id: Long): ApiResponse<StadiumDto> {
         val stadium = stadiumService.findStadiumById(id)
-            ?: return ResponseEntity.notFound().build()
-        return ResponseEntity.ok(stadium)
+            ?: return ApiResponse.error("STADIUM_NOT_FOUND", "구장을 찾을 수 없습니다.")
+        return ApiResponse.success(stadium)
     }
 
     @PutMapping("/{id}")
     fun updateStadium(
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdateStadiumRequest
-    ): ResponseEntity<StadiumDto> {
+    ): ApiResponse<StadiumDto> {
         val updatedStadium = stadiumService.updateStadium(id, request)
-        return ResponseEntity.ok(updatedStadium)
+        return ApiResponse.success(updatedStadium)
     }
 
     @DeleteMapping("/{id}")
-    fun deleteStadium(@PathVariable id: Long): ResponseEntity<String> {
+    fun deleteStadium(@PathVariable id: Long): ApiResponse<String> {
         stadiumService.deleteStadium(id)
-        return ResponseEntity.ok("Stadium deleted successfully")
+        return ApiResponse.success("구장이 성공적으로 삭제되었습니다.")
     }
 
     @GetMapping("/search")
     fun searchStadiums(
         @RequestParam(required = false) name: String?,
         @RequestParam(required = false) address: String?
-    ): ResponseEntity<List<StadiumDto>> {
+    ): ApiResponse<List<StadiumDto>> {
         val stadiums = when {
             !name.isNullOrBlank() -> stadiumService.searchStadiumsByName(name)
             !address.isNullOrBlank() -> stadiumService.searchStadiumsByAddress(address)
             else -> emptyList()
         }
 
-        return ResponseEntity.ok(stadiums)
+        return ApiResponse.success(stadiums)
     }
 }

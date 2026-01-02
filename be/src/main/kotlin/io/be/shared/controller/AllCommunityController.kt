@@ -4,7 +4,7 @@ import io.be.community.application.AllCommunityService
 import io.be.community.dto.*
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -25,25 +25,25 @@ class AllCommunityController(
         @RequestParam(defaultValue = "20") size: Int,
         @RequestParam(required = false) teamId: Long?,
         @RequestParam(required = false) keyword: String?
-    ): ResponseEntity<Page<AllCommunityPostResponse>> {
+    ): ApiResponse<Page<AllCommunityPostResponse>> {
         logger.info("GET /all-community/posts request - teamId: $teamId, page: $page, size: $size, keyword: $keyword")
         
         val posts = allCommunityService.getAllCommunityPosts(page, size, teamId, keyword)
         logger.info("Returning ${posts.content.size} community posts out of ${posts.totalElements} total from all teams")
         
-        return ResponseEntity.ok(posts)
+        return ApiResponse.success(posts)
     }
 
     /**
      * 활성 팀 목록 조회 (커뮤니티 필터링용)
      */
     @GetMapping("/teams")
-    fun getActiveTeams(): ResponseEntity<List<TeamInfoResponse>> {
+    fun getActiveTeams(): ApiResponse<List<TeamInfoResponse>> {
         logger.info("GET /all-community/teams request")
         
         val teams = allCommunityService.getActiveTeams()
         logger.info("Returning ${teams.size} active teams")
         
-        return ResponseEntity.ok(teams)
+        return ApiResponse.success(teams)
     }
 }

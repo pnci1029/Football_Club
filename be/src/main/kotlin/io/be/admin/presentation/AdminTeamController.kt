@@ -15,7 +15,7 @@ import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -32,7 +32,7 @@ class AdminTeamController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
         @RequestParam(required = false) search: String?
-    ): ResponseEntity<PagedResponse<TeamDto>> {
+    ): ApiResponse<PagedResponse<TeamDto>> {
         val teams = when (adminInfo.adminLevel) {
             AdminLevel.MASTER -> {
                 // 마스터는 모든 팀 조회 가능
@@ -62,7 +62,7 @@ class AdminTeamController(
         )
         
         val pagedResponse = PagedResponse.of(teams, metadata)
-        return ResponseEntity.ok(pagedResponse)
+        return ApiResponse.success(pagedResponse)
     }
     
     @AdminPermissionRequired(level = AdminLevel.MASTER) // 마스터만 팀 생성 가능
@@ -70,50 +70,49 @@ class AdminTeamController(
     fun createTeam(
         @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @Valid @RequestBody request: CreateTeamRequest
-    ): ResponseEntity<TeamDto> {
+    ): ApiResponse<TeamDto> {
         val team = teamService.createTeam(request)
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(team)
+        return ApiResponse.success(team)
     }
     
     @GetMapping("/{id}")
-    fun getTeam(@PathVariable id: Long): ResponseEntity<TeamDto> {
+    fun getTeam(@PathVariable id: Long): ApiResponse<TeamDto> {
         val team = teamService.findTeamById(id)
             ?: throw TeamNotFoundException(id)
-        return ResponseEntity.ok(team)
+        return ApiResponse.success(team)
     }
     
     @PutMapping("/{id}")
     fun updateTeam(
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdateTeamRequest
-    ): ResponseEntity<TeamDto> {
+    ): ApiResponse<TeamDto> {
         val updatedTeam = teamService.updateTeam(id, request)
-        return ResponseEntity.ok(updatedTeam)
+        return ApiResponse.success(updatedTeam)
     }
     
     @DeleteMapping("/{id}")
-    fun deleteTeam(@PathVariable id: Long): ResponseEntity<String> {
+    fun deleteTeam(@PathVariable id: Long): ApiResponse<String> {
         teamService.deleteTeam(id)
-        return ResponseEntity.ok("deleted")
+        return ApiResponse.success("deleted")
     }
     
     @GetMapping("/code/{code}")
-    fun getTeamByCode(@PathVariable code: String): ResponseEntity<TeamDto> {
+    fun getTeamByCode(@PathVariable code: String): ApiResponse<TeamDto> {
         val team = teamService.findTeamByCode(code)
             ?: throw TeamNotFoundException(code)
-        return ResponseEntity.ok(team)
+        return ApiResponse.success(team)
     }
     
     @GetMapping("/{teamId}/stats")
-    fun getTeamStats(@PathVariable teamId: Long): ResponseEntity<Map<String, Any>> {
+    fun getTeamStats(@PathVariable teamId: Long): ApiResponse<Map<String, Any>> {
         val stats = teamService.getTeamStats(teamId)
-        return ResponseEntity.ok(stats)
+        return ApiResponse.success(stats)
     }
     
     @GetMapping("/dashboard-stats")
-    fun getDashboardStats(): ResponseEntity<Map<String, Any>> {
+    fun getDashboardStats(): ApiResponse<Map<String, Any>> {
         val stats = teamService.getAllTeamsStats()
-        return ResponseEntity.ok(stats)
+        return ApiResponse.success(stats)
     }
 }

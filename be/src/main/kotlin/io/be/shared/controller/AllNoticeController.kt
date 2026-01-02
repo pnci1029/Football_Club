@@ -6,7 +6,7 @@ import io.be.notice.dto.*
 import io.be.community.dto.TeamInfoResponse
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
-import org.springframework.http.ResponseEntity
+import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -28,13 +28,13 @@ class AllNoticeController(
         @RequestParam(defaultValue = "20") size: Int,
         @RequestParam(required = false) teamId: Long?,
         @RequestParam(required = false) keyword: String?
-    ): ResponseEntity<Page<AllNoticeResponse>> {
+    ): ApiResponse<Page<AllNoticeResponse>> {
         logger.info("GET /all-notices request - teamId: $teamId, page: $page, size: $size, keyword: $keyword")
         
         val notices = allNoticeService.getAllNotices(page, size, teamId, keyword)
         logger.info("Returning ${notices.content.size} notices out of ${notices.totalElements} total from all teams")
         
-        return ResponseEntity.ok(notices)
+        return ApiResponse.success(notices)
     }
 
     /**
@@ -45,25 +45,25 @@ class AllNoticeController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
         @RequestParam(required = false) keyword: String?
-    ): ResponseEntity<Page<AllNoticeResponse>> {
+    ): ApiResponse<Page<AllNoticeResponse>> {
         logger.info("GET /all-notices/global request - page: $page, size: $size, keyword: $keyword")
         
         val notices = noticeService.getGlobalNotices(page, size, keyword)
         logger.info("Returning ${notices.content.size} global notices out of ${notices.totalElements} total")
         
-        return ResponseEntity.ok(notices)
+        return ApiResponse.success(notices)
     }
 
     /**
      * 활성 팀 목록 조회 (공지사항 필터링용)
      */
     @GetMapping("/teams")
-    fun getActiveTeams(): ResponseEntity<List<TeamInfoResponse>> {
+    fun getActiveTeams(): ApiResponse<List<TeamInfoResponse>> {
         logger.info("GET /all-notices/teams request")
         
         val teams = allNoticeService.getActiveTeams()
         logger.info("Returning ${teams.size} active teams")
         
-        return ResponseEntity.ok(teams)
+        return ApiResponse.success(teams)
     }
 }
