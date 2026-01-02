@@ -59,3 +59,9 @@ class DuplicateResourceException(resourceType: String, identifier: String) : Run
 // ========================================================================================
 class ExternalServiceException(serviceName: String, message: String) : RuntimeException("External service '$serviceName' error: $message")
 class DatabaseConstraintViolationException(constraint: String, details: String) : RuntimeException("Database constraint '$constraint' violated: $details")
+
+// ========================================================================================
+// Additional Exceptions for API Response Refactoring
+// ========================================================================================
+class BadRequestException(message: String = "Bad request") : RuntimeException(message)
+class UnauthorizedException(message: String = "Unauthorized") : RuntimeException(message)
