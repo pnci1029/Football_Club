@@ -9,7 +9,7 @@ import io.be.admin.dto.RefreshTokenRequest
 import io.be.admin.dto.LogoutRequest
 import io.be.admin.dto.ValidateTokenRequest
 import io.be.admin.dto.TokenValidationResponse
-import io.be.shared.util.ApiResponse
+import io.be.shared.exception.UnauthorizedException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -28,7 +28,7 @@ class AdminAuthController(
     fun login(
         @RequestBody request: LoginRequest,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<LoginResponse>> {
+    ): ResponseEntity<LoginResponse> {
         val clientIp = getClientIpAddress(httpRequest)
 
         val response = adminAuthService.login(
@@ -39,7 +39,7 @@ class AdminAuthController(
             clientIp = clientIp
         )
 
-        return ResponseEntity.ok(ApiResponse.success(response))
+        return ResponseEntity.ok(response)
     }
 
     /**
@@ -48,9 +48,9 @@ class AdminAuthController(
     @PostMapping("/refresh")
     fun refreshToken(
         @RequestBody request: RefreshTokenRequest
-    ): ResponseEntity<ApiResponse<TokenResponse>> {
+    ): ResponseEntity<TokenResponse> {
         val response = adminAuthService.refreshToken(request.refreshToken)
-        return ResponseEntity.ok(ApiResponse.success(response))
+        return ResponseEntity.ok(response)
     }
 
     /**
@@ -59,13 +59,12 @@ class AdminAuthController(
     @GetMapping("/me")
     fun getCurrentAdmin(
         @RequestHeader("Authorization") authHeader: String
-    ): ResponseEntity<ApiResponse<AdminInfo>> {
+    ): ResponseEntity<AdminInfo> {
         val token = authHeader.removePrefix("Bearer ")
         val adminInfo = adminAuthService.getAdminByToken(token)
-            ?: return ResponseEntity.status(401)
-                .body(ApiResponse.error("UNAUTHORIZED", "Invalid or expired token"))
+            ?: throw UnauthorizedException("Invalid or expired token")
 
-        return ResponseEntity.ok(ApiResponse.success(adminInfo))
+        return ResponseEntity.ok(adminInfo)
     }
 
     /**
@@ -75,7 +74,7 @@ class AdminAuthController(
     fun logout(
         @RequestBody request: LogoutRequest,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<String>> {
+    ): ResponseEntity<String> {
         val clientIp = getClientIpAddress(httpRequest)
 
         adminAuthService.logout(
@@ -83,7 +82,7 @@ class AdminAuthController(
             clientIp = clientIp
         )
 
-        return ResponseEntity.ok(ApiResponse.success("Logout successful"))
+        return ResponseEntity.ok("Logout successful")
     }
 
     /**
@@ -92,7 +91,7 @@ class AdminAuthController(
     @PostMapping("/validate")
     fun validateToken(
         @RequestBody request: ValidateTokenRequest
-    ): ResponseEntity<ApiResponse<TokenValidationResponse>> {
+    ): ResponseEntity<TokenValidationResponse> {
         val adminInfo = adminAuthService.getAdminByToken(request.token)
 
         val response = if (adminInfo != null) {
@@ -101,7 +100,7 @@ class AdminAuthController(
             TokenValidationResponse(valid = false, admin = null)
         }
 
-        return ResponseEntity.ok(ApiResponse.success(response))
+        return ResponseEntity.ok(response)
     }
 
     private fun getClientIpAddress(request: HttpServletRequest): String {

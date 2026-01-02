@@ -8,7 +8,6 @@ import io.be.admin.dto.AdminInfo
 import io.be.admin.domain.AdminLevel
 import io.be.admin.dto.AdminActionRequest
 import io.be.admin.dto.CommunityStatsResponse
-import io.be.shared.util.ApiResponse
 import io.be.shared.security.AdminPermissionRequired
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
@@ -39,13 +38,13 @@ class AdminCommunityController(
         @RequestParam(defaultValue = "false") includeInactive: Boolean,
         @PageableDefault(size = 20) pageable: Pageable,
         request: HttpServletRequest
-    ): ResponseEntity<ApiResponse<Page<AdminCommunityPostResponse>>> {
+    ): ResponseEntity<Page<AdminCommunityPostResponse>> {
         
         val adminInfo = request.getAttribute("adminInfo") as AdminInfo
         logger.info("Admin ${adminInfo.username} requested community posts (teamId=$teamId, includeInactive=$includeInactive)")
         
         val posts = adminCommunityService.getPostsForAdmin(adminInfo, teamId, includeInactive, pageable)
-        return ResponseEntity.ok(ApiResponse.success(posts))
+        return ResponseEntity.ok(posts)
     }
     
     /**
@@ -55,13 +54,13 @@ class AdminCommunityController(
     fun getPostDetailForAdmin(
         @PathVariable postId: Long,
         request: HttpServletRequest
-    ): ResponseEntity<ApiResponse<AdminCommunityPostDetailResponse>> {
+    ): ResponseEntity<AdminCommunityPostDetailResponse> {
         
         val adminInfo = request.getAttribute("adminInfo") as AdminInfo
         logger.info("Admin ${adminInfo.username} requested post detail: $postId")
         
         val postDetail = adminCommunityService.getPostDetailForAdmin(postId, adminInfo)
-        return ResponseEntity.ok(ApiResponse.success(postDetail))
+        return ResponseEntity.ok(postDetail)
     }
     
     /**
@@ -72,13 +71,13 @@ class AdminCommunityController(
         @PathVariable postId: Long,
         @RequestBody(required = false) request: AdminActionRequest?,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<String>> {
+    ): ResponseEntity<String> {
         
         val adminInfo = httpRequest.getAttribute("adminInfo") as AdminInfo
         logger.info("Admin ${adminInfo.username} deactivating post: $postId")
         
         adminCommunityService.deactivatePost(postId, adminInfo, request?.reason)
-        return ResponseEntity.ok(ApiResponse.success("Post deactivated successfully"))
+        return ResponseEntity.ok("Post deactivated successfully")
     }
     
     /**
@@ -88,13 +87,13 @@ class AdminCommunityController(
     fun activatePost(
         @PathVariable postId: Long,
         request: HttpServletRequest
-    ): ResponseEntity<ApiResponse<String>> {
+    ): ResponseEntity<String> {
         
         val adminInfo = request.getAttribute("adminInfo") as AdminInfo
         logger.info("Admin ${adminInfo.username} activating post: $postId")
         
         adminCommunityService.activatePost(postId, adminInfo)
-        return ResponseEntity.ok(ApiResponse.success("Post activated successfully"))
+        return ResponseEntity.ok("Post activated successfully")
     }
     
     /**
@@ -105,13 +104,13 @@ class AdminCommunityController(
         @PathVariable commentId: Long,
         @RequestBody(required = false) request: AdminActionRequest?,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<String>> {
+    ): ResponseEntity<String> {
         
         val adminInfo = httpRequest.getAttribute("adminInfo") as AdminInfo
         logger.info("Admin ${adminInfo.username} deactivating comment: $commentId")
         
         adminCommunityService.deactivateComment(commentId, adminInfo, request?.reason)
-        return ResponseEntity.ok(ApiResponse.success("Comment deactivated successfully"))
+        return ResponseEntity.ok("Comment deactivated successfully")
     }
     
     /**
@@ -121,13 +120,13 @@ class AdminCommunityController(
     fun activateComment(
         @PathVariable commentId: Long,
         request: HttpServletRequest
-    ): ResponseEntity<ApiResponse<String>> {
+    ): ResponseEntity<String> {
         
         val adminInfo = request.getAttribute("adminInfo") as AdminInfo
         logger.info("Admin ${adminInfo.username} activating comment: $commentId")
         
         adminCommunityService.activateComment(commentId, adminInfo)
-        return ResponseEntity.ok(ApiResponse.success("Comment activated successfully"))
+        return ResponseEntity.ok("Comment activated successfully")
     }
     
     /**
@@ -137,13 +136,13 @@ class AdminCommunityController(
     fun createNoticePost(
         @RequestBody request: CreateNoticePostRequest,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<AdminCommunityPostResponse>> {
+    ): ResponseEntity<AdminCommunityPostResponse> {
         
         val adminInfo = httpRequest.getAttribute("adminInfo") as AdminInfo
         logger.info("Admin ${adminInfo.username} creating notice post: ${request.title}")
         
         val noticePost = adminCommunityService.createNoticePost(request, adminInfo)
-        return ResponseEntity.ok(ApiResponse.success(noticePost))
+        return ResponseEntity.ok(noticePost)
     }
     
     /**
@@ -153,7 +152,7 @@ class AdminCommunityController(
     fun getCommunityStats(
         @RequestParam(required = false) teamId: Long?,
         request: HttpServletRequest
-    ): ResponseEntity<ApiResponse<CommunityStatsResponse>> {
+    ): ResponseEntity<CommunityStatsResponse> {
         
         val adminInfo = request.getAttribute("adminInfo") as AdminInfo
         logger.info("Admin ${adminInfo.username} requested community stats (teamId=$teamId)")
@@ -165,7 +164,7 @@ class AdminCommunityController(
             accessibleTeam = adminInfo.teamSubdomain ?: "ALL"
         )
         
-        return ResponseEntity.ok(ApiResponse.success(stats))
+        return ResponseEntity.ok(stats)
     }
 }
 
