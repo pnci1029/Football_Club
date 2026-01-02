@@ -10,7 +10,6 @@ import io.be.shared.exception.MissingRequiredFieldException
 import io.be.shared.exception.UnauthorizedAdminAccessException
 import io.be.shared.security.AdminPermissionRequired
 import io.be.shared.service.SubdomainService
-import io.be.shared.util.ApiResponse
 import io.be.team.application.TeamService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -36,7 +35,7 @@ class AdminStadiumController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
         @RequestParam(required = false) teamId: Long?
-    ): ResponseEntity<ApiResponse<Page<StadiumDto>>> {
+    ): ResponseEntity<Page<StadiumDto>> {
         val stadiums = when (adminInfo.adminLevel) {
             AdminLevel.MASTER -> {
                 if (teamId != null) {
@@ -57,7 +56,7 @@ class AdminStadiumController(
                 stadiumService.findStadiumsByTeam(team.id, PageRequest.of(page, size))
             }
         }
-        return ResponseEntity.ok(ApiResponse.success(stadiums))
+        return ResponseEntity.ok(stadiums)
     }
 
     @PostMapping
@@ -65,19 +64,17 @@ class AdminStadiumController(
         @Valid @RequestBody request: CreateStadiumRequest,
         @RequestParam(required = false) teamId: Long?,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ApiResponse<StadiumDto>> {
+    ): ResponseEntity<StadiumDto> {
         // 관리자 페이지에서는 teamId 파라미터 사용
         val finalTeamId = if (teamId != null) {
             teamId
         } else {
             // 서브도메인에서는 기존 로직 사용
             val teamCode = subdomainService.extractTeamCodeFromRequest(httpRequest)
-                ?: return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("INVALID_SUBDOMAIN", "유효하지 않은 서브도메인입니다."))
+                ?: throw MissingRequiredFieldException("유효하지 않은 서브도메인입니다.")
 
             val team = subdomainService.getTeamByCode(teamCode)
-                ?: return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("TEAM_NOT_FOUND", "팀을 찾을 수 없습니다."))
+                ?: throw MissingRequiredFieldException("팀을 찾을 수 없습니다.")
 
             team.id
         }
@@ -85,42 +82,42 @@ class AdminStadiumController(
         val requestWithTeam = request.copy(teamId = finalTeamId)
         val stadium = stadiumService.createStadium(requestWithTeam)
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success(stadium))
+            .body(stadium)
     }
 
     @GetMapping("/{id}")
-    fun getStadium(@PathVariable id: Long): ResponseEntity<ApiResponse<StadiumDto>> {
+    fun getStadium(@PathVariable id: Long): ResponseEntity<StadiumDto> {
         val stadium = stadiumService.findStadiumById(id)
             ?: return ResponseEntity.notFound().build()
-        return ResponseEntity.ok(ApiResponse.success(stadium))
+        return ResponseEntity.ok(stadium)
     }
 
     @PutMapping("/{id}")
     fun updateStadium(
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdateStadiumRequest
-    ): ResponseEntity<ApiResponse<StadiumDto>> {
+    ): ResponseEntity<StadiumDto> {
         val updatedStadium = stadiumService.updateStadium(id, request)
-        return ResponseEntity.ok(ApiResponse.success(updatedStadium))
+        return ResponseEntity.ok(updatedStadium)
     }
 
     @DeleteMapping("/{id}")
-    fun deleteStadium(@PathVariable id: Long): ResponseEntity<ApiResponse<String>> {
+    fun deleteStadium(@PathVariable id: Long): ResponseEntity<String> {
         stadiumService.deleteStadium(id)
-        return ResponseEntity.ok(ApiResponse.success("Stadium deleted successfully"))
+        return ResponseEntity.ok("Stadium deleted successfully")
     }
 
     @GetMapping("/search")
     fun searchStadiums(
         @RequestParam(required = false) name: String?,
         @RequestParam(required = false) address: String?
-    ): ResponseEntity<ApiResponse<List<StadiumDto>>> {
+    ): ResponseEntity<List<StadiumDto>> {
         val stadiums = when {
             !name.isNullOrBlank() -> stadiumService.searchStadiumsByName(name)
             !address.isNullOrBlank() -> stadiumService.searchStadiumsByAddress(address)
             else -> emptyList()
         }
 
-        return ResponseEntity.ok(ApiResponse.success(stadiums))
+        return ResponseEntity.ok(stadiums)
     }
 }

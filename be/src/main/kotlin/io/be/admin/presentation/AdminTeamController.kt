@@ -9,7 +9,6 @@ import io.be.shared.exception.TeamNotFoundException
 import io.be.shared.exception.UnauthorizedAdminAccessException
 import io.be.shared.security.AdminPermissionRequired
 import io.be.team.application.TeamService
-import io.be.shared.util.ApiResponse
 import io.be.shared.util.PagedResponse
 import io.be.shared.util.PageMetadata
 import jakarta.validation.Valid
@@ -33,7 +32,7 @@ class AdminTeamController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
         @RequestParam(required = false) search: String?
-    ): ResponseEntity<ApiResponse<PagedResponse<TeamDto>>> {
+    ): ResponseEntity<PagedResponse<TeamDto>> {
         val teams = when (adminInfo.adminLevel) {
             AdminLevel.MASTER -> {
                 // 마스터는 모든 팀 조회 가능
@@ -63,7 +62,7 @@ class AdminTeamController(
         )
         
         val pagedResponse = PagedResponse.of(teams, metadata)
-        return ResponseEntity.ok(ApiResponse.success(pagedResponse, "Teams retrieved successfully"))
+        return ResponseEntity.ok(pagedResponse)
     }
     
     @AdminPermissionRequired(level = AdminLevel.MASTER) // 마스터만 팀 생성 가능
@@ -71,50 +70,50 @@ class AdminTeamController(
     fun createTeam(
         @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @Valid @RequestBody request: CreateTeamRequest
-    ): ResponseEntity<ApiResponse<TeamDto>> {
+    ): ResponseEntity<TeamDto> {
         val team = teamService.createTeam(request)
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success(team, "Team created successfully"))
+            .body(team)
     }
     
     @GetMapping("/{id}")
-    fun getTeam(@PathVariable id: Long): ResponseEntity<ApiResponse<TeamDto>> {
+    fun getTeam(@PathVariable id: Long): ResponseEntity<TeamDto> {
         val team = teamService.findTeamById(id)
             ?: throw TeamNotFoundException(id)
-        return ResponseEntity.ok(ApiResponse.success(team))
+        return ResponseEntity.ok(team)
     }
     
     @PutMapping("/{id}")
     fun updateTeam(
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdateTeamRequest
-    ): ResponseEntity<ApiResponse<TeamDto>> {
+    ): ResponseEntity<TeamDto> {
         val updatedTeam = teamService.updateTeam(id, request)
-        return ResponseEntity.ok(ApiResponse.success(updatedTeam, "Team updated successfully"))
+        return ResponseEntity.ok(updatedTeam)
     }
     
     @DeleteMapping("/{id}")
-    fun deleteTeam(@PathVariable id: Long): ResponseEntity<ApiResponse<String>> {
+    fun deleteTeam(@PathVariable id: Long): ResponseEntity<String> {
         teamService.deleteTeam(id)
-        return ResponseEntity.ok(ApiResponse.success("deleted", "Team deleted successfully"))
+        return ResponseEntity.ok("deleted")
     }
     
     @GetMapping("/code/{code}")
-    fun getTeamByCode(@PathVariable code: String): ResponseEntity<ApiResponse<TeamDto>> {
+    fun getTeamByCode(@PathVariable code: String): ResponseEntity<TeamDto> {
         val team = teamService.findTeamByCode(code)
             ?: throw TeamNotFoundException(code)
-        return ResponseEntity.ok(ApiResponse.success(team))
+        return ResponseEntity.ok(team)
     }
     
     @GetMapping("/{teamId}/stats")
-    fun getTeamStats(@PathVariable teamId: Long): ResponseEntity<ApiResponse<Map<String, Any>>> {
+    fun getTeamStats(@PathVariable teamId: Long): ResponseEntity<Map<String, Any>> {
         val stats = teamService.getTeamStats(teamId)
-        return ResponseEntity.ok(ApiResponse.success(stats, "Team stats retrieved successfully"))
+        return ResponseEntity.ok(stats)
     }
     
     @GetMapping("/dashboard-stats")
-    fun getDashboardStats(): ResponseEntity<ApiResponse<Map<String, Any>>> {
+    fun getDashboardStats(): ResponseEntity<Map<String, Any>> {
         val stats = teamService.getAllTeamsStats()
-        return ResponseEntity.ok(ApiResponse.success(stats, "Dashboard stats retrieved successfully"))
+        return ResponseEntity.ok(stats)
     }
 }

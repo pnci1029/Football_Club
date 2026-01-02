@@ -13,7 +13,6 @@ import io.be.shared.exception.MatchNotFoundException
 import io.be.shared.exception.MissingRequiredFieldException
 import io.be.shared.exception.UnauthorizedAdminAccessException
 import io.be.shared.security.AdminPermissionRequired
-import io.be.shared.util.ApiResponse
 import io.be.shared.util.PagedResponse
 import io.be.shared.util.PageMetadata
 import io.be.team.application.TeamService
@@ -40,7 +39,7 @@ class AdminMatchController(
         @RequestParam(required = false) teamId: Long?,
         @RequestParam(required = false) stadiumId: Long?,
         @RequestParam(required = false) status: MatchStatus?
-    ): ResponseEntity<ApiResponse<PagedResponse<MatchDto>>> {
+    ): ResponseEntity<PagedResponse<MatchDto>> {
         val pageable = PageRequest.of(page, size)
 
         val matches = when (adminInfo.adminLevel) {
@@ -71,7 +70,7 @@ class AdminMatchController(
         }
 
         val pagedResponse = PagedResponse.of(matches)
-        return ResponseEntity.ok(ApiResponse.success(pagedResponse, "Matches retrieved successfully"))
+        return ResponseEntity.ok(pagedResponse)
     }
 
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
@@ -79,7 +78,7 @@ class AdminMatchController(
     fun getMatch(
         @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @PathVariable id: Long
-    ): ResponseEntity<ApiResponse<MatchDto>> {
+    ): ResponseEntity<MatchDto> {
         val match = matchService.findMatchById(id)
             ?: throw MatchNotFoundException(id)
 
@@ -91,17 +90,17 @@ class AdminMatchController(
             }
         }
 
-        return ResponseEntity.ok(ApiResponse.success(match))
+        return ResponseEntity.ok(match)
     }
 
     @AdminPermissionRequired(level = AdminLevel.MASTER)
     @PostMapping
     fun createMatch(
         @Valid @RequestBody request: CreateMatchRequest
-    ): ResponseEntity<ApiResponse<MatchDto>> {
+    ): ResponseEntity<MatchDto> {
         val match = matchService.createMatch(request)
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success(match, "Match created successfully"))
+            .body(match)
     }
 
     @AdminPermissionRequired(level = AdminLevel.MASTER)
@@ -109,9 +108,9 @@ class AdminMatchController(
     fun updateMatch(
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdateMatchRequest
-    ): ResponseEntity<ApiResponse<MatchDto>> {
+    ): ResponseEntity<MatchDto> {
         val updatedMatch = matchService.updateMatch(id, request)
-        return ResponseEntity.ok(ApiResponse.success(updatedMatch, "Match updated successfully"))
+        return ResponseEntity.ok(updatedMatch)
     }
 
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
@@ -120,7 +119,7 @@ class AdminMatchController(
         @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @PathVariable id: Long,
         @Valid @RequestBody request: MatchScoreRequest
-    ): ResponseEntity<ApiResponse<MatchDto>> {
+    ): ResponseEntity<MatchDto> {
         val match = matchService.findMatchById(id)
             ?: throw MatchNotFoundException(id)
 
@@ -133,13 +132,13 @@ class AdminMatchController(
         }
 
         val updatedMatch = matchService.updateMatchScore(id, request.homeTeamScore, request.awayTeamScore)
-        return ResponseEntity.ok(ApiResponse.success(updatedMatch, "Match score updated successfully"))
+        return ResponseEntity.ok(updatedMatch)
     }
 
     @AdminPermissionRequired(level = AdminLevel.MASTER)
     @DeleteMapping("/{id}")
-    fun deleteMatch(@PathVariable id: Long): ResponseEntity<ApiResponse<String>> {
+    fun deleteMatch(@PathVariable id: Long): ResponseEntity<String> {
         matchService.deleteMatch(id)
-        return ResponseEntity.ok(ApiResponse.success("deleted", "Match deleted successfully"))
+        return ResponseEntity.ok("deleted")
     }
 }

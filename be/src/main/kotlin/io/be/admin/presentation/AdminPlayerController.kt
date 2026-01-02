@@ -10,7 +10,6 @@ import io.be.shared.exception.MissingRequiredFieldException
 import io.be.shared.exception.UnauthorizedAdminAccessException
 import io.be.player.application.PlayerService
 import io.be.shared.security.AdminPermissionRequired
-import io.be.shared.util.ApiResponse
 import io.be.shared.util.PagedResponse
 import io.be.shared.util.PageMetadata
 import io.be.team.application.TeamService
@@ -37,7 +36,7 @@ class AdminPlayerController(
         @RequestParam(required = false) teamId: Long?,
         @RequestParam(required = false) position: String?,
         @RequestParam(required = false) search: String?
-    ): ResponseEntity<ApiResponse<PagedResponse<PlayerDto>>> {
+    ): ResponseEntity<PagedResponse<PlayerDto>> {
         // 권한별 teamId 결정
         val actualTeamId = when (adminInfo.adminLevel) {
             AdminLevel.MASTER -> {
@@ -78,7 +77,7 @@ class AdminPlayerController(
         )
 
         val pagedResponse = PagedResponse.of(players, metadata)
-        return ResponseEntity.ok(ApiResponse.success(pagedResponse, "Players retrieved successfully"))
+        return ResponseEntity.ok(pagedResponse)
     }
 
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
@@ -87,7 +86,7 @@ class AdminPlayerController(
         adminInfo: AdminInfo,
         @Valid @RequestBody request: CreatePlayerRequest,
         @RequestParam teamId: Long
-    ): ResponseEntity<ApiResponse<PlayerDto>> {
+    ): ResponseEntity<PlayerDto> {
         // 서브도메인 관리자는 자신의 팀에만 선수 생성 가능
         if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
             val team = teamService.findByCode(adminInfo.teamSubdomain!!)
@@ -100,7 +99,7 @@ class AdminPlayerController(
 
         val player = playerService.createPlayer(teamId, request)
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success(player, "Player created successfully"))
+            .body(player)
     }
 
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
@@ -108,7 +107,7 @@ class AdminPlayerController(
     fun getPlayer(
         adminInfo: AdminInfo,
         @PathVariable id: Long
-    ): ResponseEntity<ApiResponse<PlayerDto>> {
+    ): ResponseEntity<PlayerDto> {
         val player = playerService.findPlayerById(id)
             ?: throw PlayerNotFoundException(id)
 
@@ -122,7 +121,7 @@ class AdminPlayerController(
             }
         }
 
-        return ResponseEntity.ok(ApiResponse.success(player))
+        return ResponseEntity.ok(player)
     }
 
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
@@ -131,7 +130,7 @@ class AdminPlayerController(
         adminInfo: AdminInfo,
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdatePlayerRequest
-    ): ResponseEntity<ApiResponse<PlayerDto>> {
+    ): ResponseEntity<PlayerDto> {
         val existingPlayer = playerService.findPlayerById(id)
             ?: throw PlayerNotFoundException(id)
 
@@ -146,7 +145,7 @@ class AdminPlayerController(
         }
 
         val updatedPlayer = playerService.updatePlayer(id, request)
-        return ResponseEntity.ok(ApiResponse.success(updatedPlayer, "Player updated successfully"))
+        return ResponseEntity.ok(updatedPlayer)
     }
 
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
@@ -154,7 +153,7 @@ class AdminPlayerController(
     fun deletePlayer(
         @RequestAttribute("adminInfo") adminInfo: AdminInfo,
         @PathVariable id: Long
-    ): ResponseEntity<ApiResponse<String>> {
+    ): ResponseEntity<String> {
         val existingPlayer = playerService.findPlayerById(id)
             ?: throw PlayerNotFoundException(id)
 
@@ -169,6 +168,6 @@ class AdminPlayerController(
         }
 
         playerService.deletePlayer(id)
-        return ResponseEntity.ok(ApiResponse.success("deleted", "Player deleted successfully"))
+        return ResponseEntity.ok("deleted")
     }
 }
