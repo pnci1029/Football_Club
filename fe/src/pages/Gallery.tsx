@@ -3,6 +3,9 @@ import { useTeam } from '../contexts/TeamContext';
 import GalleryGrid from '../components/gallery/GalleryGrid';
 import GalleryFilters from '../components/gallery/GalleryFilters';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import GalleryCreateModal from '../components/admin/GalleryCreateModal';
+import GalleryEditModal from '../components/admin/GalleryEditModal';
+import ConfirmDeleteModal from '../components/admin/ConfirmDeleteModal';
 import { galleryAPI } from '../services/galleryAPI';
 import { Gallery, GalleryCategory } from '../types/gallery';
 
@@ -20,6 +23,12 @@ const GalleryPage: React.FC = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
+
+  // 관리자 상태
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingGallery, setEditingGallery] = useState<Gallery | null>(null);
+  const [deletingGallery, setDeletingGallery] = useState<Gallery | null>(null);
 
   const loadGalleries = async (page: number = 0, reset: boolean = false) => {
     if (!currentTeam || isLoading) return;
@@ -54,6 +63,11 @@ const GalleryPage: React.FC = () => {
     }
   };
 
+  // 서브도메인에서는 모든 사용자가 갤러리 관리 가능
+  useEffect(() => {
+    setIsAdmin(true);
+  }, []);
+
   // 팀이 변경되거나 필터가 변경될 때 갤러리 리로드
   useEffect(() => {
     if (currentTeam) {
@@ -82,6 +96,41 @@ const GalleryPage: React.FC = () => {
     setEndDate(filters.endDate);
   };
 
+  // 관리자 기능 핸들러
+  const handleCreateGallery = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleEditGallery = (gallery: Gallery) => {
+    setEditingGallery(gallery);
+  };
+
+  const handleDeleteGallery = (gallery: Gallery) => {
+    setDeletingGallery(gallery);
+  };
+
+  const handleGalleryCreated = () => {
+    setIsCreateModalOpen(false);
+    loadGalleries(0, true);
+  };
+
+  const handleGalleryUpdated = () => {
+    setEditingGallery(null);
+    loadGalleries(0, true);
+  };
+
+  const handleGalleryDeleted = async () => {
+    if (!deletingGallery) return;
+    
+    try {
+      await galleryAPI.deleteGallery(deletingGallery.id);
+      setDeletingGallery(null);
+      loadGalleries(0, true);
+    } catch (error) {
+      console.error('갤러리 삭제 실패:', error);
+    }
+  };
+
   if (teamLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -94,7 +143,7 @@ const GalleryPage: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">📸</div>
+          <div className="text-6xl mb-4">🖼️</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">갤러리를 찾을 수 없습니다</h2>
           <p className="text-gray-600">팀 정보를 확인해주세요.</p>
         </div>
@@ -107,9 +156,19 @@ const GalleryPage: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 헤더 */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4">
-            📸 {currentTeam.name} 갤러리
-          </h1>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+              🖼️ {currentTeam.name} 갤러리
+            </h1>
+            {isAdmin && (
+              <button
+                onClick={handleCreateGallery}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-md hover:shadow-lg"
+              >
+                + 갤러리 추가
+              </button>
+            )}
+          </div>
           <p className="text-gray-600 max-w-2xl mx-auto">
             우리 팀의 소중한 순간들을 담은 사진과 영상을 확인해보세요
           </p>
@@ -133,6 +192,9 @@ const GalleryPage: React.FC = () => {
           isLoading={isLoading}
           hasMore={hasMore}
           onLoadMore={handleLoadMore}
+          isAdmin={isAdmin}
+          onEdit={handleEditGallery}
+          onDelete={handleDeleteGallery}
         />
 
         {/* 로딩 스피너 */}
@@ -145,12 +207,41 @@ const GalleryPage: React.FC = () => {
         {/* 빈 상태 */}
         {!isLoading && (galleries || []).length === 0 && (
           <div className="text-center py-16">
-            <div className="text-6xl mb-4">📷</div>
+            <div className="text-6xl mb-4">🖼️</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">갤러리가 비어있습니다</h3>
             <p className="text-gray-600">아직 업로드된 사진이나 영상이 없습니다.</p>
           </div>
         )}
       </div>
+
+      {/* 모달들 */}
+      {isCreateModalOpen && (
+        <GalleryCreateModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={handleGalleryCreated}
+        />
+      )}
+
+      {editingGallery && (
+        <GalleryEditModal
+          gallery={editingGallery}
+          isOpen={!!editingGallery}
+          onClose={() => setEditingGallery(null)}
+          onSuccess={handleGalleryUpdated}
+        />
+      )}
+
+      {deletingGallery && (
+        <ConfirmDeleteModal
+          title="갤러리 삭제"
+          itemName={deletingGallery.title}
+          itemType="갤러리"
+          isOpen={!!deletingGallery}
+          onClose={() => setDeletingGallery(null)}
+          onConfirm={handleGalleryDeleted}
+        />
+      )}
     </div>
   );
 };
