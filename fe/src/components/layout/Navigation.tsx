@@ -17,6 +17,7 @@ const Navigation: React.FC = () => {
   const menuItems = [
     { name: '선수', href: '/players' },
     { name: '구장', href: '/stadiums' },
+    { name: '갤러리', href: '/gallery' },
           { name: '경기', href: '/matches', submenu: [
           { name: '경기 일정', href: '/matches' },
           { name: '공지사항', href: '/notices' },
