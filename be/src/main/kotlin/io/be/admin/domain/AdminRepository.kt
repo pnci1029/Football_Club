@@ -1,6 +1,8 @@
 package io.be.admin.domain
 
 import io.be.admin.domain.Admin
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
@@ -28,6 +30,11 @@ interface AdminRepository : JpaRepository<Admin, Long>, AdminRepositoryCustom {
     fun findByIsActiveOrderByCreatedAtDesc(isActive: Boolean): List<Admin>
     
     /**
+     * 활성 관리자 목록 조회 (페이지네이션)
+     */
+    fun findByIsActiveOrderByCreatedAtDesc(isActive: Boolean, pageable: Pageable): Page<Admin>
+    
+    /**
      * 서브도메인별 관리자 조회 (서브도메인 로그인용)
      */
     fun findByUsernameAndTeamSubdomainAndIsActive(username: String, teamSubdomain: String, isActive: Boolean): Admin?
@@ -41,6 +48,11 @@ interface AdminRepository : JpaRepository<Admin, Long>, AdminRepositoryCustom {
      * 특정 서브도메인의 관리자 목록 조회
      */
     fun findByTeamSubdomainAndIsActiveOrderByCreatedAtDesc(teamSubdomain: String, isActive: Boolean): List<Admin>
+    
+    /**
+     * 특정 서브도메인의 관리자 목록 조회 (페이지네이션)
+     */
+    fun findByTeamSubdomainAndIsActiveOrderByCreatedAtDesc(teamSubdomain: String, isActive: Boolean, pageable: Pageable): Page<Admin>
     
     /**
      * 마스터 관리자 목록 조회

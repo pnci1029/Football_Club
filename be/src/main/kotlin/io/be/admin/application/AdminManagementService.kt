@@ -4,8 +4,11 @@ import io.be.admin.domain.Admin
 import io.be.admin.domain.AdminLevel
 import io.be.admin.domain.AdminRepository
 import io.be.admin.dto.AdminBasicInfo
+import io.be.admin.dto.ChangePasswordRequest
 import io.be.admin.dto.CreateAdminRequest
 import io.be.team.domain.TeamRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -22,6 +25,21 @@ class AdminManagementService(
         val team = teamRepository.findById(teamId).orElseThrow { NoSuchElementException("Team not found with id: $teamId") }
         val admins = adminRepository.findByTeamSubdomainAndIsActiveOrderByCreatedAtDesc(team.code, true)
         return admins.map { AdminBasicInfo.from(it) }
+    }
+
+    @Transactional(readOnly = true)
+    fun getAdminsByTeam(teamId: Long, page: Int, size: Int): Page<AdminBasicInfo> {
+        val team = teamRepository.findById(teamId).orElseThrow { NoSuchElementException("Team not found with id: $teamId") }
+        val pageRequest = PageRequest.of(page, size)
+        val adminPage = adminRepository.findByTeamSubdomainAndIsActiveOrderByCreatedAtDesc(team.code, true, pageRequest)
+        return adminPage.map { AdminBasicInfo.from(it) }
+    }
+
+    @Transactional(readOnly = true)
+    fun getAllAdmins(page: Int, size: Int): Page<AdminBasicInfo> {
+        val pageRequest = PageRequest.of(page, size)
+        val adminPage = adminRepository.findByIsActiveOrderByCreatedAtDesc(true, pageRequest)
+        return adminPage.map { AdminBasicInfo.from(it) }
     }
 
     @Transactional
@@ -53,5 +71,16 @@ class AdminManagementService(
         // Instead of deleting, set isActive to false
         val updatedAdmin = admin.copy(isActive = false)
         adminRepository.save(updatedAdmin)
+    }
+
+    @Transactional
+    fun changeAdminPassword(adminId: Long, request: ChangePasswordRequest): AdminBasicInfo {
+        val admin = adminRepository.findById(adminId).orElseThrow { NoSuchElementException("Admin not found with id: $adminId") }
+        
+        val updatedAdmin = admin.copy(
+            password = passwordEncoder.encode(request.newPassword)
+        )
+        val savedAdmin = adminRepository.save(updatedAdmin)
+        return AdminBasicInfo.from(savedAdmin)
     }
 }
