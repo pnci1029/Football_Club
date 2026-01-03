@@ -136,14 +136,14 @@ const GalleryPage: React.FC = () => {
         />
 
         {/* 로딩 스피너 */}
-        {isLoading && galleries.length === 0 && (
+        {isLoading && (galleries || []).length === 0 && (
           <div className="flex justify-center py-12">
             <LoadingSpinner />
           </div>
         )}
 
         {/* 빈 상태 */}
-        {!isLoading && galleries.length === 0 && (
+        {!isLoading && (galleries || []).length === 0 && (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">📷</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">갤러리가 비어있습니다</h3>
