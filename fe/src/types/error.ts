@@ -1,47 +1,26 @@
 export interface ApiError {
+  code: string;
   message: string;
-  code?: string;
-  status?: number;
-  details?: Record<string, unknown>;
+  details?: string;
 }
 
-export interface ValidationError {
-  field: string;
-  message: string;
-  code?: string;
-}
+export type UnknownError = Error | ApiError | unknown;
 
-export interface ErrorResponse {
-  success: false;
-  message: string;
-  error?: string;
-  errors?: ValidationError[];
-  code?: string;
-  timestamp?: string;
-}
-
-export interface NetworkError extends Error {
-  status?: number;
-  response?: {
-    data?: ErrorResponse;
-    status?: number;
-    statusText?: string;
-  };
-}
-
-// Utility type for handling unknown errors
-export type UnknownError = any;
-
-// Helper function to extract error message
-export function getErrorMessage(error: UnknownError, defaultMessage: string = '오류가 발생했습니다.'): string {
-  if (!error) return defaultMessage;
+export const getErrorMessage = (error: UnknownError, defaultMessage: string = '알 수 없는 오류가 발생했습니다.'): string => {
+  if (typeof error === 'string') {
+    return error;
+  }
   
-  // API error response
-  if (error.response?.data?.message) return error.response.data.message;
-  if (error.response?.data?.error?.message) return error.response.data.error.message;
-  
-  // Standard error
-  if (error.message) return error.message;
+  if (error && typeof error === 'object') {
+    if ('message' in error && typeof error.message === 'string') {
+      return error.message;
+    }
+    
+    if ('code' in error && 'message' in error) {
+      const apiError = error as ApiError;
+      return apiError.message;
+    }
+  }
   
   return defaultMessage;
-}
+};

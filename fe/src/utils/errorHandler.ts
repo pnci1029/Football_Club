@@ -29,7 +29,7 @@ export interface NetworkError {
 /**
  * API 에러에서 사용자 친화적인 메시지를 추출합니다.
  */
-export function getErrorMessage(error: NetworkError): string {
+export function getErrorMessage(error: NetworkError, defaultMessage?: string): string {
   // API 클라이언트에서 처리된 에러 구조 확인 (error.details)
   if (error?.details?.error?.message) {
     const fullMessage = error.details.error.message;
@@ -97,8 +97,8 @@ export function getErrorMessage(error: NetworkError): string {
     return '네트워크 연결을 확인해주세요.';
   }
   
-  // 기본 메시지
-  return '요청 처리 중 오류가 발생했습니다.';
+  // 기본 메시지 (defaultMessage가 제공되면 사용, 아니면 기본값 사용)
+  return defaultMessage || '요청 처리 중 오류가 발생했습니다.';
 }
 
 /**

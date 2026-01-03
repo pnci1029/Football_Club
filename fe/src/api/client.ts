@@ -157,8 +157,8 @@ class UnifiedApiClient {
         }
       );
 
-      // ApiResponse 래퍼 처리
-      const responseData = response.data.data || response.data;
+      // 직접 데이터 접근 (ApiResponse 래퍼 제거됨)
+      const responseData = response.data;
       const { accessToken, refreshToken: newRefreshToken } = responseData;
       
       TokenManager.setTokens(accessToken, newRefreshToken);
@@ -268,10 +268,7 @@ class UnifiedApiClient {
         throw new Error(`Unsupported HTTP method: ${endpoint.method}`);
     }
     
-    // ApiResponse 래퍼 처리 - data 필드가 있으면 unwrap
-    if (response && typeof response === 'object' && 'data' in response) {
-      return (response as { data: T }).data;
-    }
+    // 백엔드에서 ApiResponse 래퍼가 제거되어 직접 데이터 반환
     return response;
   }
 
