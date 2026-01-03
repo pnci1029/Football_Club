@@ -5,6 +5,7 @@ import { Button, Card } from '../../components/common';
 import { useToast } from '../../components/Toast';
 import { AdminLevel } from '../../types/enums';
 import { UnknownError, getErrorMessage } from '../../types/error';
+import ChangePasswordModal from '../../components/admin/ChangePasswordModal';
 
 interface CreateAdminModalProps {
   isOpen: boolean;
@@ -176,6 +177,7 @@ const AdminAccountManagement: React.FC = () => {
   const [admins, setAdmins] = useState<AdminPageResponse<AdminAccountDto> | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [changingPasswordAdmin, setChangingPasswordAdmin] = useState<AdminAccountDto | null>(null);
   const [availableSubdomains, setAvailableSubdomains] = useState<string[]>([]);
   const { showToast, ToastContainer } = useToast();
 
@@ -236,6 +238,15 @@ const AdminAccountManagement: React.FC = () => {
       const errorMessage = getErrorMessage(err, '관리자 삭제에 실패했습니다.');
       showToast(errorMessage, 'error');
     }
+  };
+
+  const handleChangePassword = (admin: AdminAccountDto) => {
+    setChangingPasswordAdmin(admin);
+  };
+
+  const handlePasswordChanged = () => {
+    setChangingPasswordAdmin(null);
+    showToast('비밀번호가 성공적으로 변경되었습니다.', 'success');
   };
 
   if (loading) {
@@ -359,6 +370,14 @@ const AdminAccountManagement: React.FC = () => {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => handleChangePassword(admin)}
+                        className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                      >
+                        비밀번호 변경
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleToggleActive(admin)}
                       >
                         {admin.isActive ? '비활성화' : '활성화'}
@@ -393,6 +412,17 @@ const AdminAccountManagement: React.FC = () => {
         onSuccess={fetchAdmins}
         availableSubdomains={availableSubdomains}
       />
+
+      {/* 비밀번호 변경 모달 */}
+      {changingPasswordAdmin && (
+        <ChangePasswordModal
+          isOpen={!!changingPasswordAdmin}
+          onClose={() => setChangingPasswordAdmin(null)}
+          onSuccess={handlePasswordChanged}
+          adminId={changingPasswordAdmin.id}
+          adminName={changingPasswordAdmin.name}
+        />
+      )}
 
       <ToastContainer />
     </div>
