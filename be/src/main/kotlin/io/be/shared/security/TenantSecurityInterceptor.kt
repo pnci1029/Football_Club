@@ -48,7 +48,9 @@ class TenantSecurityInterceptor(
 
         try {
             // 1. Host 헤더 검증
-            val host = request.getHeader("Host")
+            val host = request.getHeader("X-Forwarded-Host")
+                ?: request.getHeader("Host")
+                ?: request.serverName
             if (host.isNullOrBlank()) {
                 securityEventLogger.logSecurityEvent(
                     SecurityEvent.MISSING_HOST_HEADER,
