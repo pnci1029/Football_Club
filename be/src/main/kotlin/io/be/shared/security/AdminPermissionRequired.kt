@@ -13,7 +13,7 @@ annotation class AdminPermissionRequired(
      * 필요한 관리자 레벨 (최소 요구 레벨)
      */
     val level: AdminLevel = AdminLevel.SUBDOMAIN,
-    
+
     /**
      * 서브도메인 제한 여부
      * true: 서브도메인 관리자는 해당 서브도메인 데이터만 접근 가능
