@@ -107,13 +107,13 @@ export const galleryAPI = {
   // Admin API - 갤러리 생성
   createGallery: async (data: CreateGalleryRequest): Promise<Gallery> => {
     const response = await api.post('/api/v1/admin/gallery', data);
-    return response.data;
+    return response.data.data;
   },
 
   // Admin API - 갤러리 수정
   updateGallery: async (id: number, data: UpdateGalleryRequest): Promise<Gallery> => {
     const response = await api.put(`/api/v1/admin/gallery/${id}`, data);
-    return response.data;
+    return response.data.data;
   },
 
   // Admin API - 갤러리 삭제
@@ -133,7 +133,7 @@ export const galleryAPI = {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data;
+    return response.data.data;
   },
 
   // Admin API - 미디어 파일 삭제
