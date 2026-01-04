@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { apiClient } from './api';
 import {
   Gallery,
   GalleryDto,
@@ -11,32 +11,11 @@ import {
   PopularGalleryResponse,
   PlayType
 } from '../types/gallery';
+import { ApiResponse } from '../types/api';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8082';
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// 인터셉터를 사용하여 토큰 및 호스트 정보 추가
-api.interceptors.request.use((config) => {
-  // 클라이언트 호스트 정보 전달 (서브도메인 인식용)
-  const host = window.location.host;
-  config.headers['X-Forwarded-Host'] = host;
-
-  const token = localStorage.getItem('adminToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-export const galleryAPI = {
+export class GalleryService {
   // Public API - 갤러리 조회
-  getGalleries: async (params: GalleryListParams = {}): Promise<GalleryResponse> => {
+  async getGalleries(params: GalleryListParams = {}): Promise<GalleryResponse> {
     const queryParams = new URLSearchParams();
 
     if (params.page !== undefined) queryParams.append('page', params.page.toString());
@@ -49,36 +28,61 @@ export const galleryAPI = {
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);
 
-    const response = await api.get(`/api/v1/gallery?${queryParams.toString()}`);
-    return response.data.data;
-  },
+    const response = await apiClient.get<ApiResponse<GalleryResponse>>(`/api/v1/gallery?${queryParams.toString()}`);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '갤러리 목록을 불러오는데 실패했습니다');
+    }
+    
+    return response.data;
+  }
 
   // Public API - 갤러리 상세 조회
-  getGallery: async (id: number): Promise<GalleryDetailDto> => {
-    const response = await api.get(`/api/v1/gallery/${id}`);
-    return response.data.data;
-  },
+  async getGallery(id: number): Promise<GalleryDetailDto> {
+    const response = await apiClient.get<ApiResponse<GalleryDetailDto>>(`/api/v1/gallery/${id}`);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '갤러리 정보를 불러오는데 실패했습니다');
+    }
+    
+    return response.data;
+  }
 
   // Public API - 추천 갤러리 조회
-  getFeaturedGalleries: async (limit: number = 5): Promise<GalleryResponse> => {
-    const response = await api.get(`/api/v1/gallery/featured?limit=${limit}`);
-    return response.data.data;
-  },
+  async getFeaturedGalleries(limit: number = 5): Promise<GalleryResponse> {
+    const response = await apiClient.get<ApiResponse<GalleryResponse>>(`/api/v1/gallery/featured?limit=${limit}`);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '추천 갤러리를 불러오는데 실패했습니다');
+    }
+    
+    return response.data;
+  }
 
   // Public API - 인기 갤러리 조회
-  getPopularGalleries: async (limit: number = 5): Promise<GalleryResponse> => {
-    const response = await api.get(`/api/v1/gallery/popular?limit=${limit}`);
-    return response.data.data;
-  },
+  async getPopularGalleries(limit: number = 5): Promise<GalleryResponse> {
+    const response = await apiClient.get<ApiResponse<GalleryResponse>>(`/api/v1/gallery/popular?limit=${limit}`);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '인기 갤러리를 불러오는데 실패했습니다');
+    }
+    
+    return response.data;
+  }
 
   // Public API - 최신 갤러리 조회
-  getRecentGalleries: async (limit: number = 5): Promise<GalleryResponse> => {
-    const response = await api.get(`/api/v1/gallery/recent?limit=${limit}`);
-    return response.data.data;
-  },
+  async getRecentGalleries(limit: number = 5): Promise<GalleryResponse> {
+    const response = await apiClient.get<ApiResponse<GalleryResponse>>(`/api/v1/gallery/recent?limit=${limit}`);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '최신 갤러리를 불러오는데 실패했습니다');
+    }
+    
+    return response.data;
+  }
 
   // Public API - 하이라이트 갤러리 조회
-  getHighlightGalleries: async (playType?: PlayType, page: number = 0, size: number = 10): Promise<GalleryResponse> => {
+  async getHighlightGalleries(playType?: PlayType, page: number = 0, size: number = 10): Promise<GalleryResponse> {
     const queryParams = new URLSearchParams({
       page: page.toString(),
       size: size.toString()
@@ -88,76 +92,126 @@ export const galleryAPI = {
       queryParams.append('playType', playType);
     }
 
-    const response = await api.get(`/api/v1/gallery/highlights?${queryParams.toString()}`);
-    return response.data.data;
-  },
+    const response = await apiClient.get<ApiResponse<GalleryResponse>>(`/api/v1/gallery/highlights?${queryParams.toString()}`);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '하이라이트 갤러리를 불러오는데 실패했습니다');
+    }
+    
+    return response.data;
+  }
 
   // Public API - 팀별 태그 목록 조회
-  getTagsByTeam: async (): Promise<string[]> => {
-    const response = await api.get('/api/v1/gallery/tags');
-    return response.data.data;
-  },
+  async getTagsByTeam(): Promise<string[]> {
+    const response = await apiClient.get<ApiResponse<string[]>>('/api/v1/gallery/tags');
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '팀별 태그 목록을 불러오는데 실패했습니다');
+    }
+    
+    return response.data;
+  }
 
   // Public API - 인기 태그 조회
-  getPopularTags: async (limit: number = 20): Promise<{ tagName: string; count: number; percentage: number; }[]> => {
-    const response = await api.get(`/api/v1/gallery/tags/popular?limit=${limit}`);
-    return response.data.data;
-  },
+  async getPopularTags(limit: number = 20): Promise<{ tagName: string; count: number; percentage: number; }[]> {
+    const response = await apiClient.get<ApiResponse<{ tagName: string; count: number; percentage: number; }[]>>(`/api/v1/gallery/tags/popular?limit=${limit}`);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '인기 태그를 불러오는데 실패했습니다');
+    }
+    
+    return response.data;
+  }
 
   // Public API - 갤러리 생성
-  createGallery: async (data: CreateGalleryRequest): Promise<Gallery> => {
-    const response = await api.post('/api/v1/gallery', data);
-    return response.data.data;
-  },
+  async createGallery(data: CreateGalleryRequest): Promise<Gallery> {
+    const response = await apiClient.post<ApiResponse<Gallery>>('/api/v1/gallery', data);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '갤러리 생성에 실패했습니다');
+    }
+    
+    return response.data;
+  }
 
   // Public API - 갤러리 수정
-  updateGallery: async (id: number, data: UpdateGalleryRequest): Promise<Gallery> => {
-    const response = await api.put(`/api/v1/gallery/${id}`, data);
-    return response.data.data;
-  },
+  async updateGallery(id: number, data: UpdateGalleryRequest): Promise<Gallery> {
+    const response = await apiClient.put<ApiResponse<Gallery>>(`/api/v1/gallery/${id}`, data);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '갤러리 수정에 실패했습니다');
+    }
+    
+    return response.data;
+  }
 
   // Public API - 갤러리 삭제
-  deleteGallery: async (id: number): Promise<void> => {
-    await api.delete(`/api/v1/gallery/${id}`);
-  },
+  async deleteGallery(id: number): Promise<void> {
+    const response = await apiClient.delete<ApiResponse<string>>(`/api/v1/gallery/${id}`);
+    
+    if (!response.success) {
+      throw new Error(response.error?.message || '갤러리 삭제에 실패했습니다');
+    }
+  }
 
   // Public API - 미디어 파일 업로드
-  uploadMediaFiles: async (galleryId: number, files: File[]): Promise<Gallery> => {
+  async uploadMediaFiles(galleryId: number, files: File[]): Promise<Gallery> {
     const formData = new FormData();
     files.forEach(file => {
       formData.append('files', file);
     });
 
-    const response = await api.post(`/api/v1/gallery/${galleryId}/media`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data.data;
-  },
+    const response = await apiClient.uploadFile<ApiResponse<Gallery>>(`/api/v1/gallery/${galleryId}/media`, formData);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '미디어 파일 업로드에 실패했습니다');
+    }
+    
+    return response.data;
+  }
 
   // Public API - 미디어 파일 삭제
-  deleteMediaFile: async (galleryId: number, mediaId: number): Promise<void> => {
-    await api.delete(`/api/v1/gallery/${galleryId}/media/${mediaId}`);
-  },
+  async deleteMediaFile(galleryId: number, mediaId: number): Promise<void> {
+    const response = await apiClient.delete<ApiResponse<string>>(`/api/v1/gallery/${galleryId}/media/${mediaId}`);
+    
+    if (!response.success) {
+      throw new Error(response.error?.message || '미디어 파일 삭제에 실패했습니다');
+    }
+  }
 
   // Admin API - 미디어 파일 정렬 순서 변경
-  updateMediaOrder: async (galleryId: number, mediaOrders: { mediaId: number; sortOrder: number }[]): Promise<Gallery> => {
-    const response = await api.put(`/api/v1/admin/gallery/${galleryId}/media/order`, { mediaOrders });
+  async updateMediaOrder(galleryId: number, mediaOrders: { mediaId: number; sortOrder: number }[]): Promise<Gallery> {
+    const response = await apiClient.put<ApiResponse<Gallery>>(`/api/v1/admin/gallery/${galleryId}/media/order`, { mediaOrders });
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '미디어 순서 수정에 실패했습니다');
+    }
+    
     return response.data;
-  },
+  }
 
   // Admin API - 갤러리 통계 조회
-  getGalleryStatistics: async (): Promise<GalleryStatistics> => {
-    const response = await api.get('/api/v1/admin/gallery/statistics');
+  async getGalleryStatistics(): Promise<GalleryStatistics> {
+    const response = await apiClient.get<ApiResponse<GalleryStatistics>>('/api/v1/admin/gallery/statistics');
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '갤러리 통계를 불러오는데 실패했습니다');
+    }
+    
     return response.data;
-  },
+  }
 
   // Admin API - 갤러리 활성화/비활성화
-  toggleGalleryStatus: async (id: number): Promise<Gallery> => {
-    const response = await api.patch(`/api/v1/admin/gallery/${id}/toggle-status`);
+  async toggleGalleryStatus(id: number): Promise<Gallery> {
+    const response = await apiClient.put<ApiResponse<Gallery>>(`/api/v1/admin/gallery/${id}/toggle-status`, {});
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || '갤러리 상태 변경에 실패했습니다');
+    }
+    
     return response.data;
-  },
-};
+  }
+}
 
-export default galleryAPI;
+export const galleryService = new GalleryService();
+export default galleryService;
