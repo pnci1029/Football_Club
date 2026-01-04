@@ -51,17 +51,46 @@ const GalleryCreate: React.FC = () => {
     if (!files) return;
 
     const newFiles = Array.from(files);
-    const validFiles = newFiles.filter(file => {
-      const isImage = file.type.startsWith('image/');
-      const isValidSize = file.size <= 50 * 1024 * 1024; // 50MB
-      return isImage && isValidSize;
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB로 제한
+    const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 총 50MB로 제한
+    
+    const validFiles: File[] = [];
+    const invalidFiles: string[] = [];
+    
+    newFiles.forEach(file => {
+      if (!file.type.startsWith('image/')) {
+        invalidFiles.push(`${file.name}: 이미지 파일이 아닙니다`);
+        return;
+      }
+      
+      if (file.size > MAX_FILE_SIZE) {
+        invalidFiles.push(`${file.name}: 파일 크기가 10MB를 초과합니다 (${(file.size / (1024 * 1024)).toFixed(1)}MB)`);
+        return;
+      }
+      
+      validFiles.push(file);
     });
 
-    setSelectedFiles(prev => [...prev, ...validFiles]);
+    // 총 파일 크기 검증
+    const currentTotalSize = selectedFiles.reduce((total, file) => total + file.size, 0);
+    const newTotalSize = validFiles.reduce((total, file) => total + file.size, 0);
+    
+    if (currentTotalSize + newTotalSize > MAX_TOTAL_SIZE) {
+      alert('전체 파일 크기가 50MB를 초과할 수 없습니다.');
+      return;
+    }
 
-    // 미리보기 URL 생성
-    const newPreviewUrls = validFiles.map(file => URL.createObjectURL(file));
-    setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+    if (invalidFiles.length > 0) {
+      alert(`다음 파일들은 업로드할 수 없습니다:\n${invalidFiles.join('\n')}`);
+    }
+
+    if (validFiles.length > 0) {
+      setSelectedFiles(prev => [...prev, ...validFiles]);
+
+      // 미리보기 URL 생성
+      const newPreviewUrls = validFiles.map(file => URL.createObjectURL(file));
+      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+    }
   };
 
   const removeFile = (index: number) => {
@@ -98,6 +127,16 @@ const GalleryCreate: React.FC = () => {
       return;
     }
 
+    // 파일 크기 재검증
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    const invalidFiles = selectedFiles.filter(file => file.size > MAX_FILE_SIZE);
+    if (invalidFiles.length > 0) {
+      alert(`다음 파일들의 크기가 10MB를 초과합니다:\n${invalidFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(1)}MB)`).join('\n')}`);
+      return;
+    }
+
+    let createdGalleryId: number | null = null;
+
     try {
       setIsLoading(true);
 
@@ -113,17 +152,36 @@ const GalleryCreate: React.FC = () => {
 
       // 갤러리 생성
       const gallery = await galleryService.createGallery(createData);
+      createdGalleryId = gallery.id;
 
-      // 파일 업로드
+      // 파일 업로드 (실패 시 갤러리 삭제)
       if (selectedFiles.length > 0) {
-        await galleryService.uploadMediaFiles(gallery.id, selectedFiles);
+        try {
+          await galleryService.uploadMediaFiles(gallery.id, selectedFiles);
+        } catch (uploadError) {
+          console.error('파일 업로드 실패:', uploadError);
+          
+          // 갤러리 삭제
+          try {
+            await galleryService.deleteGallery(gallery.id);
+          } catch (deleteError) {
+            console.error('갤러리 삭제 실패:', deleteError);
+          }
+          
+          throw new Error('파일 업로드에 실패했습니다. 파일 크기를 확인해주세요.');
+        }
       }
 
       alert('갤러리가 성공적으로 등록되었습니다.');
       navigate('/gallery');
     } catch (error) {
       console.error('갤러리 생성 실패:', error);
-      alert('갤러리 등록에 실패했습니다. 다시 시도해주세요.');
+      
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('갤러리 등록에 실패했습니다. 다시 시도해주세요.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -257,7 +315,7 @@ const GalleryCreate: React.FC = () => {
                     클릭하여 이미지를 선택하거나 드래그하여 업로드하세요
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    JPG, PNG, GIF 파일만 업로드 가능 (최대 50MB)
+                    JPG, PNG, GIF 파일만 업로드 가능 (개별 파일 최대 10MB, 전체 최대 50MB)
                   </p>
                 </div>
                 <input

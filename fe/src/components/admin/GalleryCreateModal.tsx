@@ -76,42 +76,65 @@ const GalleryCreateModal: React.FC<GalleryCreateModalProps> = ({
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    setSelectedFiles(files);
-
-    // 미리보기 생성
-    const previews: string[] = [];
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB로 제한
+    const MAX_TOTAL_SIZE = 200 * 1024 * 1024; // 총 200MB로 제한
+    
+    const validFiles: File[] = [];
+    const invalidFiles: string[] = [];
+    
     files.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          previews.push(e.target?.result as string);
-          if (previews.length === files.filter(f => f.type.startsWith('image/')).length) {
-            setFilePreviews(previews);
-          }
-        };
-        reader.readAsDataURL(file);
+      if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+        invalidFiles.push(`${file.name}: 이미지 또는 비디오 파일이 아닙니다`);
+        return;
       }
+      
+      if (file.size > MAX_FILE_SIZE) {
+        invalidFiles.push(`${file.name}: 파일 크기가 50MB를 초과합니다 (${(file.size / (1024 * 1024)).toFixed(1)}MB)`);
+        return;
+      }
+      
+      validFiles.push(file);
     });
+
+    // 총 파일 크기 검증
+    const currentTotalSize = selectedFiles.reduce((total, file) => total + file.size, 0);
+    const newTotalSize = validFiles.reduce((total, file) => total + file.size, 0);
+    
+    if (currentTotalSize + newTotalSize > MAX_TOTAL_SIZE) {
+      window.alert('전체 파일 크기가 200MB를 초과할 수 없습니다.');
+      return;
+    }
+
+    if (invalidFiles.length > 0) {
+      window.alert(`다음 파일들은 업로드할 수 없습니다:\n${invalidFiles.join('\n')}`);
+    }
+
+    if (validFiles.length > 0) {
+      setSelectedFiles(prev => [...prev, ...validFiles]);
+
+      // 미리보기 생성
+      const previews: string[] = [];
+      validFiles.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            previews.push(e.target?.result as string);
+            if (previews.length === validFiles.filter(f => f.type.startsWith('image/')).length) {
+              setFilePreviews(prev => [...prev, ...previews]);
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
   };
 
   const removeFile = (index: number) => {
     const newFiles = selectedFiles.filter((_, i) => i !== index);
-    setSelectedFiles(newFiles);
+    const newPreviews = filePreviews.filter((_, i) => i !== index);
     
-    // 미리보기 재생성
-    const previews: string[] = [];
-    newFiles.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          previews.push(e.target?.result as string);
-          if (previews.length === newFiles.filter(f => f.type.startsWith('image/')).length) {
-            setFilePreviews(previews);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+    setSelectedFiles(newFiles);
+    setFilePreviews(newPreviews);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,7 +150,17 @@ const GalleryCreateModal: React.FC<GalleryCreateModalProps> = ({
       return;
     }
 
+    // 파일 크기 재검증
+    const MAX_FILE_SIZE = 50 * 1024 * 1024;
+    const invalidFiles = selectedFiles.filter(file => file.size > MAX_FILE_SIZE);
+    if (invalidFiles.length > 0) {
+      window.alert(`다음 파일들의 크기가 50MB를 초과합니다:\n${invalidFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(1)}MB)`).join('\n')}`);
+      return;
+    }
+
     setIsLoading(true);
+    let createdGalleryId: number | null = null;
+    
     try {
       // 갤러리 생성
       const tags = formData.tags
@@ -150,14 +183,33 @@ const GalleryCreateModal: React.FC<GalleryCreateModalProps> = ({
       };
 
       const createdGallery = await galleryService.createGallery(createRequest);
+      createdGalleryId = createdGallery.id;
 
-      // 파일 업로드
-      await galleryService.uploadMediaFiles(createdGallery.id, selectedFiles);
+      // 파일 업로드 (실패 시 갤러리 삭제)
+      try {
+        await galleryService.uploadMediaFiles(createdGallery.id, selectedFiles);
+      } catch (uploadError) {
+        console.error('파일 업로드 실패:', uploadError);
+        
+        // 갤러리 삭제
+        try {
+          await galleryService.deleteGallery(createdGallery.id);
+        } catch (deleteError) {
+          console.error('갤러리 삭제 실패:', deleteError);
+        }
+        
+        throw new Error('파일 업로드에 실패했습니다. 파일 크기를 확인해주세요.');
+      }
 
       onSuccess();
     } catch (error) {
       console.error('갤러리 생성 실패:', error);
-      window.alert('갤러리 생성에 실패했습니다.');
+      
+      if (error instanceof Error) {
+        window.alert(error.message);
+      } else {
+        window.alert('갤러리 생성에 실패했습니다.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -366,6 +418,7 @@ const GalleryCreateModal: React.FC<GalleryCreateModalProps> = ({
                 <div className="mt-4">
                   <p className="text-lg font-medium text-gray-900">파일을 선택하거나 드래그해서 업로드</p>
                   <p className="text-gray-600">이미지 및 동영상 파일 지원</p>
+                  <p className="text-xs text-gray-500 mt-1">개별 파일 최대 50MB, 전체 최대 200MB</p>
                 </div>
               </div>
             </label>
