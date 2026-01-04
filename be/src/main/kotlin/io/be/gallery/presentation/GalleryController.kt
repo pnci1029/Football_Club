@@ -6,6 +6,7 @@ import io.be.gallery.domain.GalleryCategory
 import io.be.gallery.domain.PlayType
 import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 /**
  * Public 갤러리 조회 API
@@ -121,5 +122,59 @@ class GalleryController(
     ): ApiResponse<List<TagStatDto>> {
         val tags = galleryService.getPopularTags(limit)
         return ApiResponse.success(tags)
+    }
+
+    /**
+     * 갤러리 생성
+     */
+    @PostMapping
+    fun createGallery(@RequestBody request: CreateGalleryRequest): ApiResponse<GalleryDto> {
+        val gallery = galleryService.createGallery(request, emptyList())
+        return ApiResponse.success(gallery)
+    }
+
+    /**
+     * 갤러리 수정
+     */
+    @PutMapping("/{id}")
+    fun updateGallery(
+        @PathVariable id: Long,
+        @RequestBody request: UpdateGalleryRequest
+    ): ApiResponse<GalleryDto> {
+        val gallery = galleryService.updateGallery(id, request)
+        return ApiResponse.success(gallery)
+    }
+
+    /**
+     * 갤러리 삭제
+     */
+    @DeleteMapping("/{id}")
+    fun deleteGallery(@PathVariable id: Long): ApiResponse<String> {
+        galleryService.deleteGallery(id)
+        return ApiResponse.success("갤러리가 삭제되었습니다.")
+    }
+
+    /**
+     * 갤러리에 미디어 파일 업로드
+     */
+    @PostMapping("/{id}/media")
+    fun uploadMedia(
+        @PathVariable id: Long,
+        @RequestParam("files") files: List<MultipartFile>
+    ): ApiResponse<List<GalleryMediaDto>> {
+        val mediaList = galleryService.addMediaToGallery(id, files)
+        return ApiResponse.success(mediaList)
+    }
+
+    /**
+     * 미디어 파일 삭제
+     */
+    @DeleteMapping("/{galleryId}/media/{mediaId}")
+    fun deleteMedia(
+        @PathVariable galleryId: Long,
+        @PathVariable mediaId: Long
+    ): ApiResponse<String> {
+        galleryService.deleteMedia(mediaId)
+        return ApiResponse.success("미디어가 삭제되었습니다.")
     }
 }

@@ -3,7 +3,6 @@ package io.be.gallery.application
 import io.be.gallery.domain.*
 import io.be.gallery.dto.*
 import io.be.shared.security.TenantContextHolder
-import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -24,8 +23,7 @@ class GalleryService(
     private val galleryTagRepository: GalleryTagRepository,
     private val highlightMetadataRepository: HighlightMetadataRepository,
     private val fileStorageService: FileStorageService,
-    private val galleryMapper: GalleryMapper,
-    private val entityManager: EntityManager
+    private val galleryMapper: GalleryMapper
 ) {
 
     /**
@@ -79,9 +77,6 @@ class GalleryService(
 
         // 권한 확인
         validateGalleryAccess(gallery, teamSubdomain)
-
-        // 조회수 증가
-        incrementViewCount(galleryId)
 
         // 미디어 파일과 태그 조회
         val mediaFiles = galleryMediaRepository.findByGalleryIdOrderBySortOrder(galleryId)
@@ -348,7 +343,8 @@ class GalleryService(
                     isCover = index == 0, // 첫 번째 업로드를 커버로
                     uploadedBy = "ADMIN" // TODO: 실제 사용자 정보로 변경
                 )
-                uploadedMedia.add(galleryMediaRepository.save(galleryMedia))
+                val savedMedia = galleryMediaRepository.save(galleryMedia)
+                uploadedMedia.add(savedMedia)
             } catch (e: Exception) {
                 throw IllegalStateException("미디어 파일 업로드 실패: ${e.message}", e)
             }
@@ -420,7 +416,16 @@ class GalleryService(
 
     @Transactional
     fun incrementViewCount(galleryId: Long) {
-        galleryRepository.incrementViewCount(galleryId)
+        try {
+            galleryRepository.incrementViewCount(galleryId)
+        } catch (e: Exception) {
+            // 읽기 전용 모드일 때는 조회수 업데이트를 무시
+            if (e.message?.contains("read-only") == true) {
+                println("Skip view count update in read-only mode")
+            } else {
+                throw e
+            }
+        }
     }
 
     private fun validateFileUploads(files: List<MultipartFile>) {
@@ -537,4 +542,5 @@ class GalleryService(
             highlightMetadataRepository.delete(existingMetadata)
         }
     }
+    
 }

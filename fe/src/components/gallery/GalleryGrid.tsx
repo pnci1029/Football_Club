@@ -1,7 +1,7 @@
 import React from 'react';
-import GalleryCard from './GalleryCard';
-import GalleryCardSkeleton from './GalleryCardSkeleton';
 import { Gallery } from '../../types/gallery';
+import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 interface GalleryGridProps {
   galleries: Gallery[];
@@ -13,91 +13,158 @@ interface GalleryGridProps {
   onDelete?: (gallery: Gallery) => void;
 }
 
-const GalleryGrid: React.FC<GalleryGridProps> = ({ 
-  galleries, 
-  isLoading, 
-  hasMore, 
+const GalleryGrid: React.FC<GalleryGridProps> = ({
+  galleries,
+  isLoading,
+  hasMore,
   onLoadMore,
-  isAdmin = false,
+  isAdmin,
   onEdit,
   onDelete
 }) => {
-  return (
-    <div>
-      {/* 갤러리 그리드 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-        {(galleries || []).map((gallery, index) => (
-          <div
-            key={gallery.id}
-            className="transform hover:scale-105 transition-all duration-300 relative group"
-            style={{
-              animationDelay: `${index * 100}ms`,
-              animation: 'fadeInUp 0.6s ease-out forwards'
-            }}
-          >
-            <GalleryCard gallery={gallery} />
-            
-            {/* 관리자용 버튼들 */}
-            {isAdmin && (
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit?.(gallery);
-                  }}
-                  className="bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
-                  title="갤러리 수정"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete?.(gallery);
-                  }}
-                  className="bg-red-600 text-white p-2 rounded-full shadow-lg hover:bg-red-700 transition-colors"
-                  title="갤러리 삭제"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
+  const navigate = useNavigate();
 
-        {/* 로딩 스켈레톤 */}
-        {isLoading && (
-          <>
-            {Array.from({ length: 8 }).map((_, index) => (
-              <GalleryCardSkeleton key={`skeleton-${index}`} />
-            ))}
-          </>
-        )}
+  const handleGalleryClick = (gallery: Gallery) => {
+    navigate(`/gallery/${gallery.id}`);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <>
+      {/* 갤러리 리스트 헤더 */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+          <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
+            <div className="col-span-1">번호</div>
+            <div className="col-span-6">제목</div>
+            <div className="col-span-2">카테고리</div>
+            <div className="col-span-2">작성일</div>
+            <div className="col-span-1">조회수</div>
+          </div>
+        </div>
+
+        {/* 갤러리 리스트 */}
+        <div className="divide-y divide-gray-200">
+          {galleries.map((gallery, index) => (
+            <div
+              key={gallery.id}
+              className="px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => handleGalleryClick(gallery)}
+            >
+              <div className="grid grid-cols-12 gap-4 items-center text-sm">
+                <div className="col-span-1 text-gray-500">
+                  {galleries.length - index}
+                </div>
+                <div className="col-span-6">
+                  <div className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
+                    {gallery.title}
+                  </div>
+                  {gallery.description && (
+                    <div className="text-gray-500 text-xs mt-1 truncate">
+                      {gallery.description}
+                    </div>
+                  )}
+                  {gallery.tags && gallery.tags.length > 0 && (
+                    <div className="flex gap-1 mt-2">
+                      {gallery.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {gallery.tags.length > 3 && (
+                        <span className="text-xs text-gray-500">
+                          +{gallery.tags.length - 3}개
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="col-span-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                    {gallery.categoryDisplayName}
+                  </span>
+                </div>
+                <div className="col-span-2 text-gray-500">
+                  {formatDate(gallery.createdAt)}
+                </div>
+                <div className="col-span-1 text-gray-500">
+                  {gallery.viewCount}
+                </div>
+              </div>
+
+              {/* 관리자 버튼 */}
+              {isAdmin && (
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit?.(gallery);
+                    }}
+                    className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded hover:bg-yellow-200 transition-colors"
+                  >
+                    수정
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete?.(gallery);
+                    }}
+                    className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200 transition-colors"
+                  >
+                    삭제
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* 더보기 버튼 */}
-      {hasMore && !isLoading && (galleries || []).length > 0 && (
-        <div className="text-center">
+      {/* 빈 상태 */}
+      {!isLoading && galleries.length === 0 && (
+        <div className="text-center py-16">
+          <div className="text-6xl mb-4">📄</div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">갤러리가 비어있습니다</h3>
+          <p className="text-gray-600">아직 등록된 갤러리가 없습니다.</p>
+        </div>
+      )}
+
+      {/* 더 보기 버튼 */}
+      {hasMore && !isLoading && galleries.length > 0 && (
+        <div className="text-center mt-8">
           <button
             onClick={onLoadMore}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-300 font-medium shadow-md hover:shadow-lg"
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md hover:shadow-lg"
           >
-            더보기
+            더 보기
           </button>
         </div>
       )}
 
-      {/* 마지막 페이지 메시지 */}
-      {!hasMore && (galleries || []).length > 0 && (
-        <div className="text-center text-gray-500 py-8">
-          모든 갤러리를 확인했습니다
+      {/* 추가 로딩 표시 */}
+      {isLoading && galleries.length > 0 && (
+        <div className="flex justify-center py-8">
+          <LoadingSpinner />
         </div>
       )}
-    </div>
+
+      {/* 전체 로딩 표시 */}
+      {isLoading && galleries.length === 0 && (
+        <div className="flex justify-center py-16">
+          <LoadingSpinner />
+        </div>
+      )}
+    </>
   );
 };
 
