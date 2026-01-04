@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { galleryAPI } from '../services/galleryAPI';
+import { galleryService } from '../services/galleryAPI';
 import { GalleryCategory } from '../types/gallery';
 import { useTeam } from '../contexts/TeamContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -112,11 +112,11 @@ const GalleryCreate: React.FC = () => {
       };
 
       // 갤러리 생성
-      const gallery = await galleryAPI.createGallery(createData);
+      const gallery = await galleryService.createGallery(createData);
 
       // 파일 업로드
       if (selectedFiles.length > 0) {
-        await galleryAPI.uploadMediaFiles(gallery.id, selectedFiles);
+        await galleryService.uploadMediaFiles(gallery.id, selectedFiles);
       }
 
       alert('갤러리가 성공적으로 등록되었습니다.');

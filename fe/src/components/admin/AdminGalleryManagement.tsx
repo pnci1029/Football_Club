@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { galleryAPI } from '../../services/galleryAPI';
+import { galleryService } from '../../services/galleryAPI';
 import { Gallery, GalleryCategory, GalleryStatistics } from '../../types/gallery';
 import LoadingSpinner from '../common/LoadingSpinner';
 import GalleryCreateModal from './GalleryCreateModal';
@@ -51,7 +51,7 @@ const AdminGalleryManagement: React.FC = () => {
         ...(keyword && { keyword })
       };
 
-      const response = await galleryAPI.getGalleries(params);
+      const response = await galleryService.getGalleries(params);
       
       if (reset) {
         setGalleries(response.content);
@@ -71,7 +71,7 @@ const AdminGalleryManagement: React.FC = () => {
 
   const loadStatistics = async () => {
     try {
-      const data = await galleryAPI.getGalleryStatistics();
+      const data = await galleryService.getGalleryStatistics();
       setStatistics(data);
     } catch (error) {
       console.error('통계 로드 실패:', error);
@@ -112,7 +112,7 @@ const AdminGalleryManagement: React.FC = () => {
     if (!deletingGallery) return;
     
     try {
-      await galleryAPI.deleteGallery(deletingGallery.id);
+      await galleryService.deleteGallery(deletingGallery.id);
       setDeletingGallery(null);
       loadGalleries(true);
       loadStatistics();
@@ -123,7 +123,7 @@ const AdminGalleryManagement: React.FC = () => {
 
   const toggleGalleryStatus = async (gallery: Gallery) => {
     try {
-      await galleryAPI.toggleGalleryStatus(gallery.id);
+      await galleryService.toggleGalleryStatus(gallery.id);
       loadGalleries(true);
       loadStatistics();
     } catch (error) {

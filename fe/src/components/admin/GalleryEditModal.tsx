@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { galleryAPI } from '../../services/galleryAPI';
+import { galleryService } from '../../services/galleryAPI';
 import { Gallery, GalleryDetailDto, GalleryCategory, PlayType, UpdateGalleryRequest } from '../../types/gallery';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -68,7 +68,7 @@ const GalleryEditModal: React.FC<GalleryEditModalProps> = ({
 
   const loadGalleryDetail = async () => {
     try {
-      const detail = await galleryAPI.getGallery(gallery.id);
+      const detail = await galleryService.getGallery(gallery.id);
       setGalleryDetail(detail);
       
       // 하이라이트 메타데이터가 있으면 폼에 반영
@@ -132,7 +132,7 @@ const GalleryEditModal: React.FC<GalleryEditModalProps> = ({
         } : undefined
       };
 
-      await galleryAPI.updateGallery(gallery.id, updateRequest);
+      await galleryService.updateGallery(gallery.id, updateRequest);
       onSuccess();
     } catch (error) {
       console.error('갤러리 수정 실패:', error);
@@ -148,7 +148,7 @@ const GalleryEditModal: React.FC<GalleryEditModalProps> = ({
     }
 
     try {
-      await galleryAPI.deleteMediaFile(gallery.id, mediaId);
+      await galleryService.deleteMediaFile(gallery.id, mediaId);
       await loadGalleryDetail(); // 갤러리 상세 정보 다시 로드
     } catch (error) {
       console.error('미디어 파일 삭제 실패:', error);

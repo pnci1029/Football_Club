@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { galleryAPI } from '../services/galleryAPI';
+import { galleryService } from '../services/galleryAPI';
 import { GalleryDetailDto } from '../types/gallery';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useTeam } from '../contexts/TeamContext';
@@ -19,7 +19,7 @@ const GalleryDetail: React.FC = () => {
       
       try {
         setIsLoading(true);
-        const galleryData = await galleryAPI.getGallery(parseInt(id));
+        const galleryData = await galleryService.getGallery(parseInt(id));
         setGallery(galleryData);
       } catch (error) {
         console.error('갤러리 로드 실패:', error);

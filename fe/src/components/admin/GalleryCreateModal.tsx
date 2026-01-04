@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { galleryAPI } from '../../services/galleryAPI';
+import { galleryService } from '../../services/galleryAPI';
 import { GalleryCategory, PlayType, CreateGalleryRequest } from '../../types/gallery';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -149,10 +149,10 @@ const GalleryCreateModal: React.FC<GalleryCreateModalProps> = ({
         } : undefined
       };
 
-      const createdGallery = await galleryAPI.createGallery(createRequest);
+      const createdGallery = await galleryService.createGallery(createRequest);
 
       // 파일 업로드
-      await galleryAPI.uploadMediaFiles(createdGallery.id, selectedFiles);
+      await galleryService.uploadMediaFiles(createdGallery.id, selectedFiles);
 
       onSuccess();
     } catch (error) {

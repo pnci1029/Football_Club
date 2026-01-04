@@ -6,7 +6,7 @@ import GalleryFilters from '../components/gallery/GalleryFilters';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import GalleryEditModal from '../components/admin/GalleryEditModal';
 import ConfirmDeleteModal from '../components/admin/ConfirmDeleteModal';
-import { galleryAPI } from '../services/galleryAPI';
+import { galleryService } from '../services/galleryAPI';
 import { Gallery, GalleryCategory } from '../types/gallery';
 
 const GalleryPage: React.FC = () => {
@@ -45,7 +45,7 @@ const GalleryPage: React.FC = () => {
         ...(endDate && { endDate })
       };
 
-      const response = await galleryAPI.getGalleries(params);
+      const response = await galleryService.getGalleries(params);
       
       if (reset) {
         setGalleries(response.content);
@@ -119,7 +119,7 @@ const GalleryPage: React.FC = () => {
     if (!deletingGallery) return;
     
     try {
-      await galleryAPI.deleteGallery(deletingGallery.id);
+      await galleryService.deleteGallery(deletingGallery.id);
       setDeletingGallery(null);
       loadGalleries(0, true);
     } catch (error) {

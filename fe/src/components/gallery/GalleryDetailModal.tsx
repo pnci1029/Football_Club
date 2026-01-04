@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GalleryDetailDto, MediaType, PlayType } from '../../types/gallery';
-import { galleryAPI } from '../../services/galleryAPI';
+import { galleryService } from '../../services/galleryAPI';
 import LoadingSpinner from '../common/LoadingSpinner';
 import Modal from '../common/Modal';
 
@@ -30,7 +30,7 @@ const GalleryDetailModal: React.FC<GalleryDetailModalProps> = ({
     setIsLoading(true);
     setError(null);
     try {
-      const data = await galleryAPI.getGallery(galleryId);
+      const data = await galleryService.getGallery(galleryId);
       setGallery(data as GalleryDetailDto);
       setCurrentMediaIndex(0);
     } catch (err) {
