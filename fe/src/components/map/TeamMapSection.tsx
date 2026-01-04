@@ -57,15 +57,16 @@ const TeamMapSection: React.FC = () => {
 
         // Team 타입을 TeamInfo 타입으로 변환하고 맵으로 만들어서 빠른 조회 가능하게 합니다
         const teamsMap = new Map<number, TeamInfo>();
-        teamsResponse.forEach((team) => {
+        const teamsArray = Array.isArray(teamsResponse) ? teamsResponse : (teamsResponse as any).data || [];
+        teamsArray.forEach((team: any) => {
           // Team 타입에서 subdomain 필드가 없으므로 code를 subdomain으로 사용
           const teamInfo: TeamInfo = {
-            id: team.id,
+            id: typeof team.id === 'number' ? team.id : parseInt(team.id),
             name: team.name,
             subdomain: team.code, // code를 subdomain으로 사용
             description: team.description
           };
-          teamsMap.set(team.id, teamInfo);
+          teamsMap.set(teamInfo.id, teamInfo);
         });
 
         // StadiumDto를 Stadium 인터페이스에 맞게 변환하면서 팀 서브도메인 추가
