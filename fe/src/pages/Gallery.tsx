@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTeam } from '../contexts/TeamContext';
 import GalleryGrid from '../components/gallery/GalleryGrid';
 import GalleryFilters from '../components/gallery/GalleryFilters';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import GalleryCreateModal from '../components/admin/GalleryCreateModal';
 import GalleryEditModal from '../components/admin/GalleryEditModal';
 import ConfirmDeleteModal from '../components/admin/ConfirmDeleteModal';
 import { galleryAPI } from '../services/galleryAPI';
@@ -11,6 +11,7 @@ import { Gallery, GalleryCategory } from '../types/gallery';
 
 const GalleryPage: React.FC = () => {
   const { currentTeam, isLoading: teamLoading } = useTeam();
+  const navigate = useNavigate();
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -26,7 +27,6 @@ const GalleryPage: React.FC = () => {
 
   // 관리자 상태
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingGallery, setEditingGallery] = useState<Gallery | null>(null);
   const [deletingGallery, setDeletingGallery] = useState<Gallery | null>(null);
 
@@ -98,7 +98,7 @@ const GalleryPage: React.FC = () => {
 
   // 관리자 기능 핸들러
   const handleCreateGallery = () => {
-    setIsCreateModalOpen(true);
+    navigate('/gallery/create');
   };
 
   const handleEditGallery = (gallery: Gallery) => {
@@ -109,10 +109,6 @@ const GalleryPage: React.FC = () => {
     setDeletingGallery(gallery);
   };
 
-  const handleGalleryCreated = () => {
-    setIsCreateModalOpen(false);
-    loadGalleries(0, true);
-  };
 
   const handleGalleryUpdated = () => {
     setEditingGallery(null);
@@ -215,14 +211,6 @@ const GalleryPage: React.FC = () => {
       </div>
 
       {/* 모달들 */}
-      {isCreateModalOpen && (
-        <GalleryCreateModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onSuccess={handleGalleryCreated}
-        />
-      )}
-
       {editingGallery && (
         <GalleryEditModal
           gallery={editingGallery}

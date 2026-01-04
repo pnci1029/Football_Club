@@ -50,31 +50,31 @@ export const galleryAPI = {
     if (params.endDate) queryParams.append('endDate', params.endDate);
 
     const response = await api.get(`/api/v1/gallery?${queryParams.toString()}`);
-    return response.data;
+    return response.data.data;
   },
 
   // Public API - 갤러리 상세 조회
   getGallery: async (id: number): Promise<GalleryDetailDto> => {
     const response = await api.get(`/api/v1/gallery/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   // Public API - 추천 갤러리 조회
   getFeaturedGalleries: async (limit: number = 5): Promise<GalleryResponse> => {
     const response = await api.get(`/api/v1/gallery/featured?limit=${limit}`);
-    return response.data;
+    return response.data.data;
   },
 
   // Public API - 인기 갤러리 조회
   getPopularGalleries: async (limit: number = 5): Promise<GalleryResponse> => {
     const response = await api.get(`/api/v1/gallery/popular?limit=${limit}`);
-    return response.data;
+    return response.data.data;
   },
 
   // Public API - 최신 갤러리 조회
   getRecentGalleries: async (limit: number = 5): Promise<GalleryResponse> => {
     const response = await api.get(`/api/v1/gallery/recent?limit=${limit}`);
-    return response.data;
+    return response.data.data;
   },
 
   // Public API - 하이라이트 갤러리 조회
@@ -89,46 +89,46 @@ export const galleryAPI = {
     }
 
     const response = await api.get(`/api/v1/gallery/highlights?${queryParams.toString()}`);
-    return response.data;
+    return response.data.data;
   },
 
   // Public API - 팀별 태그 목록 조회
   getTagsByTeam: async (): Promise<string[]> => {
     const response = await api.get('/api/v1/gallery/tags');
-    return response.data;
+    return response.data.data;
   },
 
   // Public API - 인기 태그 조회
   getPopularTags: async (limit: number = 20): Promise<{ tagName: string; count: number; percentage: number; }[]> => {
     const response = await api.get(`/api/v1/gallery/tags/popular?limit=${limit}`);
-    return response.data;
+    return response.data.data;
   },
 
-  // Admin API - 갤러리 생성
+  // Public API - 갤러리 생성
   createGallery: async (data: CreateGalleryRequest): Promise<Gallery> => {
-    const response = await api.post('/api/v1/admin/gallery', data);
+    const response = await api.post('/api/v1/gallery', data);
     return response.data.data;
   },
 
-  // Admin API - 갤러리 수정
+  // Public API - 갤러리 수정
   updateGallery: async (id: number, data: UpdateGalleryRequest): Promise<Gallery> => {
-    const response = await api.put(`/api/v1/admin/gallery/${id}`, data);
+    const response = await api.put(`/api/v1/gallery/${id}`, data);
     return response.data.data;
   },
 
-  // Admin API - 갤러리 삭제
+  // Public API - 갤러리 삭제
   deleteGallery: async (id: number): Promise<void> => {
-    await api.delete(`/api/v1/admin/gallery/${id}`);
+    await api.delete(`/api/v1/gallery/${id}`);
   },
 
-  // Admin API - 미디어 파일 업로드
+  // Public API - 미디어 파일 업로드
   uploadMediaFiles: async (galleryId: number, files: File[]): Promise<Gallery> => {
     const formData = new FormData();
     files.forEach(file => {
       formData.append('files', file);
     });
 
-    const response = await api.post(`/api/v1/admin/gallery/${galleryId}/media`, formData, {
+    const response = await api.post(`/api/v1/gallery/${galleryId}/media`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -136,9 +136,9 @@ export const galleryAPI = {
     return response.data.data;
   },
 
-  // Admin API - 미디어 파일 삭제
+  // Public API - 미디어 파일 삭제
   deleteMediaFile: async (galleryId: number, mediaId: number): Promise<void> => {
-    await api.delete(`/api/v1/admin/gallery/${galleryId}/media/${mediaId}`);
+    await api.delete(`/api/v1/gallery/${galleryId}/media/${mediaId}`);
   },
 
   // Admin API - 미디어 파일 정렬 순서 변경

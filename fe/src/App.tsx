@@ -11,6 +11,8 @@ import Players from './pages/Players';
 import Matches from './pages/Matches';
 import Stadiums from './pages/Stadiums';
 import Gallery from './pages/Gallery';
+import GalleryDetail from './pages/GalleryDetail';
+import GalleryCreate from './pages/GalleryCreate';
 import Community from './pages/Community';
 import CommunityWrite from './pages/CommunityWrite';
 import CommunityDetail from './pages/CommunityDetail';
@@ -193,6 +195,8 @@ const AppContent: React.FC = () => {
           <Route path="/matches" element={<Matches />} />
           <Route path="/stadiums" element={<Stadiums />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/gallery/create" element={<GalleryCreate />} />
+          <Route path="/gallery/:id" element={<GalleryDetail />} />
           <Route path="/community" element={<Community />} />
           <Route path="/community/write" element={<CommunityWrite />} />
           <Route path="/community/:postId" element={<CommunityDetail />} />
