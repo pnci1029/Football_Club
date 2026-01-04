@@ -51,7 +51,7 @@ const GalleryCreate: React.FC = () => {
     if (!files) return;
 
     const newFiles = Array.from(files);
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB로 제한
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB로 제한
     const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 총 50MB로 제한
     
     const validFiles: File[] = [];
@@ -64,7 +64,7 @@ const GalleryCreate: React.FC = () => {
       }
       
       if (file.size > MAX_FILE_SIZE) {
-        invalidFiles.push(`${file.name}: 파일 크기가 10MB를 초과합니다 (${(file.size / (1024 * 1024)).toFixed(1)}MB)`);
+        invalidFiles.push(`${file.name}: 파일 크기가 50MB를 초과합니다 (${(file.size / (1024 * 1024)).toFixed(1)}MB)`);
         return;
       }
       
@@ -128,10 +128,10 @@ const GalleryCreate: React.FC = () => {
     }
 
     // 파일 크기 재검증
-    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    const MAX_FILE_SIZE = 50 * 1024 * 1024;
     const invalidFiles = selectedFiles.filter(file => file.size > MAX_FILE_SIZE);
     if (invalidFiles.length > 0) {
-      alert(`다음 파일들의 크기가 10MB를 초과합니다:\n${invalidFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(1)}MB)`).join('\n')}`);
+      alert(`다음 파일들의 크기가 50MB를 초과합니다:\n${invalidFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(1)}MB)`).join('\n')}`);
       return;
     }
 
@@ -315,7 +315,7 @@ const GalleryCreate: React.FC = () => {
                     클릭하여 이미지를 선택하거나 드래그하여 업로드하세요
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    JPG, PNG, GIF 파일만 업로드 가능 (개별 파일 최대 10MB, 전체 최대 50MB)
+                    JPG, PNG, GIF 파일만 업로드 가능 (개별 파일 최대 50MB, 전체 최대 50MB)
                   </p>
                 </div>
                 <input
