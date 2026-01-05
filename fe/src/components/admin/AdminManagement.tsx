@@ -23,9 +23,10 @@ const AdminManagement: React.FC<AdminManagementProps> = ({ teamId }) => {
     setIsLoading(true);
     try {
       const data = await adminManagementService.getAdminsByTeam(teamId);
-      setAdmins(data);
+      setAdmins(Array.isArray(data) ? data : []);
     } catch (error) {
       showToast('관리자 목록을 불러오는데 실패했습니다.', 'error');
+      setAdmins([]);
     } finally {
       setIsLoading(false);
     }
