@@ -8,6 +8,7 @@ import GalleryEditModal from '../components/admin/GalleryEditModal';
 import ConfirmDeleteModal from '../components/admin/ConfirmDeleteModal';
 import { galleryService } from '../services/galleryAPI';
 import { Gallery, GalleryCategory } from '../types/gallery';
+import { TokenManager } from '../utils/tokenManager';
 
 const GalleryPage: React.FC = () => {
   const { currentTeam, isLoading: teamLoading } = useTeam();
@@ -17,7 +18,7 @@ const GalleryPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  
+
   // 필터 상태
   const [selectedCategory, setSelectedCategory] = useState<GalleryCategory | ''>('');
   const [keyword, setKeyword] = useState('');
@@ -32,7 +33,7 @@ const GalleryPage: React.FC = () => {
 
   const loadGalleries = async (page: number = 0, reset: boolean = false) => {
     if (!currentTeam || isLoading) return;
-    
+
     setIsLoading(true);
     try {
       const params = {
@@ -46,13 +47,13 @@ const GalleryPage: React.FC = () => {
       };
 
       const response = await galleryService.getGalleries(params);
-      
+
       if (reset) {
         setGalleries(response.content);
       } else {
         setGalleries(prev => [...prev, ...response.content]);
       }
-      
+
       setCurrentPage(response.number);
       setTotalPages(response.totalPages);
       setHasMore(!response.last);
@@ -63,9 +64,21 @@ const GalleryPage: React.FC = () => {
     }
   };
 
-  // 서브도메인에서는 모든 사용자가 갤러리 관리 가능
+  // 로그인한 관리자만 갤러리 관리 가능
   useEffect(() => {
-    setIsAdmin(true);
+    const checkAdminStatus = () => {
+      const isLoggedIn = TokenManager.isLoggedIn();
+      setIsAdmin(isLoggedIn);
+    };
+
+    checkAdminStatus();
+
+    // storage 이벤트 리스너로 로그인/로그아웃 감지
+    window.addEventListener('storage', checkAdminStatus);
+
+    return () => {
+      window.removeEventListener('storage', checkAdminStatus);
+    };
   }, []);
 
   // 팀이 변경되거나 필터가 변경될 때 갤러리 리로드
@@ -74,6 +87,10 @@ const GalleryPage: React.FC = () => {
       setCurrentPage(0);
       loadGalleries(0, true);
     }
+
+    // 관리자 상태도 다시 체크
+    const isLoggedIn = TokenManager.isLoggedIn();
+    setIsAdmin(isLoggedIn);
   }, [currentTeam, selectedCategory, keyword, selectedTags, startDate, endDate]);
 
   const handleLoadMore = () => {
@@ -117,7 +134,7 @@ const GalleryPage: React.FC = () => {
 
   const handleGalleryDeleted = async () => {
     if (!deletingGallery) return;
-    
+
     try {
       await galleryService.deleteGallery(deletingGallery.id);
       setDeletingGallery(null);
