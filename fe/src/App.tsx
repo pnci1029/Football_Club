@@ -86,10 +86,10 @@ const AppContent: React.FC = () => {
                 <Route path="/admin-accounts" element={<AdminAccountManagement />} />
                 <Route path="/community" element={<AdminCommunityManagement />} />
                 <Route path="/tenants" element={<TenantManagement />} />
-                <Route path="/hero-slides" element={<AdminHeroSlides />} />
                 <Route path="/players" element={<AdminPlayers />} />
                 <Route path="/teams" element={<AdminTeams />} />
                 <Route path="/teams/:teamId" element={<AdminTeamDetail />} />
+                <Route path="/teams/:teamId/hero-slides" element={<AdminHeroSlides />} />
                 <Route path="/matches" element={<AdminMatches />} />
                 <Route path="/stadiums" element={<AdminStadiums />} />
                 <Route path="/gallery" element={<AdminGallery />} />
@@ -142,6 +142,13 @@ const AppContent: React.FC = () => {
             </AdminLayout>
           </ProtectedRoute>
         } />
+        <Route path="/teams/:teamId/hero-slides" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <AdminHeroSlides />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
         <Route path="/matches" element={
           <ProtectedRoute>
             <AdminLayout>
@@ -153,13 +160,6 @@ const AppContent: React.FC = () => {
           <ProtectedRoute>
             <AdminLayout>
               <AdminInquiries />
-            </AdminLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/hero-slides/:teamId" element={
-          <ProtectedRoute>
-            <AdminLayout>
-              <AdminHeroSlides />
             </AdminLayout>
           </ProtectedRoute>
         } />

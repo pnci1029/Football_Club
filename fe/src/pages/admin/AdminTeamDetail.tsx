@@ -22,7 +22,7 @@ const AdminTeamDetail: React.FC = () => {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
   const { ToastContainer, success, error, warning } = useToast();
-  
+
   const [team, setTeam] = useState<AdminTeam | null>(null);
   const [stadiums, setStadiums] = useState<StadiumDto[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -167,7 +167,7 @@ const AdminTeamDetail: React.FC = () => {
         teamId: parseInt(teamId!),
         isGlobalVisible: noticeForm.isGlobalVisible,
       });
-      
+
       success('공지사항이 성공적으로 작성되었습니다.');
       setNoticeForm({ title: '', content: '', authorName: '관리자', authorPassword: '', isGlobalVisible: false });
       setShowNoticeForm(false);
@@ -212,7 +212,7 @@ const AdminTeamDetail: React.FC = () => {
         teamId: parseInt(teamId!),
         isGlobalVisible: noticeForm.isGlobalVisible,
       });
-      
+
       success('공지사항이 성공적으로 수정되었습니다.');
       setNoticeForm({ title: '', content: '', authorName: '관리자', authorPassword: '', isGlobalVisible: false });
       setShowEditNoticeForm(false);
@@ -256,7 +256,7 @@ const AdminTeamDetail: React.FC = () => {
   if (!team) {
     return (
       <div className="text-center py-12">
-        
+
         <h3 className="text-lg font-medium text-gray-900 mb-2">팀을 찾을 수 없습니다</h3>
         <Button onClick={() => navigate('/admin/teams')}>팀 목록으로 돌아가기</Button>
       </div>
@@ -361,29 +361,37 @@ const AdminTeamDetail: React.FC = () => {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-2">빠른 액션</h3>
                   <div className="space-y-2">
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => setActiveTab('players')}
                       className="w-full justify-start"
                     >
                       👥 선수 관리
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => setActiveTab('stadiums')}
                       className="w-full justify-start"
                     >
                       🏟️ 구장 관리
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => setActiveTab('notices')}
                       className="w-full justify-start"
                     >
                       📢 공지사항 관리
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => navigate(`/admin/teams/${teamId}/hero-slides`)}
+                      className="w-full justify-start"
+                    >
+                      🖼메인 슬라이드 관리
                     </Button>
                   </div>
                 </div>
@@ -419,12 +427,12 @@ const AdminTeamDetail: React.FC = () => {
                       <span>{stadium.availableHours}</span>
                     </div>
                   </div>
-                  
+
                   {stadium.facilities && stadium.facilities.length > 0 && (
                     <div className="mb-3">
                       <div className="flex flex-wrap gap-1">
                         {stadium.facilities.slice(0, 3).map((facility, index) => (
-                          <span 
+                          <span
                             key={index}
                             className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"
                           >
@@ -441,18 +449,18 @@ const AdminTeamDetail: React.FC = () => {
                   )}
 
                   <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
+                    <Button
+                      size="sm"
+                      variant="outline"
                       className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
                       onClick={() => handleEditStadium(stadium)}
                     >
                       <span className="mr-1">✏️</span>
                       수정
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
+                    <Button
+                      size="sm"
+                      variant="outline"
                       className="text-red-600 border-red-200 hover:bg-red-50"
                       onClick={() => handleDeleteStadium(stadium)}
                     >
@@ -657,8 +665,8 @@ const AdminTeamDetail: React.FC = () => {
                       <span className="text-sm text-gray-500">{formatDate(notice.createdAt)}</span>
                     </div>
                     <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                      {notice.content.length > 100 
-                        ? `${notice.content.substring(0, 100)}...` 
+                      {notice.content.length > 100
+                        ? `${notice.content.substring(0, 100)}...`
                         : notice.content
                       }
                     </p>
