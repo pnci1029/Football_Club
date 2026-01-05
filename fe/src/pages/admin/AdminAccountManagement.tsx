@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../../services/adminService';
-import { AdminAccountDto, CreateAdminRequest, AdminPageResponse } from '../../types/interfaces/admin';
+import { AdminAccountDto, CreateAdminRequest, AdminPageResponse, TenantInfo } from '../../types/interfaces/admin';
 import { Button, Card } from '../../components/common';
 import { useToast } from '../../components/Toast';
 import { AdminLevel } from '../../types/enums';
@@ -12,9 +12,10 @@ interface CreateAdminModalProps {
   onClose: () => void;
   onSuccess: () => void;
   availableSubdomains: string[];
+  tenants: TenantInfo[];
 }
 
-const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, onSuccess, availableSubdomains }) => {
+const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, onSuccess, availableSubdomains, tenants }) => {
   const [formData, setFormData] = useState<CreateAdminRequest>({
     username: '',
     password: '',
@@ -37,7 +38,14 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
         delete submitData.teamSubdomain;
       }
 
-      await adminService.createAdmin(submitData);
+      // Find teamId from tenants data
+      const teamId = tenants.find(tenant => tenant.code === submitData.teamSubdomain)?.id || 0;
+      const requestData = {
+        ...submitData,
+        teamId
+      };
+
+      await adminService.createAdmin(requestData);
       showToast('관리자 계정이 성공적으로 생성되었습니다.', 'success');
       onSuccess();
       onClose();
@@ -65,7 +73,7 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h3 className="text-lg font-semibold mb-4">새 관리자 계정 생성</h3>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">사용자명 *</label>
@@ -119,8 +127,8 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
             <label className="block text-sm font-medium text-gray-700 mb-1">관리자 레벨 *</label>
             <select
               value={formData.adminLevel}
-              onChange={(e) => setFormData(prev => ({ 
-                ...prev, 
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
                 adminLevel: e.target.value as AdminLevel,
                 teamSubdomain: e.target.value === AdminLevel.MASTER ? '' : prev.teamSubdomain
               }))}
@@ -179,6 +187,7 @@ const AdminAccountManagement: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [changingPasswordAdmin, setChangingPasswordAdmin] = useState<AdminAccountDto | null>(null);
   const [availableSubdomains, setAvailableSubdomains] = useState<string[]>([]);
+  const [tenants, setTenants] = useState<TenantInfo[]>([]);
   const { showToast, ToastContainer } = useToast();
 
   const fetchAdmins = async () => {
@@ -195,8 +204,9 @@ const AdminAccountManagement: React.FC = () => {
 
   const fetchAvailableSubdomains = async () => {
     try {
-      const tenants = await adminService.getAllTenants();
-      setAvailableSubdomains(tenants.map(tenant => tenant.code));
+      const tenantsData = await adminService.getAllTenants();
+      setTenants(tenantsData);
+      setAvailableSubdomains(tenantsData.map(tenant => tenant.code));
     } catch (error) {
       console.error('서브도메인 목록 로딩 실패:', error);
     }
@@ -315,7 +325,7 @@ const AdminAccountManagement: React.FC = () => {
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold">관리자 목록</h2>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -360,8 +370,8 @@ const AdminAccountManagement: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {admin.lastLoginAt 
-                      ? new Date(admin.lastLoginAt).toLocaleDateString() 
+                    {admin.lastLoginAt
+                      ? new Date(admin.lastLoginAt).toLocaleDateString()
                       : '로그인 기록 없음'
                     }
                   </td>
@@ -411,6 +421,7 @@ const AdminAccountManagement: React.FC = () => {
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={fetchAdmins}
         availableSubdomains={availableSubdomains}
+        tenants={tenants}
       />
 
       {/* 비밀번호 변경 모달 */}

@@ -145,6 +145,8 @@ export interface TeamStats {
   code: string;
   playerCount: number;
   stadiumCount: number;
+  url?: string;
+  status?: string;
 }
 
 // Auth 관련 타입들

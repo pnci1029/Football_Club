@@ -715,7 +715,7 @@ const AdminTeamDetail: React.FC = () => {
         <TeamMatchManagement teamId={parseInt(teamId)} />
       )}
 
-      {activeTab === 'admins' && teamId && (
+      {activeTab === 'admins' && teamId && parseInt(teamId) > 0 && (
         <AdminManagement teamId={parseInt(teamId)} />
       )}
 
