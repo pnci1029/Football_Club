@@ -24,12 +24,14 @@ class AdminHeroSlideController(
     private val teamService: TeamService
 ) {
     
+    @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @GetMapping("/active")
     fun getActiveSlides(@RequestParam teamId: Long): ApiResponse<List<HeroSlideDto>> {
         val slides = heroSlideService.getActiveSlidesForTeam(teamId)
         return ApiResponse.success(slides)
     }
     
+    @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @GetMapping
     fun getAllSlides(@RequestParam teamId: Long): ApiResponse<List<HeroSlideDto>> {
         val slides = heroSlideService.getAllSlidesForTeam(teamId)
@@ -39,7 +41,7 @@ class AdminHeroSlideController(
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @GetMapping("/{id}")
     fun getSlide(
-        adminInfo: AdminInfo,
+        @RequestAttribute adminInfo: AdminInfo,
         @PathVariable id: Long
     ): ApiResponse<HeroSlideDto> {
         val slide = heroSlideService.getSlideById(id)
@@ -61,7 +63,7 @@ class AdminHeroSlideController(
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @PostMapping
     fun createSlide(
-        adminInfo: AdminInfo,
+        @RequestAttribute adminInfo: AdminInfo,
         @RequestParam teamId: Long,
         @Valid @RequestBody request: CreateHeroSlideRequest
     ): ApiResponse<HeroSlideDto> {
@@ -86,7 +88,7 @@ class AdminHeroSlideController(
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @PutMapping("/{id}")
     fun updateSlide(
-        adminInfo: AdminInfo,
+        @RequestAttribute adminInfo: AdminInfo,
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdateHeroSlideRequest
     ): ApiResponse<HeroSlideDto> {
@@ -114,7 +116,7 @@ class AdminHeroSlideController(
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @DeleteMapping("/{id}")
     fun deleteSlide(
-        adminInfo: AdminInfo,
+        @RequestAttribute adminInfo: AdminInfo,
         @PathVariable id: Long
     ): ApiResponse<String> {
         // 서브도메인 관리자는 자신의 팀 슬라이드만 삭제 가능
@@ -141,7 +143,7 @@ class AdminHeroSlideController(
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @PutMapping("/sort-order")
     fun updateSortOrder(
-        adminInfo: AdminInfo,
+        @RequestAttribute adminInfo: AdminInfo,
         @Valid @RequestBody request: UpdateSortOrderRequest
     ): ApiResponse<String> {
         // 서브도메인 관리자는 자신의 팀 슬라이드 순서만 변경 가능

@@ -132,11 +132,10 @@ class HeroSlideService(
             IllegalArgumentException("Hero slide not found: $id")
         }
         
+        // 관리자 API에서는 팀 컨텍스트 검증을 하지 않음 (컨트롤러에서 이미 권한 검증)
         val teamCode = TenantContext.getCurrentTeamCode()
-            ?: throw IllegalStateException("Team context not found")
-            
-        // 현재 팀의 슬라이드인지 확인
-        if (existingSlide.team.code != teamCode) {
+        if (teamCode != null && existingSlide.team.code != teamCode) {
+            // 일반 사용자인 경우에만 팀 검증
             throw IllegalArgumentException("Hero slide not found: $id")
         }
         
@@ -159,11 +158,10 @@ class HeroSlideService(
             IllegalArgumentException("Hero slide not found: $id")
         }
         
+        // 관리자 API에서는 팀 컨텍스트 검증을 하지 않음 (컨트롤러에서 이미 권한 검증)
         val teamCode = TenantContext.getCurrentTeamCode()
-            ?: throw IllegalStateException("Team context not found")
-            
-        // 현재 팀의 슬라이드인지 확인
-        if (existingSlide.team.code != teamCode) {
+        if (teamCode != null && existingSlide.team.code != teamCode) {
+            // 일반 사용자인 경우에만 팀 검증
             throw IllegalArgumentException("Hero slide not found: $id")
         }
         
@@ -178,13 +176,16 @@ class HeroSlideService(
     
     @Transactional
     fun updateSortOrder(request: UpdateSortOrderRequest) {
+        // 관리자 API에서는 팀 컨텍스트 검증을 하지 않음 (컨트롤러에서 이미 권한 검증)
         val teamCode = TenantContext.getCurrentTeamCode()
-            ?: throw IllegalStateException("Team context not found")
-            
+        
         request.slides.forEach { slideOrder ->
             val slide = heroSlideRepository.findById(slideOrder.id).orElse(null)
-            if (slide != null && slide.team.code == teamCode) {
-                heroSlideRepository.updateSortOrder(slideOrder.id, slideOrder.sortOrder)
+            if (slide != null) {
+                if (teamCode == null || slide.team.code == teamCode) {
+                    // 관리자이거나 같은 팀인 경우
+                    heroSlideRepository.updateSortOrder(slideOrder.id, slideOrder.sortOrder)
+                }
             }
         }
     }
