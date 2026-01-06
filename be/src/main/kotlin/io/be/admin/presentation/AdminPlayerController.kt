@@ -10,6 +10,7 @@ import io.be.shared.exception.MissingRequiredFieldException
 import io.be.shared.exception.UnauthorizedAdminAccessException
 import io.be.player.application.PlayerService
 import io.be.shared.security.AdminPermissionRequired
+import io.be.shared.util.AdminSecurityUtils
 import io.be.shared.util.PagedResponse
 import io.be.shared.util.PageMetadata
 import io.be.team.application.TeamService
@@ -38,23 +39,7 @@ class AdminPlayerController(
         @RequestParam(required = false) search: String?
     ): ApiResponse<PagedResponse<PlayerDto>> {
         // 권한별 teamId 결정
-        val actualTeamId = when (adminInfo.adminLevel) {
-            AdminLevel.MASTER -> {
-                // 마스터는 teamId 파라미터 필수
-                teamId ?: throw MissingRequiredFieldException("teamId")
-            }
-            AdminLevel.SUBDOMAIN -> {
-                // 서브도메인 관리자는 자신의 팀으로 제한
-                val team = teamService.findByCode(adminInfo.teamSubdomain!!)
-                    ?: throw UnauthorizedAdminAccessException("Invalid team subdomain")
-
-                // 요청한 teamId가 있다면 자신의 팀인지 검증
-                if (teamId != null && teamId != team.id) {
-                    throw UnauthorizedAdminAccessException("Subdomain admin can only access their own team")
-                }
-                team.id
-            }
-        }
+        val actualTeamId = AdminSecurityUtils.getAuthorizedTeamId(adminInfo, teamId, teamService)
 
         val players = if (!search.isNullOrBlank()) {
             playerService.findPlayersByTeamWithSearch(actualTeamId, search, PageRequest.of(page, size))
@@ -87,15 +72,8 @@ class AdminPlayerController(
         @Valid @RequestBody request: CreatePlayerRequest,
         @RequestParam teamId: Long
     ): ApiResponse<PlayerDto> {
-        // 서브도메인 관리자는 자신의 팀에만 선수 생성 가능
-        if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
-            val team = teamService.findByCode(adminInfo.teamSubdomain!!)
-                ?: throw UnauthorizedAdminAccessException("Invalid team subdomain")
-
-            if (teamId != team.id) {
-                throw UnauthorizedAdminAccessException("Subdomain admin can only create players for their own team")
-            }
-        }
+        // 권한 검증
+        AdminSecurityUtils.validateSubdomainAccess(adminInfo, teamId, teamService)
 
         val player = playerService.createPlayer(teamId, request)
         return ApiResponse.success(player)
@@ -110,15 +88,8 @@ class AdminPlayerController(
         val player = playerService.findPlayerById(id)
             ?: throw PlayerNotFoundException(id)
 
-        // 서브도메인 관리자는 자신의 팀 선수만 조회 가능
-        if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
-            val team = teamService.findByCode(adminInfo.teamSubdomain!!)
-                ?: throw UnauthorizedAdminAccessException("Invalid team subdomain")
-
-            if (player.teamId != team.id) {
-                throw UnauthorizedAdminAccessException("Subdomain admin can only access players from their own team")
-            }
-        }
+        // 권한 검증
+        AdminSecurityUtils.validateSubdomainAccess(adminInfo, player.teamId, teamService)
 
         return ApiResponse.success(player)
     }
@@ -133,15 +104,8 @@ class AdminPlayerController(
         val existingPlayer = playerService.findPlayerById(id)
             ?: throw PlayerNotFoundException(id)
 
-        // 서브도메인 관리자는 자신의 팀 선수만 수정 가능
-        if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
-            val team = teamService.findByCode(adminInfo.teamSubdomain!!)
-                ?: throw UnauthorizedAdminAccessException("Invalid team subdomain")
-
-            if (existingPlayer.teamId != team.id) {
-                throw UnauthorizedAdminAccessException("Subdomain admin can only update players from their own team")
-            }
-        }
+        // 권한 검증
+        AdminSecurityUtils.validateSubdomainAccess(adminInfo, existingPlayer.teamId, teamService)
 
         val updatedPlayer = playerService.updatePlayer(id, request)
         return ApiResponse.success(updatedPlayer)
@@ -156,15 +120,8 @@ class AdminPlayerController(
         val existingPlayer = playerService.findPlayerById(id)
             ?: throw PlayerNotFoundException(id)
 
-        // 서브도메인 관리자는 자신의 팀 선수만 삭제 가능
-        if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
-            val team = teamService.findByCode(adminInfo.teamSubdomain!!)
-                ?: throw UnauthorizedAdminAccessException("Invalid team subdomain")
-
-            if (existingPlayer.teamId != team.id) {
-                throw UnauthorizedAdminAccessException("Subdomain admin can only delete players from their own team")
-            }
-        }
+        // 권한 검증
+        AdminSecurityUtils.validateSubdomainAccess(adminInfo, existingPlayer.teamId, teamService)
 
         playerService.deletePlayer(id)
         return ApiResponse.success("deleted")

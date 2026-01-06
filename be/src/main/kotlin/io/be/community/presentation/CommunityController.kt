@@ -7,6 +7,7 @@ import io.be.community.domain.CommunityCategory
 import io.be.shared.dto.ViewCount
 import io.be.shared.dto.IncreaseViewCountRequest
 import io.be.shared.enums.ContentType
+import io.be.shared.util.HttpUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -77,8 +78,8 @@ class CommunityController(
         val post = communityService.getPost(teamId, postId)
 
         // 조회수 자동 증가 처리
-        val clientIp = getClientIpAddress(httpRequest)
-        val userAgent = httpRequest.getHeader("User-Agent") ?: ""
+        val clientIp = HttpUtils.getClientIpAddress(httpRequest)
+        val userAgent = HttpUtils.getUserAgent(httpRequest)
         viewCountService.increaseViewCount(ContentType.COMMUNITY, postId, clientIp, userAgent)
 
         return ApiResponse.success(post)
@@ -177,7 +178,7 @@ class CommunityController(
         @RequestBody ownershipRequest: OwnershipCheckRequest,
         httpRequest: HttpServletRequest
     ): ApiResponse<OwnershipCheckResponse> {
-        val clientIp = getClientIpAddress(httpRequest)
+        val clientIp = HttpUtils.getClientIpAddress(httpRequest)
         logger.info("Post ownership check attempt - postId: $postId, teamId: ${ownershipRequest.teamId}, clientIp: $clientIp")
 
         val isOwner = communityService.checkPostOwnership(postId, ownershipRequest.teamId, ownershipRequest.authorPassword, clientIp)
@@ -198,7 +199,7 @@ class CommunityController(
         @RequestBody ownershipRequest: OwnershipCheckRequest,
         httpRequest: HttpServletRequest
     ): ApiResponse<OwnershipCheckResponse> {
-        val clientIp = getClientIpAddress(httpRequest)
+        val clientIp = HttpUtils.getClientIpAddress(httpRequest)
         logger.info("Comment ownership check attempt - commentId: $commentId, teamId: ${ownershipRequest.teamId}, clientIp: $clientIp")
 
         val isOwner = communityService.checkCommentOwnership(commentId, ownershipRequest.teamId, ownershipRequest.authorPassword, clientIp)
@@ -208,19 +209,6 @@ class CommunityController(
             canEdit = false, // 댓글은 수정 불가
             canDelete = isOwner
         ))
-    }
-
-    private fun getClientIpAddress(request: HttpServletRequest): String {
-        val xForwardedFor = request.getHeader("X-Forwarded-For")
-        val xRealIp = request.getHeader("X-Real-IP")
-        val xOriginalForwardedFor = request.getHeader("X-Original-Forwarded-For")
-
-        return when {
-            !xForwardedFor.isNullOrBlank() -> xForwardedFor.split(",")[0].trim()
-            !xRealIp.isNullOrBlank() -> xRealIp
-            !xOriginalForwardedFor.isNullOrBlank() -> xOriginalForwardedFor
-            else -> request.remoteAddr
-        }
     }
 }
 
