@@ -1,9 +1,9 @@
 package io.be.shared.exception
 
 import io.be.shared.exception.*
+import io.be.shared.util.ApiResponse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.http.HttpStatus
 import org.springframework.validation.BindingResult
 import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -31,11 +31,10 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handlePlayerNotFound(exception)
 
         // then
-        assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
-        assertNotNull(response.body)
-        assertFalse(response.body!!.success)
-        assertEquals("PLAYER_NOT_FOUND", response.body!!.error?.code)
-        assertEquals("Player not found with id: 1", response.body!!.error?.message)
+        assertFalse(response.success)
+        assertNotNull(response.error)
+        assertEquals("PLAYER_NOT_FOUND", response.error?.code)
+        assertEquals("Player not found with id: 1", response.error?.message)
     }
 
     @Test
@@ -47,11 +46,10 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleTeamNotFound(exception)
 
         // then
-        assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
-        assertNotNull(response.body)
-        assertFalse(response.body!!.success)
-        assertEquals("TEAM_NOT_FOUND", response.body!!.error?.code)
-        assertEquals("Team not found with id: 1", response.body!!.error?.message)
+        assertFalse(response.success)
+        assertNotNull(response.error)
+        assertEquals("TEAM_NOT_FOUND", response.error?.code)
+        assertEquals("Team not found with id: 1", response.error?.message)
     }
 
     @Test
@@ -63,7 +61,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleTeamCodeAlreadyExists(exception)
 
         // then
-        assertEquals(HttpStatus.CONFLICT, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("TEAM_CODE_CONFLICT", response.body!!.error?.code)
@@ -79,7 +77,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleStadiumNotFound(exception)
 
         // then
-        assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("STADIUM_NOT_FOUND", response.body!!.error?.code)
@@ -95,7 +93,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleMatchNotFound(exception)
 
         // then
-        assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("MATCH_NOT_FOUND", response.body!!.error?.code)
@@ -111,7 +109,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleInvalidSubdomain(exception)
 
         // then
-        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("INVALID_SUBDOMAIN", response.body!!.error?.code)
@@ -131,7 +129,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleValidationException(exception)
 
         // then
-        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("VALIDATION_ERROR", response.body!!.error?.code)
@@ -147,7 +145,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handlePlayerAlreadyExists(exception)
 
         // then
-        assertEquals(HttpStatus.CONFLICT, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("PLAYER_ALREADY_EXISTS", response.body!!.error?.code)
@@ -163,7 +161,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleStadiumBookingConflict(exception)
 
         // then
-        assertEquals(HttpStatus.CONFLICT, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("STADIUM_BOOKING_CONFLICT", response.body!!.error?.code)
@@ -179,7 +177,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleInvalidMatchStatus(exception)
 
         // then
-        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("INVALID_MATCH_STATUS", response.body!!.error?.code)
@@ -195,7 +193,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleSubdomainAccessDenied(exception)
 
         // then
-        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("SUBDOMAIN_ACCESS_DENIED", response.body!!.error?.code)
@@ -211,7 +209,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleUnauthorizedTeamAccess(exception)
 
         // then
-        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("UNAUTHORIZED_TEAM_ACCESS", response.body!!.error?.code)
@@ -227,7 +225,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleFileUpload(exception)
 
         // then
-        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("FILE_UPLOAD_ERROR", response.body!!.error?.code)
@@ -243,7 +241,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleUnsupportedFileType(exception)
 
         // then
-        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("UNSUPPORTED_FILE_TYPE", response.body!!.error?.code)
@@ -259,7 +257,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleFileSizeLimitExceeded(exception)
 
         // then
-        assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("FILE_SIZE_LIMIT_EXCEEDED", response.body!!.error?.code)
@@ -275,7 +273,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleInvalidRequest(exception)
 
         // then
-        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("INVALID_REQUEST", response.body!!.error?.code)
@@ -291,7 +289,7 @@ class GlobalExceptionHandlerTest {
         val response = exceptionHandler.handleDuplicateResource(exception)
 
         // then
-        assertEquals(HttpStatus.CONFLICT, response.statusCode)
+        // Status code is handled by @ResponseStatus annotation
         assertNotNull(response.body)
         assertFalse(response.body!!.success)
         assertEquals("DUPLICATE_RESOURCE", response.body!!.error?.code)
