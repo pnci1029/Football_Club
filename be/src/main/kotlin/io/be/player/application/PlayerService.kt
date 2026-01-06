@@ -2,6 +2,7 @@ package io.be.player.application
 
 import io.be.player.dto.CreatePlayerRequest
 import io.be.player.dto.PlayerDto
+import io.be.player.dto.PlayerStatistics
 import io.be.player.dto.UpdatePlayerRequest
 import io.be.player.domain.Player
 import io.be.shared.exception.PlayerNotFoundException
@@ -22,11 +23,24 @@ class PlayerService(
 ) {
     
     fun findPlayersByTeam(teamId: Long, pageable: Pageable): Page<PlayerDto> {
-        return playerRepository.findByTeamIdAndIsDeletedFalse(teamId, pageable).map { PlayerDto.from(it) }
+        return playerRepository.findPlayersWithFilters(teamId, pageable = pageable)
+            .map { PlayerDto.from(it) }
     }
     
     fun findPlayersByTeamWithSearch(teamId: Long, search: String, pageable: Pageable): Page<PlayerDto> {
-        return playerRepository.findByTeamIdAndNameContainingAndIsDeletedFalse(teamId, search, pageable).map { PlayerDto.from(it) }
+        return playerRepository.findPlayersWithFilters(teamId, search = search, pageable = pageable)
+            .map { PlayerDto.from(it) }
+    }
+    
+    fun findPlayersByTeamWithFilters(
+        teamId: Long,
+        position: String? = null,
+        search: String? = null,
+        isActive: Boolean? = null,
+        pageable: Pageable
+    ): Page<PlayerDto> {
+        return playerRepository.findPlayersWithFilters(teamId, position, search, isActive, pageable)
+            .map { PlayerDto.from(it) }
     }
     
     fun findActivePlayersByTeam(teamId: Long): List<PlayerDto> {
@@ -90,6 +104,14 @@ class PlayerService(
         
         // 소프트 딜리트 수행
         playerRepository.softDeleteById(id, LocalDateTime.now())
+    }
+    
+    fun getPlayerStatsByTeam(teamId: Long): PlayerStatistics {
+        return playerRepository.getPlayerStatsByTeam(teamId)
+    }
+    
+    fun validateBackNumber(teamId: Long, backNumber: Int, excludePlayerId: Long? = null): Boolean {
+        return !playerRepository.existsByTeamIdAndBackNumberAndNotId(teamId, backNumber, excludePlayerId)
     }
     
 }
