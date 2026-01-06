@@ -38,8 +38,8 @@ class FileStorageService(
         val year = now.year.toString()
         val month = String.format("%02d", now.monthValue)
 
-        // 디렉토리 구조: gallery/{team-subdomain}/{year}/{month}/
-        val relativePath = "gallery/$teamSubdomain/$year/$month"
+        // 디렉토리 구조: images/gallery/{team-subdomain}/{year}/{month}/
+        val relativePath = "images/gallery/$teamSubdomain/$year/$month"
         val targetPath = uploadPath.resolve(relativePath)
 
         // 디렉토리 생성
