@@ -275,33 +275,39 @@ class JwtAuthenticationFilter : OncePerRequestFilter() {
 @RestController
 @RequestMapping("/v1/admin/tenants")
 class TenantController(
-    private val teamService: TeamService,
-    private val playerService: PlayerService,
-    private val stadiumService: StadiumService
+    private val teamService: TeamService
 ) {
     
+    @AdminPermissionRequired(level = AdminLevel.MASTER)
     @GetMapping
-    fun getAllTenants(): ResponseEntity<ApiResponse<List<TenantSummary>>> {
+    fun getAllTenants(): ApiResponse<List<TenantSummary>> {
         val tenants = teamService.getAllTeamsWithStats()
-        return ResponseEntity.ok(ApiResponse.success(tenants))
+        return ApiResponse.success(tenants)
     }
     
+    @AdminPermissionRequired(level = AdminLevel.MASTER)
     @GetMapping("/{teamCode}")
-    fun getTenantInfo(@PathVariable teamCode: String): ResponseEntity<ApiResponse<TenantDetail>> {
+    fun getTenantInfo(@PathVariable teamCode: String): ApiResponse<TenantDetail> {
         val tenant = teamService.getTenantByCode(teamCode)
-        return ResponseEntity.ok(ApiResponse.success(tenant))
+        return ApiResponse.success(tenant)
     }
     
+    @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
     @GetMapping("/{teamCode}/dashboard")
-    fun getTenantDashboard(@PathVariable teamCode: String): ResponseEntity<ApiResponse<TenantDashboard>> {
-        val dashboard = teamService.getTenantDashboard(teamCode)
-        return ResponseEntity.ok(ApiResponse.success(dashboard))
+    fun getTenantDashboard(
+        @PathVariable teamCode: String,
+        @RequestAttribute("adminInfo") adminInfo: AdminInfo
+    ): ApiResponse<TenantDashboard> {
+        val authorizedTeamCode = AdminSecurityUtils.getAuthorizedTeamCode(adminInfo, teamCode)
+        val dashboard = teamService.getTenantDashboard(authorizedTeamCode)
+        return ApiResponse.success(dashboard)
     }
     
+    @AdminPermissionRequired(level = AdminLevel.MASTER)
     @PostMapping
-    fun createTenant(@RequestBody request: CreateTenantRequest): ResponseEntity<ApiResponse<TenantDetail>> {
+    fun createTenant(@Valid @RequestBody request: CreateTenantRequest): ApiResponse<TenantDetail> {
         val tenant = teamService.createTenant(request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(tenant))
+        return ApiResponse.success(tenant)
     }
 }
 ```
@@ -348,7 +354,6 @@ data class TenantConfig(
 ```kotlin
 @RestController
 @RequestMapping("/v1/players")
-@Validated
 class PlayerController(
     private val playerService: PlayerService
 ) {
@@ -356,21 +361,35 @@ class PlayerController(
     @GetMapping
     fun getPlayers(
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int
-    ): ResponseEntity<ApiResponse<Page<PlayerDto>>> {
-        val teamId = TenantContextHolder.getTeamId() // 테넌트 컨텍스트에서 팀 ID 가져오기
-        val players = playerService.findPlayersByTeam(teamId, PageRequest.of(page, size))
-        return ResponseEntity.ok(ApiResponse.success(players))
+        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(required = false) position: String?,
+        @RequestParam(required = false) search: String?,
+        @RequestAttribute("team", required = false) team: TeamDto?
+    ): ApiResponse<PagedResponse<PlayerDto>> {
+        team ?: throw TeamNotFoundException("Team not found for subdomain")
+        
+        val players = playerService.findPlayersByTeamWithFilters(
+            teamId = team.id,
+            position = position,
+            search = search,
+            pageable = PageRequest.of(page, size)
+        )
+        
+        val pagedResponse = PagedResponse.of(players, 
+            PageMetadata(teamId = team.id, additionalInfo = mapOf("teamName" to team.name))
+        )
+        return ApiResponse.success(pagedResponse)
     }
     
     @PostMapping
     fun createPlayer(
-        @Valid @RequestBody request: CreatePlayerRequest
-    ): ResponseEntity<ApiResponse<PlayerDto>> {
-        val teamId = TenantContextHolder.getTeamId()
-        val player = playerService.createPlayer(teamId, request)
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success(player))
+        @Valid @RequestBody request: CreatePlayerRequest,
+        @RequestAttribute("team", required = false) team: TeamDto?
+    ): ApiResponse<PlayerDto> {
+        team ?: throw TeamNotFoundException("Team not found for subdomain")
+        
+        val player = playerService.createPlayer(team.id, request)
+        return ApiResponse.success(player)
     }
 }
 ```
@@ -432,36 +451,36 @@ class UsageLimitExceededException(message: String) : RuntimeException(message)
 class GlobalExceptionHandler {
     
     @ExceptionHandler(TeamNotFoundException::class)
-    fun handleTeamNotFound(ex: TeamNotFoundException): ResponseEntity<ApiResponse<Nothing>> {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(ApiResponse.error("TEAM_NOT_FOUND", ex.message))
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    fun handleTeamNotFound(ex: TeamNotFoundException): ApiResponse<Nothing> {
+        return ApiResponse.error("TEAM_NOT_FOUND", ex.message)
     }
     
     @ExceptionHandler(CrossTenantAccessException::class)
-    fun handleCrossTenantAccess(ex: CrossTenantAccessException): ResponseEntity<ApiResponse<Nothing>> {
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    fun handleCrossTenantAccess(ex: CrossTenantAccessException): ApiResponse<Nothing> {
         logger.error("Cross-tenant access attempt: ${ex.message}")
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-            .body(ApiResponse.error("ACCESS_DENIED", "Access denied"))
+        return ApiResponse.error("ACCESS_DENIED", "Access denied")
     }
     
     @ExceptionHandler(UsageLimitExceededException::class)
-    fun handleUsageLimitExceeded(ex: UsageLimitExceededException): ResponseEntity<ApiResponse<Nothing>> {
-        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED)
-            .body(ApiResponse.error("USAGE_LIMIT_EXCEEDED", ex.message))
+    @ResponseStatus(HttpStatus.PAYMENT_REQUIRED)
+    fun handleUsageLimitExceeded(ex: UsageLimitExceededException): ApiResponse<Nothing> {
+        return ApiResponse.error("USAGE_LIMIT_EXCEEDED", ex.message)
     }
     
     @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun handleValidation(ex: MethodArgumentNotValidException): ResponseEntity<ApiResponse<Nothing>> {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handleValidation(ex: MethodArgumentNotValidException): ApiResponse<Nothing> {
         val errors = ex.bindingResult.fieldErrors.map { "${it.field}: ${it.defaultMessage}" }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(ApiResponse.error("VALIDATION_ERROR", errors.joinToString(", ")))
+        return ApiResponse.error("VALIDATION_ERROR", errors.joinToString(", "))
     }
     
     @ExceptionHandler(Exception::class)
-    fun handleGeneral(ex: Exception): ResponseEntity<ApiResponse<Nothing>> {
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    fun handleGeneral(ex: Exception): ApiResponse<Nothing> {
         logger.error("Unexpected error", ex)
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ApiResponse.error("INTERNAL_ERROR", "Internal server error"))
+        return ApiResponse.error("INTERNAL_ERROR", "Internal server error")
     }
 }
 ```
@@ -625,6 +644,9 @@ class PlayerServiceTest {
     @Mock
     lateinit var playerRepository: PlayerRepository
     
+    @Mock
+    lateinit var teamRepository: TeamRepository
+    
     @InjectMocks
     lateinit var playerService: PlayerService
     
@@ -632,9 +654,11 @@ class PlayerServiceTest {
     fun `선수 생성 성공`() {
         // given
         val teamId = 1L
-        val request = CreatePlayerRequest("John", "FW")
-        val player = Player(1L, "John", "FW", teamId)
+        val team = Team(id = teamId, name = "TestTeam", code = "test")
+        val request = CreatePlayerRequest("John", "FW", 10)
+        val player = Player(id = 1L, name = "John", position = "FW", backNumber = 10, team = team)
         
+        whenever(teamRepository.findById(teamId)).thenReturn(Optional.of(team))
         whenever(playerRepository.save(any())).thenReturn(player)
         
         // when
@@ -643,92 +667,219 @@ class PlayerServiceTest {
         // then
         assertThat(result.id).isEqualTo(1L)
         assertThat(result.name).isEqualTo("John")
+        assertThat(result.position).isEqualTo("FW")
+        assertThat(result.backNumber).isEqualTo(10)
+    }
+    
+    @Test
+    fun `팀별 선수 통계 조회`() {
+        // given
+        val teamId = 1L
+        val stats = PlayerStatistics(
+            totalPlayers = 20,
+            activePlayers = 18,
+            inactivePlayers = 2,
+            positionStats = mapOf("FW" to 5L, "MF" to 8L, "DF" to 5L, "GK" to 2L)
+        )
+        
+        whenever(playerRepository.getPlayerStatsByTeam(teamId)).thenReturn(stats)
+        
+        // when
+        val result = playerService.getPlayerStatsByTeam(teamId)
+        
+        // then
+        assertThat(result.totalPlayers).isEqualTo(20)
+        assertThat(result.activePlayers).isEqualTo(18)
+        assertThat(result.positionStats["FW"]).isEqualTo(5L)
     }
 }
 ```
 
-### 보안 테스트
+### 통합 테스트
 ```kotlin
 @SpringBootTest
-class TenantSecurityTest {
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+class PlayerControllerIntegrationTest {
+    
+    @Autowired
+    lateinit var mockMvc: MockMvc
     
     @Test
-    fun `다른 테넌트 데이터 접근 차단 테스트`() {
-        // given
-        val team1Id = 1L
-        val team2Id = 2L
-        val player = createPlayerForTeam(team2Id)
-        
+    @WithMockUser(roles = ["ADMIN"])
+    fun `선수 목록 조회 - 필터링 포함`() {
         // when & then
-        TenantContextHolder.setContext(TenantContext(team1Id, "team1"))
-        
-        assertThrows<CrossTenantAccessException> {
-            playerService.getPlayer(player.id)
-        }
+        mockMvc.perform(
+            get("/v1/players")
+                .param("page", "0")
+                .param("size", "10")
+                .param("position", "FW")
+                .param("search", "John")
+                .requestAttr("team", TeamDto(1L, "TestTeam", "test"))
+        )
+        .andExpect(status().isOk)
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.data.content").isArray)
     }
     
-    @Test  
-    fun `Host 헤더 조작 시 접근 거부 테스트`() {
-        // given
-        val request = MockHttpServletRequest()
-        request.addHeader("Host", "malicious-domain.com")
-        
-        // when
-        val result = tenantSecurityInterceptor.preHandle(request, response, handler)
-        
-        // then
-        assertThat(result).isFalse()
-        assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
+    @Test
+    fun `권한 없는 사용자의 선수 생성 시도`() {
+        // when & then
+        mockMvc.perform(
+            post("/v1/players")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "name": "John",
+                        "position": "FW",
+                        "backNumber": 10
+                    }
+                """)
+        )
+        .andExpect(status().isUnauthorized)
     }
 }
 ```
 
 ## 성능 최적화
 
-### JPA N+1 문제 해결
+### QueryDSL 활용한 복합 검색
 ```kotlin
 @Repository
-interface PlayerRepository : JpaRepository<Player, Long> {
+class PlayerRepositoryImpl(
+    queryFactory: JPAQueryFactory
+) : BaseQueryRepository(queryFactory), PlayerRepositoryCustom {
+
+    override fun findPlayersWithFilters(
+        teamId: Long,
+        position: String?,
+        search: String?,
+        isActive: Boolean?,
+        pageable: Pageable
+    ): Page<Player> {
+        val condition = BooleanBuilder()
+            .and(player.team.id.eq(teamId))
+            .and(player.isDeleted.isFalse)
+
+        position?.let { condition.and(player.position.eq(it)) }
+        search?.let { 
+            condition.and(
+                player.name.containsIgnoreCase(it)
+                    .or(player.position.containsIgnoreCase(it))
+                    .or(player.backNumber.stringValue().contains(it))
+            )
+        }
+        isActive?.let { condition.and(player.isActive.eq(it)) }
+
+        val query = queryFactory
+            .selectFrom(player)
+            .where(condition)
+            .orderBy(player.backNumber.asc())
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+
+        val players = query.fetch()
+        val total = queryFactory
+            .select(player.count())
+            .from(player)
+            .where(condition)
+            .fetchOne() ?: 0L
+
+        return PageImpl(players, pageable, total)
+    }
     
-    @Query("SELECT p FROM Player p JOIN FETCH p.team WHERE p.team.id = :teamId")
-    fun findPlayersWithTeam(@Param("teamId") teamId: Long): List<Player>
-    
-    @EntityGraph(attributePaths = ["team"])
-    fun findAllByTeamId(teamId: Long, pageable: Pageable): Page<Player>
+    override fun getPlayerStatsByTeam(teamId: Long): PlayerStatistics {
+        val positionStats = queryFactory
+            .select(
+                player.position,
+                player.count()
+            )
+            .from(player)
+            .where(player.team.id.eq(teamId).and(player.isDeleted.isFalse))
+            .groupBy(player.position)
+            .fetch()
+            .associate { it.get(0, String::class.java)!! to it.get(1, Long::class.java)!! }
+
+        return PlayerStatistics(
+            totalPlayers = positionStats.values.sum(),
+            activePlayers = getActivePlayerCount(teamId),
+            inactivePlayers = getInactivePlayerCount(teamId),
+            positionStats = positionStats
+        )
+    }
 }
 ```
 
-### Redis 캐싱 전략
+### 공통 유틸리티 활용
 ```kotlin
-@Service
-class TeamService {
-    
-    @Cacheable(value = ["teams"], key = "#teamId")
-    fun getTeamById(teamId: Long): TeamDto {
-        return teamRepository.findById(teamId)?.toDto()
-            ?: throw TeamNotFoundException(teamId)
+// HttpUtils - HTTP 요청 관련 공통 로직
+object HttpUtils {
+    fun getClientIpAddress(request: HttpServletRequest): String {
+        val xForwardedFor = request.getHeader("X-Forwarded-For")
+        val xRealIp = request.getHeader("X-Real-IP")
+        
+        return when {
+            !xForwardedFor.isNullOrBlank() -> xForwardedFor.split(",")[0].trim()
+            !xRealIp.isNullOrBlank() -> xRealIp.trim()
+            else -> request.remoteAddr ?: "unknown"
+        }
     }
     
-    @CacheEvict(value = ["teams"], key = "#teamId")
-    fun updateTeam(teamId: Long, request: UpdateTeamRequest): TeamDto {
-        // 업데이트 로직
+    fun getUserAgent(request: HttpServletRequest): String {
+        return request.getHeader("User-Agent") ?: ""
+    }
+}
+
+// AdminSecurityUtils - 관리자 권한 관련 공통 로직
+object AdminSecurityUtils {
+    fun getAuthorizedTeamId(
+        adminInfo: AdminInfo,
+        requestedTeamId: Long?,
+        teamService: TeamService
+    ): Long {
+        return when (adminInfo.adminLevel) {
+            AdminLevel.MASTER -> requestedTeamId ?: throw IllegalArgumentException("teamId required")
+            AdminLevel.SUBDOMAIN -> {
+                val team = teamService.findByCode(adminInfo.teamSubdomain!!)
+                    ?: throw UnauthorizedAdminAccessException("Invalid team subdomain")
+                
+                if (requestedTeamId != null && requestedTeamId != team.id) {
+                    throw UnauthorizedAdminAccessException("Access denied")
+                }
+                team.id
+            }
+        }
+    }
+    
+    fun validateSubdomainAccess(adminInfo: AdminInfo, resourceTeamId: Long, teamService: TeamService) {
+        if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
+            val team = teamService.findByCode(adminInfo.teamSubdomain!!)
+                ?: throw UnauthorizedAdminAccessException("Invalid team subdomain")
+            
+            if (resourceTeamId != team.id) {
+                throw UnauthorizedAdminAccessException("Access denied")
+            }
+        }
     }
 }
 ```
 
 ## 🚀 우선순위별 개발 계획
 
-### Phase 1: Critical 보안 이슈 (즉시)
+### Phase 1: Critical 보안 이슈 (완료)
 1. ✅ **Host 헤더 검증 강화**
-2. ✅ **TenantSecurityInterceptor 완성**
+2. ✅ **TenantSecurityInterceptor 완성** 
 3. ✅ **Repository 보안 강화**
-4. ⚠️ **JWT 인증 시스템 구현** - 진행 필요
+4. ✅ **JWT 인증 시스템 구현**
+5. ✅ **공통 유틸리티 분리**
+6. ✅ **QueryDSL 적극 활용**
 
-### Phase 2: 핵심 기능 완성 (1-2주)
-1. **Match 엔티티 및 AdminMatchController 구현**
-2. **파일 업로드 시스템 구현**
-3. **전역 예외 처리 시스템 구현**
-4. **사용량 제한 시스템 구현**
+### Phase 2: 핵심 기능 완성 (진행 중)
+1. ✅ **Match 엔티티 및 AdminMatchController 구현**
+2. ✅ **파일 업로드 시스템 구현**  
+3. ✅ **전역 예외 처리 시스템 구현**
+4. ⚠️ **사용량 제한 시스템 구현** - 부분 완료
+5. ✅ **커뮤니티 기능 구현**
+6. ✅ **갤러리 기능 구현**
 
 ### Phase 3: 운영 안정성 (2-3주)
 1. **보안 이벤트 로깅 시스템**
@@ -934,24 +1085,10 @@ CREATE INDEX idx_community_comments_post_id ON community_comments(post_id);
 
 ## 향후 개선 계획
 
-### 기능 확장
-- [ ] 이미지 첨부 기능
-- [ ] 게시글 카테고리 분류
-- [ ] 공지사항 상단 고정
-- [ ] 작성자 인증 시스템
+### 주요 기능 확장
+- [ ] 이미지 첨부 기능 
 - [ ] 답글(대댓글) 기능
-
-### 성능 최적화
-- [ ] 게시글 캐싱
-- [ ] 이미지 최적화
-- [ ] 무한 스크롤
-- [ ] 검색 인덱싱
-
-### 관리 기능
 - [ ] 관리자 게시글 관리
-- [ ] 부적절한 게시글 신고/삭제
-- [ ] 사용자 차단 기능
-- [ ] 통계 대시보드
 
 ## 파일 구조
 
@@ -975,28 +1112,6 @@ fe/src/
 
 ## 테스트
 
-### API 테스트
-```bash
-# 게시글 목록 조회
-curl "http://team1.localhost:3000/api/v1/community/posts?page=0&size=20"
-
-# 게시글 작성
-curl -X POST "http://team1.localhost:3000/api/v1/community/posts" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "경기 희망합니다",
-    "content": "9/27일 토요일 오전에 같이 찰 수 있을까요?",
-    "authorName": "홍길동",
-    "authorEmail": "hong@example.com",
-    "authorPhone": "010-1234-5678"
-  }'
-```
-
-### 프론트엔드 테스트
-1. `http://team1.localhost:3000/community` 접속
-2. 게시글 목록 확인
-3. 검색 기능 테스트
-4. 글쓰기 기능 테스트
 
 ---
 
