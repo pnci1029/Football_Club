@@ -3,7 +3,7 @@ name: Deploy Backend to Cafe24
 on:
   push:
     branches: [ main ]
-    paths: ['be/**']
+#    paths: ['be/**']
   workflow_dispatch:
 
 jobs:
@@ -141,7 +141,7 @@ jobs:
             cd /opt/football-club &&
             source /tmp/deploy_vars
             echo \"Starting backend-\$NEW_COLOR on port \$NEW_PORT\"
-            docker run -d --name backend-\$NEW_COLOR -p \$NEW_PORT:8082 --env-file .env -e SPRING_PROFILES_ACTIVE=prod -e REDIS_HOST=localhost football-club-backend:latest
+            docker run -d --name backend-\$NEW_COLOR -p \$NEW_PORT:8082 --env-file .env -e SPRING_PROFILES_ACTIVE=prod -e REDIS_HOST=localhost -v /opt/football-club/images:/opt/football-club/images -v /opt/football-club/logs:/var/log/football-club football-club-backend:latest
             sleep 5
             echo \"Container status:\"
             docker ps | grep backend-\$NEW_COLOR || echo \"Container not running\"
