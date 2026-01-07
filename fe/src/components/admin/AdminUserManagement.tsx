@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ChangePasswordModal from './ChangePasswordModal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import { apiClient } from '../../services/api';
 
 interface Admin {
   id: number;
@@ -35,21 +36,8 @@ const AdminUserManagement: React.FC = () => {
     setIsLoading(true);
     try {
       const page = reset ? 0 : currentPage;
-      const response = await fetch(
-        `http://localhost:8082/api/v1/admin/management/admins?page=${page}&size=20`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-            'X-Forwarded-Host': window.location.host,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('관리자 목록 조회에 실패했습니다.');
-      }
-
-      const data = await response.json();
+      const data = await apiClient.get<{ success: boolean; data: { content: Admin[]; number: number; totalPages: number; last: boolean } }>(`/api/v1/admin/management/admins?page=${page}&size=20`);
+      
       if (data.success) {
         if (reset) {
           setAdmins(data.data.content);
@@ -91,22 +79,8 @@ const AdminUserManagement: React.FC = () => {
     if (!deletingAdmin) return;
     
     try {
-      const response = await fetch(
-        `http://localhost:8082/api/v1/admin/management/admins/${deletingAdmin.id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-            'X-Forwarded-Host': window.location.host,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('관리자 삭제에 실패했습니다.');
-      }
-
-      const data = await response.json();
+      const data = await apiClient.delete<{ success: boolean }>(`/api/v1/admin/management/admins/${deletingAdmin.id}`);
+      
       if (data.success) {
         setDeletingAdmin(null);
         loadAdmins(true);

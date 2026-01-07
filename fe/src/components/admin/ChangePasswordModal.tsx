@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import LoadingSpinner from '../common/LoadingSpinner';
+import { apiClient } from '../../services/api';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -37,23 +38,10 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
 
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:8082/api/v1/admin/management/admins/${adminId}/password`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-          'X-Forwarded-Host': window.location.host,
-        },
-        body: JSON.stringify({
-          newPassword: password
-        }),
+      const data = await apiClient.put<{ success: boolean; error?: { message: string } }>(`/api/v1/admin/management/admins/${adminId}/password`, {
+        newPassword: password
       });
 
-      if (!response.ok) {
-        throw new Error('비밀번호 변경에 실패했습니다.');
-      }
-
-      const data = await response.json();
       if (data.success) {
         onSuccess();
         onClose();
