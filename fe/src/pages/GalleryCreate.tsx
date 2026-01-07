@@ -1,14 +1,16 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { galleryService } from '../services/galleryAPI';
-import { GalleryCategory } from '../types/gallery';
+import { GalleryCategory, GalleryDetailDto } from '../types/gallery';
 import { useTeam } from '../contexts/TeamContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const GalleryCreate: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const { currentTeam } = useTeam();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isEditMode = Boolean(id);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -20,7 +22,10 @@ const GalleryCreate: React.FC = () => {
 
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [existingMedia, setExistingMedia] = useState<GalleryDetailDto['mediaFiles']>([]);
+  const [deletedMediaIds, setDeletedMediaIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingGallery, setLoadingGallery] = useState(isEditMode);
 
   const categories = [
     { value: 'MATCH' as GalleryCategory, label: '경기' },
@@ -29,6 +34,36 @@ const GalleryCreate: React.FC = () => {
     { value: 'HIGHLIGHT' as GalleryCategory, label: '하이라이트' },
     { value: 'OTHER' as GalleryCategory, label: '기타' }
   ];
+
+  // 편집 모드일 때 기존 갤러리 정보 로드
+  useEffect(() => {
+    const loadGalleryData = async () => {
+      if (!isEditMode || !id) return;
+      
+      try {
+        setLoadingGallery(true);
+        const galleryDetail = await galleryService.getGallery(Number(id));
+        
+        setFormData({
+          title: galleryDetail.title,
+          description: galleryDetail.description || '',
+          category: galleryDetail.category,
+          tags: galleryDetail.tags.join(', '),
+          isFeatured: galleryDetail.isFeatured
+        });
+        
+        setExistingMedia(galleryDetail.mediaFiles);
+      } catch (error) {
+        console.error('갤러리 정보 로드 실패:', error);
+        alert('갤러리 정보를 불러오는데 실패했습니다.');
+        navigate('/gallery');
+      } finally {
+        setLoadingGallery(false);
+      }
+    };
+
+    loadGalleryData();
+  }, [id, isEditMode, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -104,6 +139,14 @@ const GalleryCreate: React.FC = () => {
     setPreviewUrls(newPreviews);
   };
 
+  const toggleExistingMediaDeletion = (mediaId: number) => {
+    if (deletedMediaIds.includes(mediaId)) {
+      setDeletedMediaIds(prev => prev.filter(id => id !== mediaId));
+    } else {
+      setDeletedMediaIds(prev => [...prev, mediaId]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -122,7 +165,9 @@ const GalleryCreate: React.FC = () => {
       return;
     }
 
-    if (selectedFiles.length === 0) {
+    // 새 파일과 기존 파일 중 최소 1개는 있어야 함
+    const remainingExistingMedia = existingMedia.filter(media => !deletedMediaIds.includes(media.id));
+    if (selectedFiles.length === 0 && remainingExistingMedia.length === 0) {
       alert('최소 1개의 이미지를 업로드해주세요.');
       return;
     }
@@ -140,39 +185,70 @@ const GalleryCreate: React.FC = () => {
     try {
       setIsLoading(true);
 
-      const createData = {
-        teamId: currentTeam.id,
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        category: formData.category,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
-        isFeatured: formData.isFeatured,
-        createdBy: 'USER' // TODO: 실제 사용자 정보로 변경
-      };
+      if (isEditMode && id) {
+        // 수정 모드
+        const updateData = {
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          category: formData.category,
+          tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
+          isFeatured: formData.isFeatured
+        };
 
-      // 갤러리 생성
-      const gallery = await galleryService.createGallery(createData);
-      createdGalleryId = gallery.id;
+        // 갤러리 정보 업데이트
+        await galleryService.updateGallery(Number(id), updateData);
 
-      // 파일 업로드 (실패 시 갤러리 삭제)
-      if (selectedFiles.length > 0) {
-        try {
-          await galleryService.uploadMediaFiles(gallery.id, selectedFiles);
-        } catch (uploadError) {
-          console.error('파일 업로드 실패:', uploadError);
-          
-          // 갤러리 삭제
-          try {
-            await galleryService.deleteGallery(gallery.id);
-          } catch (deleteError) {
-            console.error('갤러리 삭제 실패:', deleteError);
-          }
-          
-          throw new Error('파일 업로드에 실패했습니다. 파일 크기를 확인해주세요.');
+        // 삭제된 미디어 파일들 삭제
+        if (deletedMediaIds.length > 0) {
+          await Promise.all(
+            deletedMediaIds.map(mediaId => 
+              galleryService.deleteMediaFile(Number(id), mediaId)
+            )
+          );
         }
-      }
 
-      alert('갤러리가 성공적으로 등록되었습니다.');
+        // 새 파일들 업로드
+        if (selectedFiles.length > 0) {
+          await galleryService.uploadMediaFiles(Number(id), selectedFiles);
+        }
+
+        alert('갤러리가 성공적으로 수정되었습니다.');
+      } else {
+        // 생성 모드
+        const createData = {
+          teamId: currentTeam.id,
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          category: formData.category,
+          tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
+          isFeatured: formData.isFeatured,
+          createdBy: 'USER' // TODO: 실제 사용자 정보로 변경
+        };
+
+        // 갤러리 생성
+        const gallery = await galleryService.createGallery(createData);
+        createdGalleryId = gallery.id;
+
+        // 파일 업로드 (실패 시 갤러리 삭제)
+        if (selectedFiles.length > 0) {
+          try {
+            await galleryService.uploadMediaFiles(gallery.id, selectedFiles);
+          } catch (uploadError) {
+            console.error('파일 업로드 실패:', uploadError);
+            
+            // 갤러리 삭제
+            try {
+              await galleryService.deleteGallery(gallery.id);
+            } catch (deleteError) {
+              console.error('갤러리 삭제 실패:', deleteError);
+            }
+            
+            throw new Error('파일 업로드에 실패했습니다. 파일 크기를 확인해주세요.');
+          }
+        }
+
+        alert('갤러리가 성공적으로 등록되었습니다.');
+      }
       navigate('/gallery');
     } catch (error) {
       console.error('갤러리 생성 실패:', error);
@@ -186,6 +262,18 @@ const GalleryCreate: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  // 편집 모드에서 갤러리 데이터 로딩 중일 때
+  if (loadingGallery) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner />
+          <p className="mt-4 text-gray-600">갤러리 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -204,8 +292,12 @@ const GalleryCreate: React.FC = () => {
                 목록으로 돌아가기
               </button>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">갤러리 등록</h1>
-            <p className="text-gray-600 mt-2">새로운 갤러리를 등록해보세요.</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {isEditMode ? '갤러리 수정' : '갤러리 등록'}
+            </h1>
+            <p className="text-gray-600 mt-2">
+              {isEditMode ? '갤러리 정보를 수정해보세요.' : '새로운 갤러리를 등록해보세요.'}
+            </p>
           </div>
 
           {/* 등록 폼 */}
@@ -328,10 +420,49 @@ const GalleryCreate: React.FC = () => {
                 />
               </div>
 
-              {/* 미리보기 */}
+              {/* 기존 미디어 파일들 */}
+              {isEditMode && existingMedia.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">
+                    현재 업로드된 이미지 ({existingMedia.filter(media => !deletedMediaIds.includes(media.id)).length}개)
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {existingMedia.map((media) => (
+                      <div key={media.id} className={`relative ${deletedMediaIds.includes(media.id) ? 'opacity-50' : ''}`}>
+                        <img
+                          src={media.fileUrl}
+                          alt={`기존 이미지 ${media.id}`}
+                          className="w-full h-32 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => toggleExistingMediaDeletion(media.id)}
+                          className={`absolute top-2 right-2 rounded-full w-6 h-6 flex items-center justify-center text-sm transition-colors ${
+                            deletedMediaIds.includes(media.id)
+                              ? 'bg-gray-500 text-white hover:bg-gray-600'
+                              : 'bg-red-500 text-white hover:bg-red-600'
+                          }`}
+                        >
+                          {deletedMediaIds.includes(media.id) ? '↶' : '×'}
+                        </button>
+                        <p className="text-xs text-gray-600 mt-1 truncate">
+                          {media.originalFileName}
+                        </p>
+                        {deletedMediaIds.includes(media.id) && (
+                          <p className="text-xs text-red-500 mt-1">삭제 예정</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 새로 선택한 파일 미리보기 */}
               {previewUrls.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">선택된 이미지 ({selectedFiles.length}개)</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">
+                    {isEditMode ? '새로 추가할 이미지' : '선택된 이미지'} ({selectedFiles.length}개)
+                  </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {previewUrls.map((url, index) => (
                       <div key={index} className="relative">
@@ -369,15 +500,15 @@ const GalleryCreate: React.FC = () => {
                 <button
                   type="submit"
                   className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  disabled={isLoading}
+                  disabled={isLoading || loadingGallery}
                 >
                   {isLoading ? (
                     <>
                       <LoadingSpinner />
-                      <span className="ml-2">등록 중...</span>
+                      <span className="ml-2">{isEditMode ? '수정 중...' : '등록 중...'}</span>
                     </>
                   ) : (
-                    '갤러리 등록'
+                    isEditMode ? '갤러리 수정' : '갤러리 등록'
                   )}
                 </button>
               </div>

@@ -4,7 +4,6 @@ import { useTeam } from '../contexts/TeamContext';
 import GalleryGrid from '../components/gallery/GalleryGrid';
 import GalleryFilters from '../components/gallery/GalleryFilters';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import GalleryEditModal from '../components/admin/GalleryEditModal';
 import ConfirmDeleteModal from '../components/admin/ConfirmDeleteModal';
 import { galleryService } from '../services/galleryAPI';
 import { Gallery, GalleryCategory } from '../types/gallery';
@@ -28,7 +27,6 @@ const GalleryPage: React.FC = () => {
 
   // 관리자 상태
   const [isAdmin, setIsAdmin] = useState(false);
-  const [editingGallery, setEditingGallery] = useState<Gallery | null>(null);
   const [deletingGallery, setDeletingGallery] = useState<Gallery | null>(null);
 
   const loadGalleries = async (page: number = 0, reset: boolean = false) => {
@@ -118,18 +116,12 @@ const GalleryPage: React.FC = () => {
     navigate('/gallery/create');
   };
 
-  const handleEditGallery = (gallery: Gallery) => {
-    setEditingGallery(gallery);
+  const handleEditGalleryNavigate = (gallery: Gallery) => {
+    navigate(`/gallery/edit/${gallery.id}`);
   };
 
   const handleDeleteGallery = (gallery: Gallery) => {
     setDeletingGallery(gallery);
-  };
-
-
-  const handleGalleryUpdated = () => {
-    setEditingGallery(null);
-    loadGalleries(0, true);
   };
 
   const handleGalleryDeleted = async () => {
@@ -205,7 +197,7 @@ const GalleryPage: React.FC = () => {
           hasMore={hasMore}
           onLoadMore={handleLoadMore}
           isAdmin={isAdmin}
-          onEdit={handleEditGallery}
+          onEdit={handleEditGalleryNavigate}
           onDelete={handleDeleteGallery}
         />
 
@@ -225,15 +217,6 @@ const GalleryPage: React.FC = () => {
         )}
       </div>
 
-      {/* 모달들 */}
-      {editingGallery && (
-        <GalleryEditModal
-          gallery={editingGallery}
-          isOpen={!!editingGallery}
-          onClose={() => setEditingGallery(null)}
-          onSuccess={handleGalleryUpdated}
-        />
-      )}
 
       {deletingGallery && (
         <ConfirmDeleteModal

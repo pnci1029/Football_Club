@@ -196,6 +196,7 @@ const AppContent: React.FC = () => {
           <Route path="/stadiums" element={<Stadiums />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/gallery/create" element={<GalleryCreate />} />
+          <Route path="/gallery/edit/:id" element={<GalleryCreate />} />
           <Route path="/gallery/:id" element={<GalleryDetail />} />
           <Route path="/community" element={<Community />} />
           <Route path="/community/write" element={<CommunityWrite />} />
