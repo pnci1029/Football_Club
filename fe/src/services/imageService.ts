@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from '../utils/config';
+import { apiClient } from './api';
 
 export interface ImageUploadResponse {
   success: boolean;
@@ -135,19 +136,7 @@ export class ImageService {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`${this.getBaseUrl()}/api/v1/admin/hero-slides/${slideId}/image`, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`업로드 실패: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = await apiClient.uploadFile<{ success: boolean; data: {fileUrl: string; fileName: string; filePath: string}; message?: string }>(`/api/v1/admin/hero-slides/${slideId}/image`, formData);
 
       if (!result.success) {
         throw new Error(result.message || '업로드에 실패했습니다.');

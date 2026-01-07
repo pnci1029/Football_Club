@@ -23,20 +23,8 @@ export class HeroService {
       formData.append('file', file);
     }
     
-    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8082'}/api/v1/admin/hero-slides?teamId=${teamId}`, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`생성 실패: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    return result.data;
+    return apiClient.uploadFile<{ data: HeroSlide }>(`/api/v1/admin/hero-slides?teamId=${teamId}`, formData)
+      .then(response => response.data);
   }
 
   static async updateSlide(id: number, data: UpdateHeroSlideRequest): Promise<HeroSlide> {
