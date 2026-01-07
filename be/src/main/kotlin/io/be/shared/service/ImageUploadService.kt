@@ -222,10 +222,10 @@ enum class ImageUploadType(
     val pathStrategy: PathStrategy,
     val supportsThumbnail: Boolean = false
 ) {
-    GALLERY("images/gallery", PathStrategy.YEAR_MONTH, true),
-    HERO_SLIDES("images/hero-slides", PathStrategy.FLAT),
-    PROFILE("images/profile", PathStrategy.FLAT),
-    COMMUNITY("images/community", PathStrategy.YEAR_MONTH)
+    GALLERY("gallery", PathStrategy.YEAR_MONTH, true),
+    HERO_SLIDES("hero-slides", PathStrategy.FLAT),
+    PROFILE("profile", PathStrategy.FLAT),
+    COMMUNITY("community", PathStrategy.YEAR_MONTH)
 }
 
 /**

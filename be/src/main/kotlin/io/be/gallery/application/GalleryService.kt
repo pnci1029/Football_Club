@@ -6,6 +6,7 @@ import io.be.shared.security.TenantContextHolder
 import io.be.shared.service.ImageUploadService
 import io.be.shared.service.ImageUploadType
 import io.be.shared.service.UploadContext
+import io.be.shared.util.logger
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Service
 @Transactional(readOnly = true)
@@ -28,6 +30,7 @@ class GalleryService(
     private val imageUploadService: ImageUploadService,
     private val galleryMapper: GalleryMapper
 ) {
+    private val logger = logger()
 
     /**
      * 갤러리 목록 조회 (페이징, 필터링 지원)
@@ -231,38 +234,76 @@ class GalleryService(
         // 파일 업로드 검증
         validateFileUploads(files)
 
-        // 갤러리 생성
-        val gallery = Gallery(
-            teamId = request.teamId,
-            teamSubdomain = teamSubdomain,
-            title = request.title,
-            description = request.description,
-            category = request.category,
-            createdBy = request.createdBy,
-            isFeatured = request.isFeatured
-        )
+        val uploadedFiles = mutableListOf<String>() // 롤백용
 
-        val savedGallery = galleryRepository.save(gallery)
+        try {
+            // 1. 갤러리 생성 (DB 작업 먼저)
+            val gallery = Gallery(
+                teamId = request.teamId,
+                teamSubdomain = teamSubdomain,
+                title = request.title,
+                description = request.description,
+                category = request.category,
+                createdBy = request.createdBy,
+                isFeatured = request.isFeatured
+            )
 
-        // 파일 업로드 및 미디어 엔티티 생성
-        if (files.isNotEmpty()) {
-            uploadMediaFiles(savedGallery, files, request.createdBy)
+            val savedGallery = galleryRepository.save(gallery)
+
+            // 2. 파일 업로드 및 미디어 엔티티 생성
+            if (files.isNotEmpty()) {
+                files.forEachIndexed { index, file ->
+                    val mediaFile = imageUploadService.upload(
+                        file,
+                        ImageUploadType.GALLERY,
+                        UploadContext(teamSubdomain = teamSubdomain, resourceId = savedGallery.id)
+                    )
+                    uploadedFiles.add(mediaFile.filePath) // 롤백용으로 경로 저장
+
+                    val galleryMedia = GalleryMedia(
+                        galleryId = savedGallery.id,
+                        fileName = mediaFile.fileName,
+                        originalFileName = file.originalFilename ?: "",
+                        filePath = mediaFile.filePath,
+                        fileUrl = mediaFile.fileUrl,
+                        fileSize = file.size,
+                        mimeType = file.contentType ?: "",
+                        mediaType = determineMediaType(file.contentType),
+                        sortOrder = index,
+                        isCover = index == 0, // 첫 번째 파일을 커버로 설정
+                        uploadedBy = request.createdBy
+                    )
+                    galleryMediaRepository.save(galleryMedia)
+                }
+            }
+
+            // 3. 태그 생성
+            request.tags?.let { tags ->
+                createGalleryTags(savedGallery, tags)
+            }
+
+            // 4. 하이라이트 메타데이터 생성
+            if (request.category == GalleryCategory.HIGHLIGHT && request.highlightMetadata != null) {
+                createHighlightMetadata(savedGallery, request.highlightMetadata)
+            }
+
+            // 5. 최종 갤러리 정보 반환
+            val finalGallery = galleryRepository.findById(savedGallery.id).orElseThrow()
+            val mediaFiles = galleryMediaRepository.findByGalleryIdOrderBySortOrder(finalGallery.id)
+            val tags = galleryTagRepository.findByGalleryIdOrderByTagName(finalGallery.id)
+            return galleryMapper.toDto(finalGallery, mediaFiles, tags)
+
+        } catch (e: Exception) {
+            // 실패 시 업로드된 파일들 롤백
+            uploadedFiles.forEach { filePath ->
+                try {
+                    imageUploadService.delete(filePath)
+                } catch (deleteException: Exception) {
+                    logger.warn("Failed to delete uploaded file during rollback: $filePath - ${deleteException.message}")
+                }
+            }
+            throw IllegalStateException("갤러리 생성에 실패했습니다: ${e.message}", e)
         }
-
-        // 태그 생성
-        request.tags?.let { tags ->
-            createGalleryTags(savedGallery, tags)
-        }
-
-        // 하이라이트 메타데이터 생성
-        if (request.category == GalleryCategory.HIGHLIGHT && request.highlightMetadata != null) {
-            createHighlightMetadata(savedGallery, request.highlightMetadata)
-        }
-
-        val finalGallery = galleryRepository.findById(savedGallery.id).orElseThrow()
-        val mediaFiles = galleryMediaRepository.findByGalleryIdOrderBySortOrder(finalGallery.id)
-        val tags = galleryTagRepository.findByGalleryIdOrderByTagName(finalGallery.id)
-        return galleryMapper.toDto(finalGallery, mediaFiles, tags)
     }
 
     /**
@@ -319,7 +360,12 @@ class GalleryService(
      */
     @Transactional
     fun addMediaToGallery(galleryId: Long, files: List<MultipartFile>): List<GalleryMediaDto> {
-        // 외래키 검증 없이 바로 진행
+        val teamSubdomain = getCurrentTeamSubdomain()
+        
+        // 갤러리 존재 및 권한 검증
+        val gallery = galleryRepository.findById(galleryId)
+            .orElseThrow { EntityNotFoundException("갤러리를 찾을 수 없습니다.") }
+        validateGalleryAccess(gallery, teamSubdomain)
 
         // 파일 업로드 검증
         validateFileUploads(files)
@@ -327,16 +373,20 @@ class GalleryService(
         // 현재 최대 순서 조회
         val currentMaxOrder = galleryMediaRepository.findByGalleryIdOrderBySortOrder(galleryId).maxOfOrNull { it.sortOrder } ?: -1
 
+        val uploadedFiles = mutableListOf<String>() // 롤백용
         val uploadedMedia = mutableListOf<GalleryMedia>()
 
-        files.forEachIndexed { index, file ->
-            try {
+        try {
+            files.forEachIndexed { index, file ->
+                // 파일 먼저 업로드
                 val mediaFile = imageUploadService.upload(
                     file, 
                     ImageUploadType.GALLERY,
-                    UploadContext(teamSubdomain = getCurrentTeamSubdomain(), resourceId = galleryId)
+                    UploadContext(teamSubdomain = teamSubdomain, resourceId = galleryId)
                 )
+                uploadedFiles.add(mediaFile.filePath) // 롤백용으로 경로 저장
 
+                // DB에 미디어 정보 저장
                 val galleryMedia = GalleryMedia(
                     galleryId = galleryId,
                     fileName = mediaFile.fileName,
@@ -352,12 +402,23 @@ class GalleryService(
                 )
                 val savedMedia = galleryMediaRepository.save(galleryMedia)
                 uploadedMedia.add(savedMedia)
-            } catch (e: Exception) {
-                throw IllegalStateException("미디어 파일 업로드 실패: ${e.message}", e)
             }
-        }
+            
+            // 갤러리 업데이트 날짜 자동 갱신 (@UpdateTimestamp)
 
-        return uploadedMedia.map { galleryMapper.toMediaDto(it) }
+            return uploadedMedia.map { galleryMapper.toMediaDto(it) }
+            
+        } catch (e: Exception) {
+            // 실패 시 업로드된 파일들 롤백
+            uploadedFiles.forEach { filePath ->
+                try {
+                    imageUploadService.delete(filePath)
+                } catch (deleteException: Exception) {
+                    logger.warn("Failed to delete uploaded file during rollback: $filePath - ${deleteException.message}")
+                }
+            }
+            throw IllegalStateException("미디어 파일 업로드 실패: ${e.message}", e)
+        }
     }
 
     /**
@@ -374,23 +435,36 @@ class GalleryService(
             .orElseThrow { EntityNotFoundException("갤러리를 찾을 수 없습니다.") }
         validateGalleryAccess(gallery, teamSubdomain)
 
-        // 파일 시스템에서 삭제
-        imageUploadService.delete(media.filePath)
+        val filePath = media.filePath
 
-        // 커버 이미지였다면 다른 이미지를 커버로 설정
-        if (media.isCover) {
-            val nextCoverMedia = galleryMediaRepository
-                .findByGalleryIdAndMediaTypeOrderBySortOrder(media.galleryId, MediaType.IMAGE)
-                .firstOrNull { it.id != mediaId }
+        try {
+            // 1. 커버 이미지였다면 다른 이미지를 커버로 설정 (DB 작업 먼저)
+            if (media.isCover) {
+                val nextCoverMedia = galleryMediaRepository
+                    .findByGalleryIdAndMediaTypeOrderBySortOrder(media.galleryId, MediaType.IMAGE)
+                    .firstOrNull { it.id != mediaId }
 
-            nextCoverMedia?.let {
-                val updatedMedia = it.copy(isCover = true)
-                galleryMediaRepository.save(updatedMedia)
+                nextCoverMedia?.let {
+                    val updatedMedia = it.copy(isCover = true)
+                    galleryMediaRepository.save(updatedMedia)
+                }
             }
-        }
 
-        // 미디어 삭제
-        galleryMediaRepository.delete(media)
+            // 2. DB에서 미디어 삭제
+            galleryMediaRepository.delete(media)
+
+            // 3. 갤러리 업데이트 날짜 자동 갱신 (@UpdateTimestamp)
+
+            // 4. 파일 시스템에서 삭제 (DB 작업 완료 후)
+            val deleted = imageUploadService.delete(filePath)
+            if (!deleted) {
+                logger.warn("Failed to delete file from filesystem: $filePath")
+            }
+
+        } catch (e: Exception) {
+            logger.error("Failed to delete media: $mediaId", e)
+            throw IllegalStateException("미디어 삭제에 실패했습니다: ${e.message}", e)
+        }
     }
 
     // === Private Helper Methods ===
@@ -461,29 +535,6 @@ class GalleryService(
         }
     }
 
-    private fun uploadMediaFiles(gallery: Gallery, files: List<MultipartFile>, uploadedBy: String?) {
-        files.forEachIndexed { index, file ->
-            val mediaFile = imageUploadService.upload(
-                file,
-                ImageUploadType.GALLERY,
-                UploadContext(teamSubdomain = gallery.teamSubdomain, resourceId = gallery.id)
-            )
-            val galleryMedia = GalleryMedia(
-                galleryId = gallery.id,
-                fileName = mediaFile.fileName,
-                originalFileName = file.originalFilename ?: "",
-                filePath = mediaFile.filePath,
-                fileUrl = mediaFile.fileUrl,
-                fileSize = file.size,
-                mimeType = file.contentType ?: "",
-                mediaType = determineMediaType(file.contentType),
-                sortOrder = index,
-                isCover = index == 0, // 첫 번째 파일을 커버로 설정
-                uploadedBy = uploadedBy
-            )
-            galleryMediaRepository.save(galleryMedia)
-        }
-    }
 
     private fun createGalleryTags(gallery: Gallery, tagNames: List<String>) {
         tagNames.forEach { tagName ->
