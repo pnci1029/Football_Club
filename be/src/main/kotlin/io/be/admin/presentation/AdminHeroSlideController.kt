@@ -7,6 +7,7 @@ import io.be.heroslide.dto.CreateHeroSlideRequest
 import io.be.heroslide.dto.UpdateHeroSlideRequest
 import io.be.heroslide.dto.UpdateSortOrderRequest
 import io.be.heroslide.application.HeroSlideService
+import io.be.heroslide.domain.GradientColor
 import io.be.shared.exception.UnauthorizedAdminAccessException
 import io.be.shared.security.AdminPermissionRequired
 import io.be.shared.exception.BadRequestException
@@ -70,7 +71,12 @@ class AdminHeroSlideController(
     fun createSlide(
         @RequestAttribute adminInfo: AdminInfo,
         @RequestParam teamId: Long,
-        @Valid @RequestBody request: CreateHeroSlideRequest
+        @RequestParam("file", required = false) file: MultipartFile?,
+        @RequestParam("title") title: String,
+        @RequestParam("subtitle") subtitle: String,
+        @RequestParam("gradientColor", defaultValue = "slate") gradientColor: String,
+        @RequestParam("isActive", defaultValue = "true") isActive: Boolean,
+        @RequestParam("sortOrder", defaultValue = "0") sortOrder: Int
     ): ApiResponse<HeroSlideDto> {
         // 서브도메인 관리자는 자신의 팀에만 슬라이드 생성 가능
         if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
@@ -83,6 +89,56 @@ class AdminHeroSlideController(
         }
         
         try {
+            // 입력값 검증
+            if (title.isBlank()) {
+                throw BadRequestException("제목은 필수입니다.")
+            }
+            if (subtitle.isBlank()) {
+                throw BadRequestException("부제목은 필수입니다.")
+            }
+            if (title.length > 100) {
+                throw BadRequestException("제목은 100자를 초과할 수 없습니다.")
+            }
+            if (subtitle.length > 200) {
+                throw BadRequestException("부제목은 200자를 초과할 수 없습니다.")
+            }
+            if (sortOrder < 0) {
+                throw BadRequestException("정렬 순서는 0 이상이어야 합니다.")
+            }
+            
+            // 그라데이션 색상 검증
+            val validGradientColor = try {
+                GradientColor.valueOf(gradientColor.uppercase())
+            } catch (e: IllegalArgumentException) {
+                throw BadRequestException("유효하지 않은 그라데이션 색상입니다: $gradientColor")
+            }
+            
+            // 이미지 업로드 처리
+            var backgroundImageUrl: String? = null
+            if (file != null && !file.isEmpty) {
+                val teamSubdomain = if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
+                    adminInfo.teamSubdomain!!
+                } else {
+                    "default"
+                }
+                
+                val uploadedImage = imageUploadService.upload(
+                    file,
+                    ImageUploadType.HERO_SLIDES,
+                    UploadContext(teamSubdomain = teamSubdomain, resourceId = 0L)
+                )
+                backgroundImageUrl = uploadedImage.fileUrl
+            }
+            
+            val request = CreateHeroSlideRequest(
+                title = title,
+                subtitle = subtitle,
+                backgroundImage = backgroundImageUrl,
+                gradientColor = validGradientColor,
+                isActive = isActive,
+                sortOrder = sortOrder
+            )
+            
             val slide = heroSlideService.createSlideForTeam(teamId, request)
             return ApiResponse.success(slide)
         } catch (e: IllegalArgumentException) {

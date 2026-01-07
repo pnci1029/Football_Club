@@ -44,5 +44,27 @@ data class HeroSlide(
 )
 
 enum class GradientColor {
-    SLATE, BLUE, GREEN, PURPLE, RED
+    SLATE, BLUE, GREEN, PURPLE, RED;
+    
+    companion object {
+        fun fromString(value: String): GradientColor {
+            return try {
+                valueOf(value.uppercase())
+            } catch (e: IllegalArgumentException) {
+                SLATE // 기본값
+            }
+        }
+        
+        fun fromStringOrNull(value: String?): GradientColor? {
+            return if (value.isNullOrBlank()) {
+                null
+            } else {
+                try {
+                    valueOf(value.uppercase())
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+            }
+        }
+    }
 }
