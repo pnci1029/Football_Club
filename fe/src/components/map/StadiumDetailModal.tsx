@@ -1,5 +1,6 @@
 import React from 'react';
 import { Teams } from '../../api';
+import { getTeamUrl } from '../../utils/config';
 
 interface Stadium {
   id: number;
@@ -160,7 +161,7 @@ const StadiumDetailModal: React.FC<StadiumDetailModalProps> = ({
               <button
                 onClick={() => {
                   // 서브도메인으로 이동
-                  window.location.href = `http://${stadium.teamSubdomain}.football-club.kr`;
+                  window.location.href = getTeamUrl(stadium.teamSubdomain!);
                   onClose();
                 }}
                 className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-center shadow-sm"
@@ -179,7 +180,7 @@ const StadiumDetailModal: React.FC<StadiumDetailModalProps> = ({
               onClick={() => {
                 if (stadium.teamSubdomain) {
                   // 서브도메인 + 구장 상세 경로로 이동
-                  window.location.href = `http://${stadium.teamSubdomain}.football-club.kr/stadiums?stadium=${stadium.id}`;
+                  window.location.href = `${getTeamUrl(stadium.teamSubdomain)}/stadiums?stadium=${stadium.id}`;
                 } else {
                   // 서브도메인이 없으면 기본 경로로 이동
                   window.location.href = `/stadiums?stadium=${stadium.id}`;
