@@ -60,7 +60,7 @@ class ImageUploadService(
                 fileName = fileName,
                 originalFileName = file.originalFilename ?: "unknown",
                 filePath = relativeFilePath,
-                fileUrl = "$baseUrl/$relativeFilePath",
+                fileUrl = "$baseUrl/images/$relativeFilePath",
                 thumbnailUrl = thumbnailUrl,
                 fileSize = file.size,
                 contentType = file.contentType ?: "application/octet-stream",
@@ -138,7 +138,7 @@ class ImageUploadService(
 
     private fun buildPath(uploadType: ImageUploadType, context: UploadContext): String {
         val basePath = "${uploadType.basePath}/${context.teamSubdomain}"
-        
+
         return when (uploadType.pathStrategy) {
             PathStrategy.YEAR_MONTH -> {
                 val now = LocalDateTime.now()
@@ -166,7 +166,7 @@ class ImageUploadService(
         val randomString = UUID.randomUUID().toString().substring(0, 8)
         val originalFilename = file.originalFilename ?: "unknown"
         val fileExtension = getFileExtension(originalFilename)
-        
+
         val prefix = when (uploadType) {
             ImageUploadType.GALLERY -> "gallery_${context.resourceId}"
             ImageUploadType.HERO_SLIDES -> "hero"

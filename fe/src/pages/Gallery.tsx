@@ -156,7 +156,6 @@ const GalleryPage: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">🖼️</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">갤러리를 찾을 수 없습니다</h2>
           <p className="text-gray-600">팀 정보를 확인해주세요.</p>
         </div>
@@ -171,7 +170,7 @@ const GalleryPage: React.FC = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-4 mb-4">
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-              🖼️ {currentTeam.name} 갤러리
+              {currentTeam.name} 갤러리
             </h1>
             {isAdmin && (
               <button
@@ -211,16 +210,15 @@ const GalleryPage: React.FC = () => {
         />
 
         {/* 로딩 스피너 */}
-        {isLoading && (galleries || []).length === 0 && (
+        {isLoading && galleries.length === 0 && (
           <div className="flex justify-center py-12">
             <LoadingSpinner />
           </div>
         )}
 
         {/* 빈 상태 */}
-        {!isLoading && (galleries || []).length === 0 && (
+        {!isLoading && galleries.length === 0 && (
           <div className="text-center py-16">
-            <div className="text-6xl mb-4">🖼️</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">갤러리가 비어있습니다</h3>
             <p className="text-gray-600">아직 업로드된 사진이나 영상이 없습니다.</p>
           </div>
