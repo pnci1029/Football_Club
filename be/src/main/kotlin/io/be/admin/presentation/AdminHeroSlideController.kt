@@ -11,17 +11,22 @@ import io.be.shared.exception.UnauthorizedAdminAccessException
 import io.be.shared.security.AdminPermissionRequired
 import io.be.shared.exception.BadRequestException
 import io.be.team.application.TeamService
+import io.be.shared.service.ImageUploadService
+import io.be.shared.service.ImageUploadType
+import io.be.shared.service.UploadContext
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import io.be.shared.util.ApiResponse
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/v1/admin/hero-slides")
 @CrossOrigin(origins = ["*"])
 class AdminHeroSlideController(
     private val heroSlideService: HeroSlideService,
-    private val teamService: TeamService
+    private val teamService: TeamService,
+    private val imageUploadService: ImageUploadService
 ) {
     
     @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
@@ -167,6 +172,53 @@ class AdminHeroSlideController(
             return ApiResponse.success("updated")
         } catch (e: IllegalArgumentException) {
             throw BadRequestException(e.message ?: "Invalid request")
+        }
+    }
+    
+    /**
+     * 히어로 슬라이드 이미지 업로드
+     */
+    @AdminPermissionRequired(level = AdminLevel.SUBDOMAIN)
+    @PostMapping("/{id}/image")
+    fun uploadSlideImage(
+        @RequestAttribute adminInfo: AdminInfo,
+        @PathVariable id: Long,
+        @RequestParam("file") file: MultipartFile
+    ): ApiResponse<Map<String, String>> {
+        // 서브도메인 관리자는 자신의 팀 슬라이드만 업로드 가능
+        if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
+            val existingSlide = heroSlideService.getSlideById(id)
+                ?: throw UnauthorizedAdminAccessException("Slide not found")
+            
+            val team = teamService.findByCode(adminInfo.teamSubdomain!!)
+                ?: throw UnauthorizedAdminAccessException("Invalid team subdomain")
+            
+            if (existingSlide.teamId != team.id) {
+                throw UnauthorizedAdminAccessException("Subdomain admin can only upload images for slides from their own team")
+            }
+        }
+        
+        try {
+            val teamSubdomain = if (adminInfo.adminLevel == AdminLevel.SUBDOMAIN) {
+                adminInfo.teamSubdomain!!
+            } else {
+                // MASTER인 경우 기본값 사용 (추후 개선 필요)
+                "default"
+            }
+            
+            val uploadedImage = imageUploadService.upload(
+                file,
+                ImageUploadType.HERO_SLIDES,
+                UploadContext(teamSubdomain = teamSubdomain, resourceId = id)
+            )
+            
+            return ApiResponse.success(mapOf(
+                "fileName" to uploadedImage.fileName,
+                "fileUrl" to uploadedImage.fileUrl,
+                "filePath" to uploadedImage.filePath
+            ))
+        } catch (e: Exception) {
+            throw BadRequestException("이미지 업로드 실패: ${e.message}")
         }
     }
 }

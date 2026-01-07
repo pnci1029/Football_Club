@@ -3,6 +3,9 @@ package io.be.gallery.application
 import io.be.gallery.domain.*
 import io.be.gallery.dto.*
 import io.be.shared.security.TenantContextHolder
+import io.be.shared.service.ImageUploadService
+import io.be.shared.service.ImageUploadType
+import io.be.shared.service.UploadContext
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -22,7 +25,7 @@ class GalleryService(
     private val galleryMediaRepository: GalleryMediaRepository,
     private val galleryTagRepository: GalleryTagRepository,
     private val highlightMetadataRepository: HighlightMetadataRepository,
-    private val fileStorageService: FileStorageService,
+    private val imageUploadService: ImageUploadService,
     private val galleryMapper: GalleryMapper
 ) {
 
@@ -328,7 +331,11 @@ class GalleryService(
 
         files.forEachIndexed { index, file ->
             try {
-                val mediaFile = fileStorageService.uploadGalleryMedia(file, galleryId, "default")
+                val mediaFile = imageUploadService.upload(
+                    file, 
+                    ImageUploadType.GALLERY,
+                    UploadContext(teamSubdomain = getCurrentTeamSubdomain(), resourceId = galleryId)
+                )
 
                 val galleryMedia = GalleryMedia(
                     galleryId = galleryId,
@@ -368,7 +375,7 @@ class GalleryService(
         validateGalleryAccess(gallery, teamSubdomain)
 
         // 파일 시스템에서 삭제
-        fileStorageService.deleteFile(media.filePath)
+        imageUploadService.delete(media.filePath)
 
         // 커버 이미지였다면 다른 이미지를 커버로 설정
         if (media.isCover) {
@@ -456,7 +463,11 @@ class GalleryService(
 
     private fun uploadMediaFiles(gallery: Gallery, files: List<MultipartFile>, uploadedBy: String?) {
         files.forEachIndexed { index, file ->
-            val mediaFile = fileStorageService.uploadGalleryMedia(file, gallery.id, gallery.teamSubdomain)
+            val mediaFile = imageUploadService.upload(
+                file,
+                ImageUploadType.GALLERY,
+                UploadContext(teamSubdomain = gallery.teamSubdomain, resourceId = gallery.id)
+            )
             val galleryMedia = GalleryMedia(
                 galleryId = gallery.id,
                 fileName = mediaFile.fileName,

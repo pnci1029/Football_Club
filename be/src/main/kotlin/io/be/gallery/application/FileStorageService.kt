@@ -12,6 +12,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+@Deprecated("Use ImageUploadService instead", ReplaceWith("ImageUploadService"))
 @Service
 class FileStorageService(
     @Value("\${app.image.upload-path:/opt/football-club/images}")
