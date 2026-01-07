@@ -10,13 +10,33 @@ export class HeroService {
     return apiClient.get<HeroSlide[]>(`/api/v1/admin/hero-slides?teamId=${teamId}`);
   }
 
-  static async createSlide(teamId: number, data: CreateHeroSlideRequest): Promise<HeroSlide> {
-    const payload = {
-      ...data,
-      teamId,
-      gradientColor: data.gradientColor.toUpperCase()
-    };
-    return apiClient.post<HeroSlide>(`/api/v1/admin/hero-slides?teamId=${teamId}`, payload);
+  static async createSlide(teamId: number, data: CreateHeroSlideRequest, file?: File): Promise<HeroSlide> {
+    const formData = new FormData();
+    formData.append('teamId', teamId.toString());
+    formData.append('title', data.title);
+    formData.append('subtitle', data.subtitle);
+    formData.append('gradientColor', data.gradientColor.toLowerCase());
+    formData.append('isActive', data.isActive.toString());
+    formData.append('sortOrder', data.sortOrder.toString());
+    
+    if (file) {
+      formData.append('file', file);
+    }
+    
+    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8082'}/api/v1/admin/hero-slides?teamId=${teamId}`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`생성 실패: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    return result.data;
   }
 
   static async updateSlide(id: number, data: UpdateHeroSlideRequest): Promise<HeroSlide> {

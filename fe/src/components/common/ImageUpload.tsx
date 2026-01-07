@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ImageService } from '../../services/imageService';
+import { ImageService, StandardUploadResult } from '../../services/imageService';
 import LoadingSpinner from './LoadingSpinner';
 
 interface ImageUploadProps {
@@ -8,6 +8,7 @@ interface ImageUploadProps {
   onError?: (error: string) => void;
   className?: string;
   placeholder?: string;
+  uploadFn?: (file: File) => Promise<StandardUploadResult>;
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -15,7 +16,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   onChange,
   onError,
   className = '',
-  placeholder = '이미지를 업로드하세요'
+  placeholder = '이미지를 업로드하세요',
+  uploadFn = ImageService.uploadGeneral
 }) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>(value);
@@ -29,8 +31,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       const preview = ImageService.createPreviewUrl(file);
       setPreviewUrl(preview);
 
-      // 파일 업로드
-      const result = await ImageService.uploadImage(file);
+      // 주입받은 업로드 함수 사용
+      const result = await uploadFn(file);
       
       // 미리보기 URL 해제
       ImageService.revokePreviewUrl(preview);

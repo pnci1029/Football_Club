@@ -7,6 +7,7 @@ import { Button, Card, LoadingSpinner, Modal } from '../../components/common';
 import ImageUpload from '../../components/common/ImageUpload';
 import { useToast } from '../../components/Toast';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
+import { ImageService } from '../../services/imageService';
 
 const AdminHeroSlides: React.FC = () => {
   const { teamId } = useParams<{ teamId: string }>();
@@ -26,6 +27,7 @@ const AdminHeroSlides: React.FC = () => {
     sortOrder: 0
   });
   const [submitting, setSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const gradientNames = {
     slate: '슬레이트 (회색)',
@@ -37,6 +39,7 @@ const AdminHeroSlides: React.FC = () => {
 
   const handleCreate = () => {
     setEditingSlide(null);
+    setSelectedFile(null);
     setFormData({
       title: '',
       subtitle: '',
@@ -50,6 +53,7 @@ const AdminHeroSlides: React.FC = () => {
 
   const handleEdit = (slide: HeroSlide) => {
     setEditingSlide(slide);
+    setSelectedFile(null);
     setFormData({
       title: slide.title,
       subtitle: slide.subtitle,
@@ -75,7 +79,8 @@ const AdminHeroSlides: React.FC = () => {
         await HeroService.updateSlide(editingSlide.id, formData);
         success('슬라이드가 수정되었습니다.');
       } else {
-        await HeroService.createSlide(teamIdNumber, formData);
+        // 새 슬라이드 생성 시 파일과 함께 전송
+        await HeroService.createSlide(teamIdNumber, formData, selectedFile || undefined);
         success('슬라이드가 생성되었습니다.');
       }
       
@@ -289,11 +294,39 @@ const AdminHeroSlides: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               배경 이미지 (선택)
             </label>
-            <ImageUpload
-              value={formData.backgroundImage}
-              onChange={(url) => setFormData({...formData, backgroundImage: url})}
-              placeholder="배경 이미지를 업로드하세요"
-            />
+            {editingSlide ? (
+              // 기존 슬라이드 수정 시 히어로 슬라이드 전용 업로드 사용
+              <ImageUpload
+                value={formData.backgroundImage}
+                onChange={(url) => setFormData({...formData, backgroundImage: url})}
+                placeholder="배경 이미지를 업로드하세요"
+                uploadFn={(file) => ImageService.uploadHeroSlideStandard(file, editingSlide.id)}
+              />
+            ) : (
+              // 새 슬라이드 생성 시 파일만 선택
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setSelectedFile(file);
+                      setFormData({...formData, backgroundImage: URL.createObjectURL(file)});
+                    }
+                  }}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {selectedFile && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600">선택된 파일: {selectedFile.name}</p>
+                    {formData.backgroundImage && (
+                      <img src={formData.backgroundImage} alt="미리보기" className="mt-2 h-20 object-cover rounded" />
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             <p className="text-xs text-gray-500 mt-1">
               배경 이미지가 있으면 그라데이션 대신 표시됩니다
             </p>

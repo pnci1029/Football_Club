@@ -12,6 +12,12 @@ export interface ImageUploadError {
   error: string;
 }
 
+export interface StandardUploadResult {
+  url: string;
+  fileName: string;
+  fileSize: number;
+}
+
 export class ImageService {
   private static getBaseUrl(): string {
     return getApiBaseUrl();
@@ -107,6 +113,76 @@ export class ImageService {
    */
   static revokePreviewUrl(url: string): void {
     URL.revokeObjectURL(url);
+  }
+
+  /**
+   * 히어로 슬라이드 이미지를 업로드합니다.
+   */
+  static async uploadHeroSlideImage(file: File, slideId: number): Promise<{fileUrl: string; fileName: string; filePath: string}> {
+    try {
+      // 파일 크기 검증 (50MB)
+      const MAX_SIZE = 50 * 1024 * 1024;
+      if (file.size > MAX_SIZE) {
+        throw new Error('파일 크기가 50MB를 초과합니다.');
+      }
+
+      // 파일 형식 검증
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error('지원되지 않는 파일 형식입니다. (jpg, png, gif, webp만 허용)');
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${this.getBaseUrl()}/api/v1/admin/hero-slides/${slideId}/image`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`업로드 실패: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || '업로드에 실패했습니다.');
+      }
+
+      return result.data;
+
+    } catch (error) {
+      console.error('Hero slide image upload error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 일반 이미지 업로드 (통일된 인터페이스)
+   */
+  static async uploadGeneral(file: File): Promise<StandardUploadResult> {
+    const result = await this.uploadImage(file);
+    return {
+      url: result.url,
+      fileName: result.filename,
+      fileSize: result.size
+    };
+  }
+
+  /**
+   * 히어로 슬라이드 이미지 업로드 (통일된 인터페이스)
+   */
+  static async uploadHeroSlideStandard(file: File, slideId: number): Promise<StandardUploadResult> {
+    const result = await this.uploadHeroSlideImage(file, slideId);
+    return {
+      url: result.fileUrl,
+      fileName: result.fileName,
+      fileSize: file.size
+    };
   }
 
   /**
