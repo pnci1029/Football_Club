@@ -138,9 +138,9 @@ const Stadiums: React.FC = () => {
             {isAuthenticated && admin && (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
               >
-                구장 추가
+                + 구장 추가
               </button>
             )}
 
@@ -249,7 +249,7 @@ const Stadiums: React.FC = () => {
                               navigator.clipboard.writeText(stadium.address);
                               success('주소가 복사되었습니다!');
                             }}
-                            className="ml-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                            className="ml-3 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-md transition-colors"
                             title="주소 복사"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,13 +324,13 @@ const Stadiums: React.FC = () => {
                           {facilities.slice(0, 6).map((facility, index) => (
                             <span
                               key={index}
-                              className="inline-flex items-center px-3 py-1.5 rounded text-sm bg-gray-100 text-gray-700 border border-gray-200"
+                              className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-700"
                             >
                               {facility}
                             </span>
                           ))}
                           {facilities.length > 6 && (
-                            <span className="inline-flex items-center px-3 py-1.5 rounded text-sm bg-gray-200 text-gray-600 border border-gray-300">
+                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-200 text-gray-600">
                               +{facilities.length - 6}개 더
                             </span>
                           )}
@@ -339,18 +339,17 @@ const Stadiums: React.FC = () => {
                     )}
 
                     {/* 액션 버튼들 */}
-                    <div className={`grid gap-3 ${isAuthenticated && admin ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2'}`}>
+                    <div className="flex flex-wrap gap-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleViewMap(stadium);
                         }}
-                        className="px-4 py-3 text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-200 rounded-lg hover:bg-gray-200 hover:text-gray-700 transition-colors"
                       >
                         지도보기
                       </button>
 
-                      {/* 길찾기 버튼 */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -362,7 +361,7 @@ const Stadiums: React.FC = () => {
                             window.open(searchUrl, '_blank');
                           }
                         }}
-                        className="px-4 py-3 text-sm font-semibold text-green-700 bg-gradient-to-r from-green-100 to-green-200 border border-green-300 rounded-xl hover:from-green-200 hover:to-green-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
                       >
                         길찾기
                       </button>
@@ -375,9 +374,9 @@ const Stadiums: React.FC = () => {
                               e.stopPropagation();
                               handleEditStadium(stadium);
                             }}
-                            className="px-4 py-3 text-sm font-semibold text-blue-700 bg-gradient-to-r from-blue-100 to-blue-200 border border-blue-300 rounded-xl hover:from-blue-200 hover:to-blue-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                            className="px-3 py-2 text-sm font-medium text-green-600 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
                           >
-                            ✏️ 수정
+                            수정
                           </button>
                           <button
                             onClick={async (e) => {
@@ -393,9 +392,9 @@ const Stadiums: React.FC = () => {
                                 }
                               }
                             }}
-                            className="px-4 py-3 text-sm font-semibold text-red-700 bg-gradient-to-r from-red-100 to-red-200 border border-red-300 rounded-xl hover:from-red-200 hover:to-red-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                            className="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
                           >
-                            🗑️ 삭제
+                            삭제
                           </button>
                         </>
                       )}

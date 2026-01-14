@@ -172,14 +172,14 @@ const Home: React.FC = React.memo(() => {
             ))}
           </div>
         ) : mainPlayers.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-12 sm:mb-16 lg:mb-20">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6 mb-12 sm:mb-16 lg:mb-20">
             {mainPlayers.map((player, index) => (
               <div
                 key={player.id}
-                className="transform hover:scale-105 transition-all duration-300"
+                className="opacity-0 animate-fadeInUp"
                 style={{
                   animationDelay: `${index * 100}ms`,
-                  animation: 'fadeInUp 0.6s ease-out forwards'
+                  animationFillMode: 'forwards'
                 }}
               >
                 <PlayerCard
