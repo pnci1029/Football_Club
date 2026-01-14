@@ -130,14 +130,6 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
         </div>
       </div>
 
-      {/* 빈 상태 */}
-      {!isLoading && galleries.length === 0 && (
-        <div className="text-center py-16">
-          <div className="text-6xl mb-4">📄</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">갤러리가 비어있습니다</h3>
-          <p className="text-gray-600">아직 등록된 갤러리가 없습니다.</p>
-        </div>
-      )}
 
       {/* 더 보기 버튼 */}
       {hasMore && !isLoading && galleries.length > 0 && (
@@ -158,12 +150,6 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
         </div>
       )}
 
-      {/* 전체 로딩 표시 */}
-      {isLoading && galleries.length === 0 && (
-        <div className="flex justify-center py-16">
-          <LoadingSpinner />
-        </div>
-      )}
     </>
   );
 };
